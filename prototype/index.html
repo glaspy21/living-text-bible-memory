@@ -60,7 +60,8 @@ aside.side{border-right:1px solid var(--line);padding:16px 12px;overflow:auto;ba
 .side h4{font-size:10.5px;letter-spacing:.16em;color:var(--gold-dim);text-transform:uppercase;margin:22px 12px 8px;font-weight:500}
 .rec{display:flex;gap:10px;align-items:center;width:100%;padding:7px 8px;border-radius:6px;text-align:left}
 .rec:hover{background:rgba(201,164,92,.06)}
-.thumb{width:40px;height:40px;border-radius:5px;flex:none;border:1px solid var(--line)}
+.thumb{width:40px;height:40px;border-radius:5px;flex:none;border:1px solid var(--line);position:relative;overflow:hidden;display:block}
+.thumb .scene{position:absolute;inset:0;width:100%;height:100%}
 .rec b{display:block;font-family:var(--display);font-size:16px;font-weight:500}
 .rec small{color:var(--muted);font-size:11.5px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:inline-block}
@@ -157,11 +158,10 @@ footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(
 .opt h2{color:var(--text);font-size:24px}.opt .sub{font-family:var(--serif);font-size:15px}.opt .go{margin-left:auto;color:var(--gold);font-size:24px}
 
 /* home */
-.hero{width:100%;max-width:880px;border-radius:14px;border:1px solid var(--line);overflow:hidden;text-align:center;padding:34px 20px 26px;position:relative;
- background:radial-gradient(600px 240px at 92% -10%,rgba(255,226,160,.38),transparent 65%),linear-gradient(180deg,#1c1710 0%,#0b0a08 55%,#070707 100%)}
-.hero:before{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6)),linear-gradient(160deg,transparent 40%,#14110c 41%,#14110c 60%,transparent 61%),linear-gradient(200deg,transparent 45%,#100e0a 46%,#100e0a 70%,transparent 71%)}
-.hero img{width:250px;border-radius:10px;position:relative}
-.hint-img{font-size:11px;color:var(--gold-dim);margin-top:10px;position:relative}
+.hero{width:100%;max-width:880px;height:310px;border-radius:14px;border:1px solid var(--line2);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#08080a}
+.hero .scene{position:absolute;inset:0;width:100%;height:100%}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),transparent 35%,rgba(7,7,7,.75) 100%);pointer-events:none}
+.hero .herologo{position:relative;z-index:2;width:250px;filter:brightness(1.35) contrast(1.1) drop-shadow(0 4px 18px rgba(0,0,0,.7))}
 
 /* verse selector */
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:9px;margin-top:16px}
@@ -211,6 +211,26 @@ tr:hover td{background:rgba(201,164,92,.04)}
 .flag{font-size:11.5px}.flag.err{color:var(--err)}.flag.warn{color:var(--warn)}.flag.ok{color:var(--ok)}
 .note{padding:10px 14px;border-left:2px solid var(--gold);background:rgba(201,164,92,.06);color:var(--muted);border-radius:0 6px 6px 0;font-size:12.5px;margin-top:14px}
 .apbar{height:4px;background:#2c2a26;border-radius:4px;position:relative}.apbar i{position:absolute;left:0;top:0;bottom:0;width:30%;background:var(--gold);border-radius:4px}
+.v{transition:opacity .35s ease,background .2s}
+.btn,.ico,.vb,.cb,.nav button,.opt,.rec,.mini,.tri,.sd i{transition:background .2s,box-shadow .25s,border-color .2s,color .2s,transform .15s}
+.vb:active,.cb:active,.btn:active{transform:scale(.97)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes cardin{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes raysway{0%,100%{transform:rotate(-1.8deg);opacity:.85}50%{transform:rotate(1.8deg);opacity:1}}
+@keyframes mistdrift{from{transform:translateX(-5%)}to{transform:translateX(5%)}}
+@keyframes sunpulse{0%,100%{opacity:.82}50%{opacity:1}}
+#app.enter main{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+#app.enter aside.right{animation:fadein .5s .1s both}
+.fc.cardin{animation:cardin .4s cubic-bezier(.2,.7,.2,1) both}
+.menu{animation:pop .16s ease-out;transform-origin:bottom left}.menu.r{transform-origin:bottom right}
+.navpanel{animation:pop .2s ease-out}.navback{animation:fadein .2s}
+.scripture .v.big{animation:fadein .4s ease both}
+.sun{animation:sunpulse 9s ease-in-out infinite}
+.rays{animation:raysway 11s ease-in-out infinite}
+.mist{animation:mistdrift 20s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 @media (max-width:1100px){#app,#app.noright{grid-template-columns:1fr}#app aside.side,#app aside.right{display:none}header.top{grid-template-columns:1fr auto !important}}
 </style>
 </head>
@@ -264,6 +284,46 @@ const S={screen:'home',step:0,
 const SCREENS=[['home','Home','L'],['read','Reader','L'],['nav','Book selector','L'],['choice','Memorize','L'],['steps','Steps','L'],['cards','Flashcards','L'],['range','Verse range','L'],
  ['dash','Dashboard','A'],['upload','Upload','A'],['library','Library','A'],['timing','Timing editor','A'],['publish','Preview & publish','A']];
 
+
+/* ---------- procedural scenery (placeholder for photography) ---------- */
+let _uid=0;
+function rng(seed){let x=seed;return()=>((x=(x*16807)%2147483647)/2147483647)}
+function ridge(seed,W,H,base,amp,steps){const r=rng(seed);const p=[];for(let i=0;i<=steps;i++){const t=i/steps;const swell=Math.abs(Math.sin(t*Math.PI*(1.5+(seed%3)*.35)+seed))*amp;p.push((t*W).toFixed(1)+','+(base-swell-r()*amp*.32).toFixed(1))}return 'M0,'+H+' L'+p.join(' L')+' L'+W+','+H+' Z'}
+function pines(seed,base,x0,x1,n,h,fill){const r=rng(seed);let o='';for(let i=0;i<n;i++){const x=x0+(x1-x0)*r(),hh=h*(.55+r()*.8),w=hh*.3;let y=base;for(let k=0;k<3;k++){const tw=w*(1-k*.22),th=hh*.42;o+=`<path d="M${(x-tw).toFixed(1)},${y.toFixed(1)} L${x.toFixed(1)},${(y-th).toFixed(1)} L${(x+tw).toFixed(1)},${y.toFixed(1)}Z" fill="${fill}"/>`;y-=th*.5}}return o}
+const PAL={
+ hero:{sky:['#06070b','#17140f','#6a4a1c'],sun:'#ffe2a0',far:['#7a5826','#2a1f10'],mid:['#33270f','#150f09'],near:'#09080600',sx:.86,sy:.08},
+ river:{sky:['#0a0b10','#2a2013','#c18530'],sun:'#ffe9b0',far:['#94692b','#3a2a12'],mid:['#33270f','#17110a'],near:'#0a0907',sx:.72,sy:.2},
+ sheep:{sky:['#17110b','#74491a','#e6ac52'],sun:'#fff0c0',far:['#83592a','#2d2010'],mid:['#2e2411','#130f08'],near:'#0c0a06',sx:.3,sy:.34},
+ trail:{sky:['#0b0c11','#2d2214','#b27b2c'],sun:'#ffe0a0',far:['#80592b','#2b1f10'],mid:['#2e2312','#15100a'],near:'#0a0907',sx:.86,sy:.16}};
+function scene(kind,W,H,motion){
+ const id='sc'+(++_uid),P=PAL[kind],sx=W*P.sx,sy=H*P.sy,seed=[...kind].reduce((a,c)=>a+c.charCodeAt(0),0);
+ const m=motion?'':'';
+ let rays='';
+ if(kind!=='sheep'){for(let i=0;i<11;i++){const a=(98+i*8.2+(i%2)*2)*Math.PI/180,w=.026+((i*37)%5)*.008,L=W*1.7;
+  const q=g=>`${(sx+Math.cos(g)*L).toFixed(0)},${(sy+Math.sin(g)*L).toFixed(0)}`;
+  rays+=`<polygon points="${sx.toFixed(0)},${sy.toFixed(0)} ${q(a-w)} ${q(a+w)}" fill="url(#${id}r)" opacity="${(.32+((i*13)%4)*.12).toFixed(2)}"/>`}}
+ const far=ridge(seed,W,H,H*.64,H*.32,64),mid=ridge(seed+5,W,H,H*.76,H*.2,72),near=ridge(seed+9,W,H,H*.93,H*.12,56);
+ const river=(kind==='hero'||kind==='river')?`<path d="M${W*.47},${H*.7} C${W*.53},${H*.78} ${W*.4},${H*.86} ${W*.5},${H} L${W*.8},${H} C${W*.64},${H*.88} ${W*.62},${H*.78} ${W*.52},${H*.7}Z" fill="url(#${id}w)" opacity=".8"/>`:'';
+ const sheep=kind==='sheep'?`<path d="M0,${H} L0,${H*.8} Q${W*.5},${H*.62} ${W},${H*.82} L${W},${H}Z" fill="#241b0e"/><path d="M0,${H*.8} Q${W*.5},${H*.62} ${W},${H*.82}" fill="none" stroke="#d9a441" stroke-opacity=".55" stroke-width="1.2"/>
+  <g transform="translate(${W*.52},${H*.7}) scale(${H/120})"><circle cx="-12" cy="0" r="9" fill="#efe3c6"/><circle cx="-2" cy="-6" r="10" fill="#f4ead0"/><circle cx="9" cy="-3" r="10" fill="#efe3c6"/><circle cx="16" cy="3" r="8" fill="#e6d8b8"/><circle cx="1" cy="4" r="10" fill="#e9dcbe"/><ellipse cx="25" cy="2" rx="6" ry="7" fill="#2b2016"/><rect x="-8" y="9" width="3" height="10" fill="#2b2016"/><rect x="8" y="9" width="3" height="10" fill="#2b2016"/></g>`:'';
+ const trees=kind==='sheep'?'':pines(seed,H,0,W*.22,Math.round(W/70),H*.34,P.near)+pines(seed+3,H,W*.78,W,Math.round(W/80),H*.3,P.near);
+ const nearFill=kind==='sheep'?'none':P.near;
+ return `<svg class="scene" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+ <defs><linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.sky[0]}"/><stop offset=".55" stop-color="${P.sky[1]}"/><stop offset="1" stop-color="${P.sky[2]}"/></linearGradient>
+ <radialGradient id="${id}g" cx="${sx}" cy="${sy}" r="${W*.75}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe2a0" stop-opacity=".75"/><stop offset=".25" stop-color="#e8b85c" stop-opacity=".28"/><stop offset="1" stop-color="#e8b85c" stop-opacity="0"/></radialGradient>
+ <radialGradient id="${id}r" cx="${sx}" cy="${sy}" r="${W*1.05}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe6ae" stop-opacity=".55"/><stop offset="1" stop-color="#ffe6ae" stop-opacity="0"/></radialGradient>
+ <linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.far[0]}"/><stop offset="1" stop-color="${P.far[1]}"/></linearGradient>
+ <linearGradient id="${id}m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.mid[0]}"/><stop offset="1" stop-color="${P.mid[1]}"/></linearGradient>
+ <linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b85c" stop-opacity=".85"/><stop offset="1" stop-color="#3a2a10" stop-opacity=".9"/></linearGradient>
+ <filter id="${id}b"><feGaussianBlur stdDeviation="${Math.max(4,H/28)}"/></filter></defs>
+ <rect width="${W}" height="${H}" fill="url(#${id}s)"/><rect width="${W}" height="${H}" fill="url(#${id}g)"/>
+ <g class="rays" style="transform-origin:${sx.toFixed(0)}px ${sy.toFixed(0)}px">${rays}</g>
+ <circle cx="${sx}" cy="${sy}" r="${Math.max(3,H*.03)}" fill="${P.sun}"/>
+ <path d="${far}" fill="url(#${id}f)"/><path d="${far}" fill="none" stroke="#f0cf8a" stroke-opacity=".28" stroke-width="1"/>
+ <g class="mist" filter="url(#${id}b)"><ellipse cx="${W*.32}" cy="${H*.7}" rx="${W*.3}" ry="${H*.05}" fill="#f0d79a" opacity=".16"/><ellipse cx="${W*.72}" cy="${H*.76}" rx="${W*.26}" ry="${H*.045}" fill="#f0d79a" opacity=".12"/></g>
+ <path d="${mid}" fill="url(#${id}m)"/>${river}${sheep}
+ ${nearFill==='none'?'':`<path d="${near}" fill="${nearFill}"/>`}${trees}</svg>`}
+
 const $=s=>document.querySelector(s);
 const fmt=t=>t==null?'':(Math.floor(t/60)+':'+(t%60).toFixed(2).padStart(5,'0'));
 const parse=v=>{v=String(v).trim();if(!v)return null;if(v.includes(':')){const[m,s]=v.split(':');return (+m)*60+(+s)}return +v};
@@ -271,7 +331,7 @@ const refName=()=>S.book+' '+S.chap;
 const isJ1=()=>S.book==='John'&&S.chap===1;
 const vt=n=>(isJ1()&&VERSES[n-1])||'Placeholder — only John 1:1–10 is loaded in this prototype.';
 const curMode=()=>(S.screen==='read'||S.screen==='home')?S.modes.read:S.modes.practice;
-function go(s){S.menu=null;S.help=false;S.revealed=false;
+function go(s){S.menu=null;S.help=false;S.revealed=false;S.enter=true;
  if(s==='nav'){S.screen='read';S.nav=true}else{S.screen=s;S.nav=false}render()}
 
 function reviewBar(){
@@ -299,7 +359,7 @@ function tog(k){S.menu=S.menu===k?null:k;render()}
 function setMode(k){if(S.screen==='read'||S.screen==='home')S.modes.read=k;else S.modes.practice=k;S.menu=null;render()}
 function setGenre(g){S.genre=g;S.menu=null;render()}
 function skip(d){
- if(S.screen==='steps'){S.cur=Math.max(S.range.a,Math.min(S.range.b,S.cur+d));S.revealed=false;render()}
+ if(S.screen==='steps')focusTo(Math.max(S.range.a,Math.min(S.range.b,S.cur+d)))
  else if(S.screen==='cards')fcMove(d)}
 
 /* ---------- chrome ---------- */
@@ -307,7 +367,7 @@ function header(center,admin,arrow){
  return `<header class="top"><div class="brand"><img src="assets/reference/logo-reference-mark.png" alt="LT"><span>${admin?'LIVING TEXT · ADMIN':'LIVING TEXT'}</span></div>
  <button class="ref" ${admin?'':'onclick="S.nav=!S.nav;if(S.nav)S.screen=S.screen;render()"'}>${center}${arrow?'<small>▾</small>':''}</button>
  <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="esv">ESV <small>▾</small></span><span class="more">•••</span>'}</div></header>`;}
-function thumb(a,b){return `<span class="thumb" style="background:linear-gradient(160deg,${a},${b})"></span>`}
+function thumb(a){const kind={'#c99c44':'river','#d9a441':'sheep','#8f7440':'trail'}[a]||'river';return `<span class="thumb">${scene(kind,120,120)}</span>`}
 function listenerSide(active){
  const nav=[['home','Home'],['read','Read Scripture'],['choice','Memorize'],['cards','Flashcards']];
  return `<aside class="side"><div class="nav">${nav.map(([k,l])=>`<button class="${active===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</div>
@@ -326,20 +386,23 @@ function navPanel(){if(!S.nav)return '';
   return `<button class="nb ${open||(b===S.book&&!S.navBook)?'on':''}" onclick="navBook('${b}')"><span>${b}</span>${mus?'<i class="dot" title="Music available"></i>':''}</button>`+
   (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')}</div></div>`}
 function navBook(b){S.navBook=S.navBook===b?null:b;render()}
-function pickChap(b,c){S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
+function pickChap(b,c){S.enter=true;S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
 
 /* ---------- verse helpers ---------- */
 function dashed(t){const n=Math.max(1,Math.ceil(t.length/70));return Array.from({length:n},(_,i)=>`<div class="dl" style="width:${i===n-1&&n>1?55+((t.length*7)%35):100}%"></div>`).join('')}
-function verseRow(n,body,cls,click){return `<div class="v ${cls||''}" ${click?`onclick="${click}"`:''}><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
+function verseRow(n,body,cls,click){return `<div class="v ${cls||''}" data-n="${n}" ${click?`onclick="${click}"`:''}><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
 // single vs multi verse view: Listen/Recall default single, Sing defaults multi, until the user toggles it
 const multiOn=st=>S.multi===null?st===1:S.multi;
 function toggleMulti(){if(S.step===3)return;S.multi=!multiOn(S.step);S.revealed=false;render()}
-function setCur(n){S.cur=n;S.revealed=false;render()}
+function focusTo(n){S.cur=n;S.revealed=false;
+ if(S.screen==='steps'&&S.step<2&&multiOn(S.step)){document.querySelectorAll('.scripture .v').forEach(e=>e.classList.toggle('fade',+e.dataset.n!==n));const l=$('#focuslbl');if(l)l.textContent='Focus: verse '+n+' · click a verse to move focus'}
+ else render()}
+function setCur(n){focusTo(n)}
 
 /* ---------- LISTENER ---------- */
 const V={};
 V.home=()=>{setApp('noright noplayer');return sun()+header('Home')+listenerSide('home')+`<main class="center"><div class="col" style="max-width:880px;display:flex;flex-direction:column;align-items:center;padding-top:6px">
- <div class="hero"><img src="assets/reference/logo-reference-wordmark.png" alt="Living Text logo reference"><div class="hint-img">Hero artwork placeholder — landscape image to be supplied</div></div>
+ <div class="hero">${scene('hero',880,310)}<img class="herologo" src="assets/reference/logo-reference-wordmark-cutout.png" alt="Living Text logo reference"></div>
  <div style="width:100%;max-width:720px;margin-top:22px">
   <button class="opt" onclick="go('steps')" style="padding:18px 22px"><span class="bi" style="color:var(--gold)">${ICON.note.replace('<svg','<svg class="big"')}</span><span><h2>Continue</h2><div class="sub">John 1:1 · last: Sing</div></span><span class="go">›</span></button>
   <button class="opt" onclick="go('read')" style="padding:18px 22px"><span class="bi">${ICON.book.replace('<svg','<svg class="big"')}</span><span><h2>Browse Scripture</h2><div class="sub">Choose a book and chapter</div></span><span class="go">›</span></button>
@@ -371,7 +434,7 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  else if(!multi)body=verseRow(S.cur,content(S.cur,st===2),'big');
  else body=all.map(n=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':'fade'),`setCur(${n})`)).join('');
  return sun()+header(refName()+':'+a+'–'+b)+listenerSide('choice')+`<main><div class="fillcol" style="max-width:760px">
-  <div class="row between"><button class="mini ${multi||st===3?'on':''}" title="${st===3?'Chain always shows the whole passage':multi?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}" onclick="toggleMulti()">${ICON.list}</button><span class="sub">${st===3?'Whole passage':multi?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+a+'–'+b}</span></div>
+  <div class="row between"><button class="mini ${multi||st===3?'on':''}" title="${st===3?'Chain always shows the whole passage':multi?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}" onclick="toggleMulti()">${ICON.list}</button><span class="sub" id="focuslbl">${st===3?'Whole passage':multi?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+a+'–'+b}</span></div>
   <div class="scripture" style="flex:1;margin-top:26px">${body}</div>
   ${st>=2?`<div style="text-align:center;margin:14px 0"><button class="btn" style="padding:12px 34px;font-family:var(--display);font-size:19px;border-radius:99px" onclick="S.revealed=!S.revealed;render()">${ICON.eye}${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
   <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="mini q" onclick="S.help=!S.help;render()">?</button></div>
@@ -387,18 +450,18 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
 function stepTo(i){S.step=i;S.revealed=false;S.help=false;render()}
 
 function fcOrder(){const a=[];for(let n=S.range.a;n<=S.range.b;n++)a.push(n);return S.fc.order||a}
-V.cards=()=>{setApp('noright');const o=fcOrder();const n=o[S.fc.i%o.length];
+V.cards=()=>{setApp('noright');const anim=S.cardAnim;S.cardAnim=false;const o=fcOrder();const n=o[S.fc.i%o.length];
  return sun()+header(refName()+':'+S.range.a+'–'+S.range.b)+listenerSide('cards')+`<main class="center"><div style="width:100%;max-width:800px;text-align:center">
  <div class="sub" style="letter-spacing:.14em">CARD ${S.fc.i%o.length+1} OF ${o.length}</div>
  <div class="fcrow"><button class="ico" onclick="fcMove(-1)">${ICON.prev}</button>
-  <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''}" onclick="S.fc.flip=!S.fc.flip;render()">
+  <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''} ${anim?'cardin':''}" onclick="this.classList.toggle('flip');S.fc.flip=!S.fc.flip">
    <div class="face"><span class="bk">${S.book.toUpperCase()}</span><div class="cv">${S.chap}:${n}</div><span class="hint">Tap to reveal</span></div>
    <div class="face back"><span class="bk" style="margin-bottom:16px">${S.book.toUpperCase()}</span><div class="vt"><b>${n}</b><span>${vt(n)}</span></div></div></div></div>
   <button class="ico" onclick="fcMove(1)">${ICON.fwd}</button></div>
  <button class="shuf" style="margin:20px auto 0" onclick="fcShuffle()">${ICON.shuffle}Shuffle</button>
  <p class="sub" style="margin-top:14px;font-size:12px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar()+navPanel();};
-function fcMove(d){const o=fcOrder();S.fc.i=(S.fc.i+d+o.length)%o.length;S.fc.flip=false;render()}
-function fcShuffle(){S.fc.order=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.i=0;S.fc.flip=false;render()}
+function fcMove(d){const o=fcOrder();S.fc.i=(S.fc.i+d+o.length)%o.length;S.fc.flip=false;S.cardAnim=true;render()}
+function fcShuffle(){S.fc.order=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.i=0;S.fc.flip=false;S.cardAnim=true;render()}
 
 V.range=()=>{setApp('noright noplayer');const{a,b}=S.range;
  return sun()+header('Flashcards')+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:640px"><h1 style="font-size:30px">Select the range of verses</h1>
@@ -487,7 +550,10 @@ V.publish=()=>{setApp('admin');const P=problems().filter(p=>p.k==='err');const o
   <div class="note">Editing a published track creates a new draft version. Listeners keep hearing the current version until you publish the new one.</div>
   <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="S.status='Ready for Review';render()">Mark ready</button><button class="btn solid" ${ok?'':'disabled style="opacity:.4;cursor:not-allowed"'} onclick="if(${ok}){S.status='Published';render()}">Publish</button></div></div></div></main>`;};
 
-function render(){reviewBar();$('#app').innerHTML=V[S.screen]();if(S.screen==='timing')wfDrag();}
+function render(){reviewBar();const app=$('#app');const old=app.querySelector('.sun');
+ app.innerHTML=V[S.screen]();const n=app.querySelector('.sun');if(old&&n)n.replaceWith(old);   // keep the ambient light animating across re-renders
+ if(S.enter){app.classList.add('enter');S.enter=false}
+ if(S.screen==='timing')wfDrag();}
 render();
 </script>
 </body>

@@ -15,3 +15,8 @@
 - Playback-end defaults taken from the mockup captions (**assumption, to confirm**): Reader = Next Verse, memorization (Steps/Flashcards) = Loop Verse.
 - Mockup monograms read inconsistently ("LF"/"LE"); the owner-supplied L+cross logo is used instead.
 - Home hero is a CSS placeholder; landscape art is AI-generated and not used as an asset.
+
+## 2026-10-20 — Prototype v2.2
+- Single/multi verse toggle (list button) in Steps; focused verse normal, others faded.
+- Procedural SVG scenery (animated light rays, drifting mist) for the Home hero and Recently Studied thumbnails; entry/card/menu transitions; reduced-motion respected.
+- Motion library recommendation for the Next.js build: Motion (Framer Motion) for component transitions, CSS for ambient effects; GSAP only if a hero timeline is needed.
