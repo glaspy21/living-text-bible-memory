@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The browser-test server uses its own folder so it can run beside `npm run dev`.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   /* config options here */
   cacheComponents: true,
   async redirects() {

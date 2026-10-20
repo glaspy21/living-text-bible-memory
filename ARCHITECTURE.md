@@ -85,6 +85,13 @@ Warnings (require acknowledge, never auto-fixed): gap between consecutive verses
 3. WAV: keep original; produce MP3/AAC derivative for streaming. **Risk:** Vercel functions can't run ffmpeg reliably → run transcoding in a small worker (container/queue) or restrict MVP uploads to MP3. [Decision needed]
 Do not split chapter audio into per-verse files.
 
+**As built (M6):** `src/server/storage` has one `StorageDriver` interface with two drivers, chosen by `STORAGE_DRIVER`.
+- *Upload:* `POST /api/admin/uploads {mime, bytes}` → checks type (MP3/WAV) and size (≤ 300 MB) and returns a one-file target (`key` is generated, never from the file name: `recordings/<uuid>/original.<ext>`). The browser PUTs the file to the target. `POST /api/admin/uploads/complete {key, bytes}` then confirms the file exists, matches the declared size and really is MP3/WAV by its first bytes; anything else is deleted. Originals are create-only, never overwritten. All three upload routes are admin-only (401 signed out, 403 otherwise).
+- *Local driver:* files in `.local-storage/` (git-ignored); the upload target is a signed, 15-minute link to `PUT /api/admin/uploads/local`.
+- *R2 driver:* presigned 15-minute PUT (create-only via `If-None-Match: *`) straight to the bucket; playback redirects to a presigned 1-hour GET. **Bucket CORS must allow PUT/GET/HEAD from the app origin with headers `Content-Type` and `If-None-Match`.** Not yet exercised against a real bucket.
+- *Playback:* `GET /api/audio/<assetId>` serves published recordings to anyone and drafts to admins only (404 otherwise). Local files stream with HTTP Range (206) so seeking works; R2 redirects to the signed URL.
+- Still to do (M13): duration probe, sha256, waveform peaks, and creating the `AudioAsset`/`Recording` rows after upload.
+
 ## 7. Scripture provider abstraction
 `ScriptureProvider { getChapter(translation, book, chapter): Promise<Verse[]>; getPassage(ref): Promise<Verse[]> }`.
 - **WEB** (public domain) adapter first; **ESV** adapter via Crossway API (`api.esv.org`), key in `ESV_API_KEY` (server env only), server-side calls only.
@@ -97,7 +104,7 @@ Do not split chapter audio into per-verse files.
 - `.env*` never committed; `.env.example` documents variables.
 
 ## 9. Environment variables (`.env.example`)
-`DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ADMIN_EMAILS`, `STORAGE_DRIVER` (`local|r2`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE?`, `ESV_API_KEY`, `NEXT_PUBLIC_APP_URL`.
+`DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ADMIN_EMAILS`, `STORAGE_DRIVER` (`local|r2`, default `local`), `LOCAL_STORAGE_DIR?` (default `.local-storage`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE?`, `ESV_API_KEY`, `NEXT_PUBLIC_APP_URL`.
 
 ## 10. Testing strategy
 - Unit: timing validation edge cases (missing, reversed, out-of-range, gaps, overlaps, acknowledgement invalidation, cross-chapter), playback state machine (all three end modes, last verse, skip while playing, seek during loop), verse-range selection logic, Title Case util.

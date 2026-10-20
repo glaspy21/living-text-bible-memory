@@ -17,6 +17,17 @@ export async function getAdminEmail(): Promise<string | null> {
 }
 
 /**
+ * Gate for route handlers: null means "admin, carry on"; otherwise return this response.
+ * 401 when signed out, 403 for a signed-in account that isn't on the allowlist.
+ */
+export async function rejectUnlessAdmin(): Promise<Response | null> {
+  const email = await sessionEmail();
+  if (!email) return Response.json({ error: "Sign in required." }, { status: 401 });
+  if (!isAdminEmail(email)) return Response.json({ error: "Not allowed." }, { status: 403 });
+  return null;
+}
+
+/**
  * Server-side admin gate for pages, layouts and server actions. Call it in every one, even
  * behind the proxy: signed-out visitors go to sign-in, signed-in non-admins get a 404.
  */

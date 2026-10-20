@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { getAdminEmail, requireAdmin } = await import("./require-admin");
+const { getAdminEmail, rejectUnlessAdmin, requireAdmin } = await import("./require-admin");
 
 beforeEach(() => {
   vi.stubEnv("ADMIN_EMAILS", "owner@example.com");
@@ -48,5 +48,21 @@ describe("getAdminEmail", () => {
   it("returns the admin's email", async () => {
     session.current = { user: { email: "owner@example.com" } };
     expect(await getAdminEmail()).toBe("owner@example.com");
+  });
+});
+
+describe("rejectUnlessAdmin (route handlers)", () => {
+  it("answers 401 when signed out", async () => {
+    expect((await rejectUnlessAdmin())?.status).toBe(401);
+  });
+
+  it("answers 403 for a signed-in account that isn't on the allowlist", async () => {
+    session.current = { user: { email: "someone@else.com" } };
+    expect((await rejectUnlessAdmin())?.status).toBe(403);
+  });
+
+  it("lets an admin through", async () => {
+    session.current = { user: { email: "owner@example.com" } };
+    expect(await rejectUnlessAdmin()).toBeNull();
   });
 });

@@ -7,3 +7,4 @@ assets
 *.md
 src/server/db/generated
 prisma/migrations
+.next-e2e

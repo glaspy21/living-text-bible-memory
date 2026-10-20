@@ -86,3 +86,12 @@
 - Each admin sign-in records a `User` row (role ADMIN) so later uploads can name their author.
 - Tests: allowlist, redirect safety, sign-in rules, the gate (unit); browser tests for signed-out, non-admin, forged-cookie and admin access.
 - Owner setup needed: create a Google OAuth client and put `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` and `AUTH_SECRET` in `.env.local` (see `.env.example`).
+
+## 2026-10-20 — M6 audio storage (branch `m6-storage`)
+- Added the storage layer: one interface, a local-disk driver for development and a Cloudflare R2 driver for production, picked by `STORAGE_DRIVER`.
+- Admin-only upload routes: request a one-file upload link (MP3 or WAV, up to 300 MB), upload straight to storage, then confirm. The server checks the size and the file's real type from its first bytes, and deletes anything that doesn't match. Originals are never overwritten.
+- Audio playback route with HTTP Range support, so seeking will work in the player. Listeners can reach only published recordings; drafts are admin-only.
+- Tests: upload rules and Range parsing, signed links, local driver (including path-escape attempts), upload checks, Range serving, R2 signed URLs; browser tests against a running server for 401/403, the full upload, fake files, forged links, Range 206/416 and draft versus published access.
+- Found and fixed before it could bite: the AWS SDK's default checksum would have made every real R2 upload fail; turned off and covered by a test.
+- **Not verified:** the R2 driver has not talked to a real bucket. When the owner creates one, set the R2 variables, `STORAGE_DRIVER=r2`, and a CORS rule (see ARCHITECTURE.md §6), then try one upload.
+- Next (M13): the upload page itself, duration probe and waveform peaks, which create the database rows.

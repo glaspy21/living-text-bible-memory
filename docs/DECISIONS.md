@@ -30,3 +30,7 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Database tests run against a separate `livingtext_test` database and refuse any database not ending in `_test`; CI runs them against a Postgres service | [R] |
 | 2026-10-20 | Auth.js v5 (`next-auth@5.0.0-beta.32`, the App Router version; v4 is the older API) with Google, JWT sessions, no auth tables. Only verified, allowlisted Google accounts can sign in; non-admins who are somehow signed in get 404 on admin pages | [R] |
 | 2026-10-20 | Browser tests run their own dev server on port 3100 with test-only auth settings and sign in by minting a session cookie with the test secret | [R] |
+| 2026-10-20 | Uploads go browser → storage via a short-lived one-file target; the server then verifies size and the file's real type (first bytes) and deletes anything that fails. Original audio is create-only; key is generated, never from the file name | [R] |
+| 2026-10-20 | MVP accepts MP3 and WAV up to 300 MB. WAV streaming conversion is still open (needs a worker, see ARCHITECTURE.md §6) | [R] limit is mine |
+| 2026-10-20 | Listeners can fetch audio only for published recordings; drafts are admin-only. Audio URLs are by asset id, so replacing audio (new asset) never changes a published URL's content | [R] |
+| 2026-10-20 | Browser tests use their own build folder (`.next-e2e`) so they can run while `npm run dev` is running | [R] |
