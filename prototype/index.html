@@ -434,7 +434,7 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  else if(!multi)body=verseRow(S.cur,content(S.cur,st===2),'big');
  else body=all.map(n=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':'fade'),`setCur(${n})`)).join('');
  return sun()+header(refName()+':'+a+'–'+b)+listenerSide('choice')+`<main><div class="fillcol" style="max-width:760px">
-  <div class="row between"><button class="mini ${multi||st===3?'on':''}" title="${st===3?'Chain always shows the whole passage':multi?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}" onclick="toggleMulti()">${ICON.list}</button><span class="sub" id="focuslbl">${st===3?'Whole passage':multi?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+a+'–'+b}</span></div>
+  <div class="row between"><button class="mini ${multi||st===3?'on':''}" title="${st===3?'Chain always shows the whole passage':multi?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}" onclick="toggleMulti()">${ICON.list}</button><span class="row" style="gap:16px"><span class="sub" id="focuslbl">${st===3?'Whole passage':multi?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+a+'–'+b}</span><button class="btn sm" onclick="go('cards')">${ICON.shuffle}Switch to Flashcards</button></span></div>
   <div class="scripture" style="flex:1;margin-top:26px">${body}</div>
   ${st>=2?`<div style="text-align:center;margin:14px 0"><button class="btn" style="padding:12px 34px;font-family:var(--display);font-size:19px;border-radius:99px" onclick="S.revealed=!S.revealed;render()">${ICON.eye}${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
   <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="mini q" onclick="S.help=!S.help;render()">?</button></div>
@@ -452,7 +452,7 @@ function stepTo(i){S.step=i;S.revealed=false;S.help=false;render()}
 function fcOrder(){const a=[];for(let n=S.range.a;n<=S.range.b;n++)a.push(n);return S.fc.order||a}
 V.cards=()=>{setApp('noright');const anim=S.cardAnim;S.cardAnim=false;const o=fcOrder();const n=o[S.fc.i%o.length];
  return sun()+header(refName()+':'+S.range.a+'–'+S.range.b)+listenerSide('cards')+`<main class="center"><div style="width:100%;max-width:800px;text-align:center">
- <div class="sub" style="letter-spacing:.14em">CARD ${S.fc.i%o.length+1} OF ${o.length}</div>
+ <div class="row between"><span class="sub" style="letter-spacing:.14em">CARD ${S.fc.i%o.length+1} OF ${o.length}</span><button class="btn sm" onclick="go('steps')">${ICON.list}Switch to Steps</button></div>
  <div class="fcrow"><button class="ico" onclick="fcMove(-1)">${ICON.prev}</button>
   <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''} ${anim?'cardin':''}" onclick="this.classList.toggle('flip');S.fc.flip=!S.fc.flip">
    <div class="face"><span class="bk">${S.book.toUpperCase()}</span><div class="cv">${S.chap}:${n}</div><span class="hint">Tap to reveal</span></div>
