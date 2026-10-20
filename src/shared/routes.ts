@@ -3,6 +3,8 @@
  * Pages declare their own layout (right panel, player) by what they render.
  */
 
+import { bookBySlug } from "./scripture/books";
+
 export type NavItem = { href: string; label: string };
 
 export const LISTENER_NAV: readonly NavItem[] = [
@@ -28,14 +30,17 @@ export type ListenerScreen = {
   nav: string | null;
 };
 
-/** "/read/1-john/3" -> "1 John 3". Placeholder until book data arrives (M4/M8). */
+/** "/read/1-john/3" -> "1 John 3". Unknown slugs are shown title-cased. */
 export function readerTitle(pathname: string): string {
-  const [, , book = "john", chapter = "1"] = pathname.split("/");
-  const name = decodeURIComponent(book)
-    .split("-")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
+  const [, , slug = "john", chapter = "1"] = pathname.split("/");
+  const decoded = decodeURIComponent(slug);
+  const name =
+    bookBySlug(decoded)?.name ??
+    decoded
+      .split("-")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
   return `${name} ${chapter}`;
 }
 

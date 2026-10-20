@@ -30,7 +30,7 @@ Unit tests sit beside the code they test. Each of `src/app`, `src/client`, `src/
 ## 3. Data model (Prisma sketch)
 ```
 Translation   id, code (ESV|WEB), name, licenseNote, providerKey
-Book          id, osis, name, testament, chapterCount, sortOrder
+Book          id (= canonical order 1–66), osis, slug, name, testament, chapterCount   -- verse counts come from the scripture provider (M7)
 Passage ref   (not a table) = bookId + chapter + verseStart + verseEnd (+ optional endChapter for cross-chapter)
 
 Genre         id, slug, name (Title Case), isCustom, createdAt
@@ -45,7 +45,7 @@ EditSession   id, recordingId, timingSetId, savedAt, snapshot(JSON)       -- "re
 User          id, email, name, role (ADMIN|LISTENER), createdAt
 MemProgress   (post-MVP) userId, passage ref, step, lastStudiedAt
 ```
-Rules: unique (recording, timingSet.version); **no uniqueness on passage+genre** (multiple recordings allowed); original `AudioAsset` is never mutated — replacing audio creates a new asset and a new TimingSet draft seeded from the old one. Times stored as integer **milliseconds**.
+Rules: unique (recording, timingSet.version); **no uniqueness on passage+genre** (multiple recordings allowed); original `AudioAsset` is never mutated — replacing audio creates a new asset and a new TimingSet draft seeded from the old one. Times stored as integer **milliseconds**. Schema lives in `prisma/schema.prisma`; the generated client is in `src/server/db/generated` (git-ignored, rebuilt on `npm install`).
 
 `title` and arrangement label are not shown in the admin form yet; they exist for future custom/user-uploaded tracks. Arrangement number is assigned server-side in a transaction (max+1 per translation+passage+genre) so concurrent uploads can't collide.
 

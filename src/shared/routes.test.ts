@@ -28,6 +28,10 @@ describe("readerTitle", () => {
     expect(readerTitle("/read/1-john/3")).toBe("1 John 3");
   });
 
+  it("uses the real book name", () => {
+    expect(readerTitle("/read/song-of-solomon/2")).toBe("Song of Solomon 2");
+  });
+
   it("defaults to John 1", () => {
     expect(readerTitle("/read")).toBe("John 1");
   });

@@ -25,3 +25,6 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | App shell: layouts own header, sidebar, sun and player (stay mounted so audio and animation never restart); each page declares its layout by rendering `<Main player>` / `<RightPanel>`, and the grid adapts with CSS `:has()`. Keeps pages prerenderable | [R] |
 | 2026-10-20 | Admin gate `requireAdmin()` (server) called in the admin layout and every admin page; until sign-in (M5) it returns 404 in any production build | [R] |
 | 2026-10-20 | Tablet (≤1100px) header uses `auto 1fr auto` columns; the prototype's `1fr auto` wraps the reference button onto a new line | [R] small fix |
+| 2026-10-20 | Prisma 7.10.1 (stable; npm's `latest` tag is an 8.0 release candidate) with the `pg` driver adapter; generated client in `src/server/db/generated` | [R] |
+| 2026-10-20 | No Chapter table: Book stores `chapterCount`; per-chapter verse counts come from the scripture provider (they differ slightly between translations) | [R] |
+| 2026-10-20 | Database tests run against a separate `livingtext_test` database and refuse any database not ending in `_test`; CI runs them against a Postgres service | [R] |

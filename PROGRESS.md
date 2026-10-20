@@ -71,3 +71,11 @@
 - Admin pages call a server-side `requireAdmin()`; until sign-in (M5) any production build answers 404.
 - Tests: route table unit tests; e2e for the player, redirects, sidebar highlighting, admin nav and the phone layout. Checked visually at 1440, 900 and 390px.
 - Open: player shows the Next Verse icon per the [A] end-mode defaults (PROJECT.md #10). Sidebar "Recently studied" is empty until M8.
+
+## 2026-10-20 — M4 database (branch `m4-database`)
+- Added the Prisma schema (translations, books, genres, recordings, audio assets, versioned timing sets, verse timings, editor sessions, users) and the first migration.
+- Seed loads the 66 books (OSIS codes, URL slugs, chapter counts), WEB and ESV translations (with the ESV copyright notice) and the Pop, Rock and R&B genres. It can be re-run safely.
+- Tests: book data (66 books, 1,189 chapters); database tests for seeding, multiple recordings per passage and genre, unique timing versions, cascade of verse timings, published-timing link. CI now runs them against Postgres.
+- Reader header now uses the real book name ("Song of Solomon 2").
+- Setup for the owner: start Docker, `docker compose up -d`, make sure `.env.local` has the `DATABASE_URL` line from `.env.example`, then `npm run db:migrate` and `npm run db:seed`.
+- Note: `npm audit` reports 5 high warnings, all from one dev-only lint dependency (`eslint-config-next` → `braces`); the suggested fix downgrades to Next 14, so left as is.

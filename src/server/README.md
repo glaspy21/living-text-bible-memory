@@ -2,7 +2,7 @@
 
 Code that only runs on the server and may touch secrets: database, auth, storage, Scripture providers.
 
-- `db/` Prisma client and queries
+- `db/` Prisma client (`db` from `db/client.ts`) and queries
 - `auth/` admin allowlist and guards
 - `storage/` storage interface with local and R2 adapters
 - `scripture/` Scripture provider interface, WEB and ESV adapters, cache

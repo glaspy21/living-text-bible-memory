@@ -1,0 +1,183 @@
+// Living Text database schema. See ARCHITECTURE.md §3 for the rules behind it.
+// Times are integer milliseconds. Original audio is never mutated.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/server/db/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Testament {
+  OLD
+  NEW
+}
+
+enum RecordingStatus {
+  DRAFT
+  READY
+  PUBLISHED
+}
+
+enum TimingState {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Role {
+  ADMIN
+  LISTENER
+}
+
+model Translation {
+  id          String  @id @default(cuid())
+  code        String  @unique // "ESV" | "WEB"
+  name        String
+  /// Copyright notice shown wherever this translation's text appears.
+  licenseNote String?
+  /// Which scripture provider adapter serves the text (M7).
+  providerKey String
+
+  recordings Recording[]
+}
+
+model Book {
+  id           Int       @id // canonical order 1–66
+  osis         String    @unique // "John", "1John", "Ps"
+  slug         String    @unique // URL segment: "john", "1-john", "psalms"
+  name         String
+  testament    Testament
+  chapterCount Int
+
+  recordings Recording[]
+}
+
+model Genre {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String // Title Case, enforced server-side for custom genres
+  isCustom  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  recordings Recording[]
+}
+
+/// One uploaded song covering a passage. Several recordings may share passage + genre.
+model Recording {
+  id            String          @id @default(cuid())
+  translationId String
+  bookId        Int
+  chapter       Int
+  verseStart    Int
+  /// Always set; equals `chapter` for single-chapter recordings.
+  endChapter    Int
+  verseEnd      Int
+  genreId       String
+  title         String          @default("Default")
+  /// 1, 2, 3… per translation + passage + genre; shown as "Default", "Default 2", …
+  arrangementNo Int
+  description   String?
+  status        RecordingStatus @default(DRAFT)
+
+  originalAssetId   String  @unique
+  publishedTimingId String? @unique
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+
+  translation     Translation    @relation(fields: [translationId], references: [id])
+  book            Book           @relation(fields: [bookId], references: [id])
+  genre           Genre          @relation(fields: [genreId], references: [id])
+  originalAsset   AudioAsset     @relation(fields: [originalAssetId], references: [id])
+  publishedTiming TimingSet?     @relation("PublishedTiming", fields: [publishedTimingId], references: [id])
+  createdBy       User           @relation(fields: [createdById], references: [id])
+  timingSets      TimingSet[]    @relation("RecordingTimingSets")
+  editSessions    EditSession[]
+
+  @@index([translationId, bookId, chapter, verseStart])
+  @@index([genreId])
+  @@index([status])
+}
+
+/// An uploaded audio file. Immutable once written; replacing audio creates a new asset.
+model AudioAsset {
+  id            String   @id @default(cuid())
+  storageKey    String   @unique
+  mime          String
+  bytes         Int
+  durationMs    Int
+  sha256        String
+  peaksKey      String?
+  derivativeKey String?
+  uploadedAt    DateTime @default(now())
+
+  recording Recording?
+}
+
+/// A versioned set of verse boundaries for one recording.
+model TimingSet {
+  id          String      @id @default(cuid())
+  recordingId String
+  version     Int
+  state       TimingState @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  createdById String
+  basedOnId   String?
+
+  recording     Recording     @relation("RecordingTimingSets", fields: [recordingId], references: [id])
+  createdBy     User          @relation(fields: [createdById], references: [id])
+  basedOn       TimingSet?    @relation("TimingLineage", fields: [basedOnId], references: [id])
+  derived       TimingSet[]   @relation("TimingLineage")
+  publishedFor  Recording?    @relation("PublishedTiming")
+  verses        VerseTiming[]
+  editSessions  EditSession[]
+
+  @@unique([recordingId, version])
+}
+
+model VerseTiming {
+  id          String  @id @default(cuid())
+  timingSetId String
+  chapter     Int
+  verse       Int
+  startMs     Int?
+  endMs       Int?
+  /// Admin acknowledged the gap after this verse (cleared if either boundary changes).
+  ackGap      Boolean @default(false)
+  /// Admin acknowledged an overlap with the next verse.
+  ackOverlap  Boolean @default(false)
+  note        String?
+
+  timingSet TimingSet @relation(fields: [timingSetId], references: [id], onDelete: Cascade)
+
+  @@unique([timingSetId, chapter, verse])
+}
+
+/// Autosaved snapshot of the timing editor, for "return to a previous session".
+model EditSession {
+  id          String   @id @default(cuid())
+  recordingId String
+  timingSetId String
+  savedAt     DateTime @default(now())
+  snapshot    Json
+
+  recording Recording @relation(fields: [recordingId], references: [id])
+  timingSet TimingSet @relation(fields: [timingSetId], references: [id], onDelete: Cascade)
+
+  @@index([recordingId, savedAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(LISTENER)
+  createdAt DateTime @default(now())
+
+  recordings Recording[]
+  timingSets TimingSet[]
+}
