@@ -175,7 +175,9 @@ footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(
 
 /* book / chapter selector */
 .navback{position:absolute;inset:56px 0 0 0;background:rgba(0,0,0,.55);z-index:20}
-.navpanel{position:absolute;top:56px;left:50%;transform:translateX(-50%);width:min(560px,94%);max-height:calc(100% - 80px);background:#0a0a0a;border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px;z-index:21;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.8)}
+.navback.clear{inset:0;background:transparent}
+.navpanel{position:absolute;background:#0a0a0a;border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px;z-index:21;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.8)}
+.navpanel.under{border-top:1px solid var(--line2);border-radius:12px}
 .tabs2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
 .tabs2 button{padding:14px;font-family:var(--display);font-size:18px;color:var(--muted);border-bottom:2px solid transparent}
 .tabs2 button.on{color:var(--gold2);border-bottom-color:var(--gold)}
@@ -226,7 +228,7 @@ tr:hover td{background:rgba(201,164,92,.04)}
 #app.enter aside.right{animation:fadein .5s .1s both}
 .fc.cardin{animation:cardin .4s cubic-bezier(.2,.7,.2,1) both}
 .menu{animation:pop .16s ease-out;transform-origin:bottom left}.menu.r{transform-origin:bottom right}
-.navpanel{animation:pop .2s ease-out}.navback{animation:fadein .2s}
+.navpanel.popin{animation:pop .2s ease-out;transform-origin:top center}.navback.popin{animation:fadein .2s}
 .scripture .v.big{animation:fadein .4s ease both}
 .sun{animation:sunpulse 9s ease-in-out infinite}
 .rays{animation:raysway 11s ease-in-out infinite}
@@ -333,7 +335,7 @@ const isJ1=()=>S.book==='John'&&S.chap===1;
 const vt=n=>(isJ1()&&VERSES[n-1])||'Placeholder — only John 1:1–10 is loaded in this prototype.';
 const curMode=()=>(S.screen==='read'||S.screen==='home')?S.modes.read:S.modes.practice;
 function go(s){S.menu=null;S.help=false;S.revealed=false;S.enter=true;
- if(s==='nav'){S.screen='read';S.nav=true}else{S.screen=s;S.nav=false}render()}
+ if(s==='nav'){S.screen='read';S.nav=false;render();openNav($('.ref'),'center');return}S.screen=s;S.nav=false;render()}
 
 function reviewBar(){
  let h='<span class="lbl">Living Text · design prototype</span>';
@@ -366,7 +368,7 @@ function skip(d){
 /* ---------- chrome ---------- */
 function header(center,admin,arrow){
  return `<header class="top"><div class="brand"><img src="assets/reference/logo-reference-mark.png" alt="LT"><span>${admin?'LIVING TEXT · ADMIN':'LIVING TEXT'}</span></div>
- <button class="ref" ${admin?'':'onclick="S.nav=!S.nav;if(S.nav)S.screen=S.screen;render()"'}>${center}${arrow?'<small>▾</small>':''}</button>
+ <button class="ref" ${admin?'':'onclick="toggleNav(this)"'}>${center}${arrow?'<small>▾</small>':''}</button>
  <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="esv">ESV <small>▾</small></span><span class="more">•••</span>'}</div></header>`;}
 function thumb(a){const kind={'#c99c44':'river','#d9a441':'sheep','#8f7440':'trail'}[a]||'river';return `<span class="thumb">${scene(kind,120,120)}</span>`}
 function listenerSide(active){
@@ -381,11 +383,19 @@ const sun=()=>'<div class="sun"></div>';
 /* book / chapter selector */
 function navPanel(){if(!S.nav)return '';
  const list=S.navTab==='Old Testament'?OT:NT;
- return `<div class="navback" onclick="S.nav=false;render()"></div><div class="navpanel">
+ const pos=S.navPos||{top:56,left:0,width:560,mode:'center'},anim=S.navAnim;S.navAnim=false;
+ return `<div class="navback ${pos.mode==='left'?'clear':''} ${anim?'popin':''}" onclick="closeNav()"></div><div class="navpanel ${pos.mode==='left'?'under':''} ${anim?'popin':''}" style="top:${pos.top}px;left:${pos.left}px;width:${pos.width}px;max-height:calc(100% - ${pos.top+16}px)">
  <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="S.navTab='${t}';S.navBook=null;render()">${t}</button>`).join('')}</div>
  <div class="navlist">${list.map(([b,n])=>{const open=S.navBook===b;const mus=MUSIC[b];
   return `<button class="nb ${open||(b===S.book&&!S.navBook)?'on':''}" onclick="navBook('${b}')"><span>${b}</span>${mus?'<i class="dot" title="Music available"></i>':''}</button>`+
   (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')}</div></div>`}
+// open the selector directly beneath the control that was clicked (no CSS transform, so nothing can jump)
+function openNav(el,mode){const a=$('#app').getBoundingClientRect(),r=el.getBoundingClientRect();
+ const width=mode==='left'?Math.min(Math.max(r.width,480),a.width-32):Math.min(560,a.width-32);let left=mode==='left'?r.left-a.left:r.left-a.left+r.width/2-width/2;
+ left=Math.max(16,Math.min(a.width-width-16,left));
+ S.navPos={top:mode==='left'?Math.round(r.bottom-a.top+6):56,left:Math.round(left),width,mode};S.nav=true;S.navAnim=true;render()}
+function closeNav(){S.nav=false;render()}
+function toggleNav(el){S.nav?closeNav():openNav(el,'center')}
 function navBook(b){S.navBook=S.navBook===b?null:b;render()}
 function pickChap(b,c){S.enter=true;S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
 
@@ -470,7 +480,7 @@ function fcShuffle(){S.fc.order=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.i
 
 V.range=()=>{setApp('noright noplayer');const{a,b}=S.range;
  return sun()+header('Flashcards')+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:640px"><h1 style="font-size:30px">Select the range of verses</h1>
- <button class="dd" style="margin-top:18px" onclick="S.nav=true;render()">${refName()}<small>▾</small></button>
+ <button class="dd" style="margin-top:18px" onclick="openNav(this,'left')">${refName()}<small>▾</small></button>
  <p class="sub" style="margin-top:16px;font-family:var(--serif);font-size:16px">${S.range.picking==='first'?'Now tap the closing verse.':'Tap a start verse, then an end verse. Tap Start or End below to change either one.'}</p>
  <div class="vgrid">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="vb ${n===a||n===b?'end':(n>a&&n<b?'range':'')}" onclick="pickVerse(${n})">${n}</button>`).join('')}</div>
  <div class="row between" style="margin-top:22px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span style="font-family:var(--serif)">Selected: ${refName()}:${a} – ${S.chap}:${b}</span></div>
