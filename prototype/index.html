@@ -470,6 +470,7 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  <aside class="right"><h2>${STEPS[st][0]}</h2><p class="sub" style="margin:6px 0 18px">${STEPS[st][1]}</p>
   <div class="card"><div class="sub" style="font-size:11px;letter-spacing:.14em">PASSAGE</div><div style="font-family:var(--display);font-size:22px;color:var(--gold2);margin-top:4px">${refName()}:${a}–${b}</div><button class="btn ghost sm" style="margin-top:12px" onclick="go('range')">Edit range</button></div>
   <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">WHEN THE VERSE ENDS</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON[S.modes.practice].replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${MODES.find(x=>x[0]===S.modes.practice)[1]}</span></div></div>
+  <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">GENRE</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON.note.replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${S.genre}</span><span class="sub" style="margin:0 0 0 auto;font-size:12px">Arrangement 1</span></div></div>
  </aside>`+playerBar()+navPanel();};
 function stepTo(i){S.stagger=true;S.step=i;S.revealed=false;S.help=false;render()}
 
