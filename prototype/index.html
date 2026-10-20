@@ -243,6 +243,61 @@ tr:hover td{background:rgba(201,164,92,.04)}
 .sun{animation:sunpulse 9s ease-in-out infinite}
 .rays{animation:raysway 11s ease-in-out infinite}
 .mist{animation:mistdrift 20s ease-in-out infinite alternate}
+
+/* ---------- mobile layout (phone frame in the prototype; also applies on real phone-width screens) ---------- */
+#stage.phone{align-items:center;background:radial-gradient(900px 500px at 50% 0,#14110a,#050505)}
+#stage.phone #app{max-width:390px;height:min(844px,100%);min-height:0;border:9px solid #1b1b1d;border-radius:46px;box-shadow:0 0 0 1px #3a3a3e,0 30px 80px rgba(0,0,0,.8)}
+#app.mobile{grid-template-columns:minmax(0,1fr);grid-template-rows:54px minmax(0,1fr) 128px}
+#app.mobile.noplayer,#app.mobile.noright.noplayer{grid-template-rows:54px minmax(0,1fr)}
+#app.mobile.noright{grid-template-rows:54px minmax(0,1fr) 128px}
+#app.mobile aside.side,#app.mobile aside.right{display:none}
+#app.mobile header.top{grid-template-columns:52px 1fr auto !important;background:rgba(7,7,7,.6);padding-top:6px}
+#app.mobile .brand{padding:0 0 0 14px}#app.mobile .brand span{display:none}
+#app.mobile .brand img{width:30px;height:30px;border:0;border-radius:4px}
+#app.mobile .ref{font-size:18px;padding:4px 8px}
+#app.mobile .topr{padding:0 14px;gap:10px}#app.mobile .esv{font-size:16px}
+.gear{display:none;color:var(--gold)}.gear svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6}
+#app.mobile.s-home header.top{background:transparent;border-bottom:0;position:absolute;left:0;right:0;top:0;z-index:5;height:54px}
+#app.mobile.s-home .ref,#app.mobile.s-home .esv,#app.mobile.s-home .more{display:none}
+#app.mobile.s-home .gear{display:block}
+#app.mobile.s-home{grid-template-rows:minmax(0,1fr) !important}
+#app.mobile main{padding:16px 16px}
+#app.mobile.s-home main{padding:0 0 16px}
+#app.mobile.s-home .col{max-width:none;padding-top:0 !important}
+#app.mobile .hero{height:250px;border-radius:0;border:0;border-bottom:1px solid var(--line)}
+#app.mobile .hero .herologo{width:170px}
+#app.mobile.s-home .col>div:last-child{padding:0 16px 40px;margin-top:16px}
+#app.mobile h1{font-size:24px}#app.mobile h2{font-size:19px}
+#app.mobile .opt{padding:14px 16px !important;gap:14px;margin-bottom:12px}
+#app.mobile .opt h2{font-size:20px}#app.mobile .opt .sub{font-size:13px}
+#app.mobile .rec b{font-size:17px}
+#app.mobile .scripture{font-size:17.5px;line-height:1.5;margin-top:6px}
+#app.mobile .v{grid-template-columns:34px 1fr;padding:5px 6px 5px 0}
+#app.mobile .v .vn{font-size:17px;padding-left:6px}
+#app.mobile .rdhead,#app.mobile .rdnote{display:none}
+#app.mobile .btn.wide{padding:11px}
+#app.mobile footer.player{padding:0 4px}#app.mobile .pl-mid{padding:0 14px 6px;gap:2px}
+#app.mobile .ico{width:38px;height:38px}#app.mobile .ico.play{width:54px;height:54px}
+#app.mobile .menu{width:230px}
+#app.mobile .stepper{padding:12px 8px 10px;gap:4px}
+#app.mobile .sd{font-size:15px;gap:7px}
+#app.mobile .tri{width:24px}
+#app.mobile .fillcol .row.between{flex-wrap:nowrap}
+#app.mobile #focuslbl{display:none}
+#app.mobile .btn.sm{padding:6px 10px;font-size:13px}
+#app.mobile .fcrow{gap:2px;margin-top:14px}
+#app.mobile .fc{height:230px}
+#app.mobile .face .cv{font-size:60px}#app.mobile .face .bk{font-size:13px}
+#app.mobile .face .vt{font-size:18px;grid-template-columns:30px auto}#app.mobile .face .vt b{font-size:20px}
+#app.mobile .fcrow .ico{width:28px;flex:none}
+#app.mobile .fc-hint{display:none}
+#app.mobile .vgrid{grid-template-columns:repeat(5,1fr);gap:8px;max-height:236px;overflow:auto;padding:2px}
+#app.mobile.s-range h1{font-size:21px !important}
+#app.mobile.s-choice h1{font-size:21px !important}
+#app.mobile .vb{height:44px}
+#app.mobile .rangefoot{flex-direction:column;align-items:flex-start;gap:10px}
+#app.mobile .navpanel{max-height:70%}
+#app.mobile .tl{grid-template-columns:36px 1fr 1fr}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 @media (max-width:1100px){#app,#app.noright{grid-template-columns:1fr}#app aside.side,#app aside.right{display:none}header.top{grid-template-columns:1fr auto !important}}
 </style>
@@ -356,6 +411,7 @@ function reviewBar(){
  SCREENS.forEach(([id,l,k],i)=>{if(i&&SCREENS[i-1][2]!==k)h+='<span class="sep"></span>';
   const on=id==='nav'?S.nav:(S.screen===id&&!(id==='read'&&S.nav));
   h+=`<button class="${on?'on':''}" onclick="go('${id}')">${(k==='A'?'Admin · ':'')+l}</button>`});
+ h+=`<span class="sep"></span><button class="${S.device==='mobile'?'':'on'}" onclick="setDevice('desktop')">Desktop</button><button class="${S.device==='mobile'?'on':''}" onclick="setDevice('mobile')">Mobile</button>`;
  $('#review').innerHTML=h;}
 
 /* ---------- player ---------- */
@@ -383,7 +439,7 @@ function skip(d){
 function header(center,admin,arrow){
  return `<header class="top"><div class="brand"><img src="assets/reference/logo-reference-mark.png" alt="LT"><span>${admin?'LIVING TEXT · ADMIN':'LIVING TEXT'}</span></div>
  <button class="ref" ${admin?'':'onclick="toggleNav(this)"'}>${center}${arrow?'<small>▾</small>':''}</button>
- <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="esv">ESV <small>▾</small></span><span class="more">•••</span>'}</div></header>`;}
+ <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="esv">ESV <small>▾</small></span><span class="more">•••</span>'}<button class="gear" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button></div></header>`;}
 function thumb(a){const kind={'#c99c44':'river','#d9a441':'sheep','#8f7440':'trail'}[a]||(PAL[a]?a:'river');return `<span class="thumb">${scene(kind,120,120)}</span>`}
 function listenerSide(active){
  const nav=[['home','Home'],['read','Read Scripture'],['choice','Memorize'],['cards','Flashcards']];
@@ -449,10 +505,10 @@ V.home=()=>{setApp('noright noplayer');return sun()+header('Home')+listenerSide(
 V.read=()=>{setApp('');
  const body=isJ1()?`<div class="scripture">${VERSES.map((t,i)=>{const n=i+1;const inR=n>=S.range.a&&n<=S.range.b;return verseRow(n,t,'pick '+(inR?'sel':'')).replace('<div class="v','<div onclick="pickVerse('+n+')" class="v')}).join('')}</div>`
   :`<div class="note" style="margin-top:24px">Only John 1 is loaded in this prototype. Scripture text will load from the ESV provider once licensed.</div>`;
- return sun()+header(refName(),0,1)+listenerSide('read')+`<main><div class="col" style="margin:0 auto"><div class="row between"><div><h1>${refName()}</h1><div class="sub" style="font-family:var(--serif);font-size:17px;font-style:italic">${isJ1()?'The Word Became Flesh':''}</div></div><div class="row"><button class="btn ghost sm">‹ Prev</button><button class="btn ghost sm">Next ›</button></div></div>
+ return sun()+header(refName(),0,1)+listenerSide('read')+`<main><div class="col" style="margin:0 auto"><div class="row between rdhead"><div><h1>${refName()}</h1><div class="sub" style="font-family:var(--serif);font-size:17px;font-style:italic">${isJ1()?'The Word Became Flesh':''}</div></div><div class="row"><button class="btn ghost sm">‹ Prev</button><button class="btn ghost sm">Next ›</button></div></div>
  ${body}
  <button class="btn wide" style="margin-top:20px" onclick="go('choice')">Memorize</button>
- <div class="note">ESV badge shows the intended translation; prototype text is a public-domain placeholder.</div></div></main>
+ <div class="note rdnote">ESV badge shows the intended translation; prototype text is a public-domain placeholder.</div></div></main>
  <aside class="right"><h2>Memorize</h2><p class="sub" style="margin:6px 0 16px">Selected: ${refName()}:${S.range.a}–${S.range.b}</p><button class="btn solid" style="width:100%" onclick="go('choice')">Memorize</button>
  <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b>${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?'<span class="dot"></span>':''}</div><p class="sub" style="margin-top:6px">${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?S.genre+' recording available':'No recording for this chapter yet'}</p></div>
  <button class="btn ghost" style="width:100%;margin-top:14px" onclick="go('range')">Edit verse range</button></aside>`+playerBar()+navPanel();};
@@ -496,7 +552,7 @@ V.cards=()=>{setApp('noright');const anim=S.cardAnim;S.cardAnim=false;const o=fc
    <div class="face back"><span class="bk" style="margin-bottom:16px">${S.book.toUpperCase()}</span><div class="vt"><b>${n}</b><span>${vt(n)}</span></div></div></div></div>
   <button class="ico" onclick="fcMove(1)">${ICON.fwd}</button></div>
  <button class="shuf" style="margin:20px auto 0" onclick="fcShuffle()">${ICON.shuffle}Shuffle</button>
- <p class="sub" style="margin-top:14px;font-size:12px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar()+navPanel();};
+ <p class="sub fc-hint" style="margin-top:14px;font-size:12px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar()+navPanel();};
 function fcMove(d){const o=fcOrder();S.fc.i=(S.fc.i+d+o.length)%o.length;S.fc.flip=false;S.cardAnim=true;render()}
 function fcShuffle(){S.fc.order=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.i=0;S.fc.flip=false;S.cardAnim=true;render()}
 
@@ -505,7 +561,7 @@ V.range=()=>{setApp('noright noplayer');const{a,b}=S.range;
  <button class="dd" style="margin-top:18px" onclick="openNav(this,'left')">${refName()}<small>▾</small></button>
  <p class="sub" style="margin-top:16px;font-family:var(--serif);font-size:16px">${S.range.picking==='first'?'Now tap the closing verse.':'Tap a start verse, then an end verse. Tap Start or End below to change either one.'}</p>
  <div class="vgrid">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="vb ${n===a||n===b?'end':(n>a&&n<b?'range':'')}" onclick="pickVerse(${n})">${n}</button>`).join('')}</div>
- <div class="row between" style="margin-top:22px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span style="font-family:var(--serif)">Selected: ${refName()}:${a} – ${S.chap}:${b}</span></div>
+ <div class="row between rangefoot" style="margin-top:22px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span style="font-family:var(--serif)">Selected: ${refName()}:${a} – ${S.chap}:${b}</span></div>
  <div class="row" style="margin-top:22px"><button class="btn wide" style="flex:2" onclick="S.fc={i:0,flip:false,order:null};go('cards')">Start Flashcards</button><button class="btn wide ghost" style="flex:1;font-size:16px" onclick="go('steps')">Use for Steps</button></div>
  <div class="note">No fixed limit on range length. Cross-chapter selection is designed but still provisional in the project docs.</div></div></main>`+navPanel();};
 function pickVerse(n){const r=S.range;
@@ -597,8 +653,11 @@ const REVEAL_ZONE=190;
 function revealTick(){const m=$('#app main');if(!m)return;const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;const mb=m.getBoundingClientRect().bottom;
  m.querySelectorAll('.rv').forEach(el=>{const t=calm?1:Math.max(0,Math.min(1,(mb-el.getBoundingClientRect().top-6)/REVEAL_ZONE));
   el.style.opacity=t.toFixed(3);el.style.transform=`translateY(${((1-t)*18).toFixed(1)}px)`})}
+function applyDevice(){const adm=['dash','upload','library','timing','publish'].includes(S.screen);const ph=S.device==='mobile'&&!adm;
+ $('#stage').classList.toggle('phone',ph);const app=$('#app');app.classList.toggle('mobile',ph||innerWidth<=520);app.classList.add('s-'+S.screen)}
+function setDevice(d){S.device=d;render()}
 function render(){reviewBar();const app=$('#app');const old=app.querySelector('.sun');
- app.innerHTML=V[S.screen]();const n=app.querySelector('.sun');if(old&&n)n.replaceWith(old);   // keep the ambient light animating across re-renders
+ app.innerHTML=V[S.screen]();applyDevice();const n=app.querySelector('.sun');if(old&&n)n.replaceWith(old);   // keep the ambient light animating across re-renders
  if(S.enter){app.classList.add('enter');S.enter=false}
  enhanceBars();
  const mn=$('#app main');if(mn){mn.onscroll=()=>{if(!S._raf)S._raf=requestAnimationFrame(()=>{S._raf=0;revealTick()})};revealTick()}

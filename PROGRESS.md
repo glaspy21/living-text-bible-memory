@@ -32,3 +32,7 @@
 
 ## 2026-10-20 — Admin upload metadata
 - Removed Track title and Version/arrangement. Genre select gains "Custom"; choosing it reveals a Custom genre name input, auto Title Case. Library no longer has an Arrangement column; tracks are identified by passage + genre.
+
+## 2026-10-20 — Mobile view
+- Added Desktop/Mobile toggle in the prototype bar. Mobile renders listener screens in a 390px phone frame (no sidebar/right panel, LF mark + ESV + menu header, gear on Home, 5-column verse grid). Same layout applies on real phone-width screens. Admin stays desktop-only.
+- Differences from the mockups: Switch to Flashcards/Steps buttons and help icon are additions requested later; Reader shows the selected verse range highlight; hero art is still code-drawn, not photography.
