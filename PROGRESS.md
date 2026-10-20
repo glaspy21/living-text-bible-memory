@@ -38,3 +38,4 @@
 - Differences from the mockups: Switch to Flashcards/Steps buttons and help icon are additions requested later; Reader shows the selected verse range highlight; hero art is still code-drawn, not photography.
 - Book selector: Old/New Testament underline now slides between tabs (.38s ease).
 - Flashcards now use a stacked-cards icon (Memorize choice, Switch to Flashcards); the crossing-arrows icon is kept only for Shuffle.
+- Book selector: one continuous Old+New Testament list; tab underline follows scroll (and tab click smooth-scrolls); underline slide sped up to .17s. Scroll position preserved when a book expands.

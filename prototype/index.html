@@ -183,10 +183,11 @@ footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(
 .navpanel{position:absolute;background:#0a0a0a;border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px;z-index:21;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.8)}
 .navpanel.under{border-top:1px solid var(--line2);border-radius:12px}
 .tabs2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);position:relative}
-.tabs2 .slider{position:absolute;left:0;bottom:-1px;width:50%;height:2px;background:var(--gold);transition:transform .38s cubic-bezier(.65,0,.25,1);pointer-events:none}
+.tabs2 .slider{position:absolute;left:0;bottom:-1px;width:50%;height:2px;background:var(--gold);transition:transform .17s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .tabs2 button{padding:14px;font-family:var(--display);font-size:18px;color:var(--muted);transition:color .3s}
 .tabs2 button.on{color:var(--gold2)}
-.navlist{overflow:auto;padding:8px 18px 18px}
+.navlist{overflow:auto;position:relative;padding:8px 18px 18px}
+.sec{display:block;height:0}
 .nb{display:flex;justify-content:space-between;width:100%;padding:9px 4px;font-family:var(--display);font-size:20px;color:var(--muted);text-align:left}
 .nb:hover{color:var(--text)}.nb.on{color:var(--gold2)}
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;padding:6px 0 12px}
@@ -454,22 +455,29 @@ const sun=()=>'<div class="sun"></div>';
 
 /* book / chapter selector */
 function navPanel(){if(!S.nav)return '';
- const list=S.navTab==='Old Testament'?OT:NT;
  const pos=S.navPos||{top:56,left:0,width:560,mode:'center'},anim=S.navAnim;S.navAnim=false;
  return `<div class="navback ${pos.mode==='left'?'clear':''} ${anim?'popin':''}" onclick="closeNav()"></div><div class="navpanel ${pos.mode==='left'?'under':''} ${anim?'popin':''}" style="top:${pos.top}px;left:${pos.left}px;width:${pos.width}px;max-height:calc(100% - ${pos.top+16}px)">
- <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="setNavTab('${t}')">${t}</button>`).join('')}<i class="slider" style="transform:translateX(${(S.navFrom!=null?S.navFrom:S.navTab==='New Testament'?1:0)*100}%)"></i></div>
- <div class="navlist">${list.map(([b,n])=>{const open=S.navBook===b;const mus=MUSIC[b];
+ <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="setNavTab('${t}')">${t}</button>`).join('')}<i class="slider" style="transform:translateX(${S.navTab==='New Testament'?100:0}%)"></i></div>
+ <div class="navlist" id="navlist">${[['OT',OT],['NT',NT]].map(([k,L])=>`<i class="sec" id="sec-${k}"></i>`+L.map(([b,n])=>{const open=S.navBook===b;const mus=MUSIC[b];
   return `<button class="nb ${open||(b===S.book&&!S.navBook)?'on':''}" onclick="navBook('${b}')"><span>${b}</span>${mus?'<i class="dot" title="Music available"></i>':''}</button>`+
-  (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')}</div></div>`}
+  (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')).join('')}</div></div>`}
+// one continuous list (Old then New Testament); the tab underline follows the scroll position
+function secTop(k){return $('#sec-'+k).offsetTop}
+function navWire(){const l=$('#navlist');if(!l)return;
+ if(S.navInit){S.navInit=false;l.scrollTop=Math.max(0,secTop(S.navTab==='New Testament'?'NT':'OT')-4)}
+ else if(S._navScroll!=null)l.scrollTop=S._navScroll;
+ l.onscroll=()=>{if(S.navLock)return;const t=l.scrollTop+40>=secTop('NT')?'New Testament':'Old Testament';if(t!==S.navTab)markTab(t)}}
+function markTab(t){S.navTab=t;document.querySelectorAll('.tabs2 button').forEach((b,i)=>b.classList.toggle('on',(i===1)===(t==='New Testament')));
+ const sl=$('.tabs2 .slider');if(sl)sl.style.transform=`translateX(${t==='New Testament'?100:0}%)`}
 // open the selector directly beneath the control that was clicked (no CSS transform, so nothing can jump)
 function openNav(el,mode){const a=$('#app').getBoundingClientRect(),r=el.getBoundingClientRect();
  const width=mode==='left'?Math.min(Math.max(r.width,480),a.width-32):Math.min(560,a.width-32);let left=mode==='left'?r.left-a.left:r.left-a.left+r.width/2-width/2;
  left=Math.max(16,Math.min(a.width-width-16,left));
- S.navPos={top:mode==='left'?Math.round(r.bottom-a.top+6):56,left:Math.round(left),width,mode};S.nav=true;S.navAnim=true;render()}
+ S.navTab=OT.some(x=>x[0]===S.book)?'Old Testament':'New Testament';S.navInit=true;S._navScroll=null;S.navPos={top:mode==='left'?Math.round(r.bottom-a.top+6):56,left:Math.round(left),width,mode};S.nav=true;S.navAnim=true;render()}
 function closeNav(){S.nav=false;render()}
 function toggleNav(el){S.nav?closeNav():openNav(el,'center')}
-function setNavTab(t){if(S.navTab===t)return;S.navFrom=S.navTab==='New Testament'?1:0;S.navTab=t;S.navBook=null;S.navAnim=false;render();
- const sl=$('.tabs2 .slider');if(sl){void sl.offsetWidth;sl.style.transform=`translateX(${t==='New Testament'?100:0}%)`}S.navFrom=null}
+function setNavTab(t){const l=$('#navlist');if(!l)return;markTab(t);S.navLock=true;clearTimeout(S._nl);
+ l.scrollTo({top:Math.max(0,secTop(t==='New Testament'?'NT':'OT')-4),behavior:'smooth'});S._nl=setTimeout(()=>S.navLock=false,600)}
 function navBook(b){S.navBook=S.navBook===b?null:b;render()}
 function pickChap(b,c){S.enter=true;S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
 
@@ -660,10 +668,10 @@ function revealTick(){const m=$('#app main');if(!m)return;const calm=matchMedia(
 function applyDevice(){const adm=['dash','upload','library','timing','publish'].includes(S.screen);const ph=S.device==='mobile'&&!adm;
  $('#stage').classList.toggle('phone',ph);const app=$('#app');app.classList.toggle('mobile',ph||innerWidth<=520);app.classList.add('s-'+S.screen)}
 function setDevice(d){S.device=d;render()}
-function render(){reviewBar();const app=$('#app');const old=app.querySelector('.sun');
+function render(){reviewBar();const app=$('#app');const old=app.querySelector('.sun');const nl0=app.querySelector('#navlist');S._navScroll=nl0?nl0.scrollTop:S._navScroll;
  app.innerHTML=V[S.screen]();applyDevice();const n=app.querySelector('.sun');if(old&&n)n.replaceWith(old);   // keep the ambient light animating across re-renders
  if(S.enter){app.classList.add('enter');S.enter=false}
- enhanceBars();
+enhanceBars();navWire();
  const mn=$('#app main');if(mn){mn.onscroll=()=>{if(!S._raf)S._raf=requestAnimationFrame(()=>{S._raf=0;revealTick()})};revealTick()}
  if(S.screen==='timing')wfDrag();}
 render();
