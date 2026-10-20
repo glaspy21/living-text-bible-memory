@@ -29,3 +29,6 @@
 ## 2026-10-20 — Home reveal + faster verse toggle
 - Home "Recently Studied" extended to 13 items; rows fade/rise progressively as they scroll up from the bottom edge (scroll-linked, reduced-motion respected).
 - Single↔multi verse transition sped up (~.45s per verse, 70ms stagger; leave .2s) per owner feedback.
+
+## 2026-10-20 — Admin upload metadata
+- Removed Track title and Version/arrangement. Genre select gains "Custom"; choosing it reveals a Custom genre name input, auto Title Case. Library no longer has an Arrangement column; tracks are identified by passage + genre.

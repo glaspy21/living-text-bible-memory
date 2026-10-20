@@ -454,7 +454,7 @@ V.read=()=>{setApp('');
  <button class="btn wide" style="margin-top:20px" onclick="go('choice')">Memorize</button>
  <div class="note">ESV badge shows the intended translation; prototype text is a public-domain placeholder.</div></div></main>
  <aside class="right"><h2>Memorize</h2><p class="sub" style="margin:6px 0 16px">Selected: ${refName()}:${S.range.a}–${S.range.b}</p><button class="btn solid" style="width:100%" onclick="go('choice')">Memorize</button>
- <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b>${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?'<span class="dot"></span>':''}</div><p class="sub" style="margin-top:6px">${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?S.genre+' · Arrangement 1 available':'No recording for this chapter yet'}</p></div>
+ <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b>${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?'<span class="dot"></span>':''}</div><p class="sub" style="margin-top:6px">${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?S.genre+' recording available':'No recording for this chapter yet'}</p></div>
  <button class="btn ghost" style="width:100%;margin-top:14px" onclick="go('range')">Edit verse range</button></aside>`+playerBar()+navPanel();};
 
 V.choice=()=>{setApp('noright noplayer');return sun()+header(refName()+':'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main class="center"><div class="col" style="padding-top:60px;max-width:520px"><h1 style="text-align:center;font-size:30px;color:var(--text)">Choose a Memorization Method</h1><p class="sub" style="text-align:center;margin:8px 0 34px">${refName()}:${S.range.a}–${S.range.b}</p>
@@ -482,7 +482,7 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  <aside class="right"><h2>${STEPS[st][0]}</h2><p class="sub" style="margin:6px 0 18px">${STEPS[st][1]}</p>
   <div class="card"><div class="sub" style="font-size:11px;letter-spacing:.14em">PASSAGE</div><div style="font-family:var(--display);font-size:22px;color:var(--gold2);margin-top:4px">${refName()}:${a}–${b}</div><button class="btn ghost sm" style="margin-top:12px" onclick="go('range')">Edit range</button></div>
   <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">WHEN THE VERSE ENDS</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON[S.modes.practice].replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${MODES.find(x=>x[0]===S.modes.practice)[1]}</span></div></div>
-  <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">GENRE</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON.note.replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${S.genre}</span><span class="sub" style="margin:0 0 0 auto;font-size:12px">Arrangement 1</span></div></div>
+  <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">GENRE</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON.note.replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${S.genre}</span></div></div>
  </aside>`+playerBar()+navPanel();};
 function stepTo(i){S.stagger=true;S.step=i;S.revealed=false;S.help=false;render()}
 
@@ -523,21 +523,22 @@ const pill=s=>`<span class="pill ${s==='Published'?'pub':s==='Draft'?'draft':'re
 V.dash=()=>{setApp('admin');return sun()+header('Administrator',1)+adminSide('dash')+`<main><h1>Dashboard</h1><div class="sub">Scripture music workspace</div>
  <div class="grid4"><div class="card stat"><span class="sub">Published</span><b>2</b></div><div class="card stat"><span class="sub">Ready for review</span><b>1</b></div><div class="card stat"><span class="sub">Drafts</span><b>2</b></div><div class="card stat"><span class="sub">Passages with music</span><b>3</b></div></div>
  <div class="row between" style="margin-top:30px"><h2>Needs attention</h2><button class="btn solid sm" onclick="go('upload')">Upload recording</button></div>
- <table><tr><th>Track</th><th>Issue</th><th></th></tr><tr><td>John 1:1–18 · Anthem</td><td class="flag warn">Gap and overlap need review · verse 18 unmapped</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr><tr><td>John 1:1–18 · Slow Burn</td><td class="flag">No verse timing yet</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr></table></main>`;};
+ <table><tr><th>Track</th><th>Issue</th><th></th></tr><tr><td>John 1:1–18 · Rock</td><td class="flag warn">Gap and overlap need review · verse 18 unmapped</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr><tr><td>John 1:1–18 · R&B</td><td class="flag">No verse timing yet</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr></table></main>`;};
 V.upload=()=>{setApp('admin');return sun()+header('Upload music',1)+adminSide('upload')+`<main><h1>Upload music</h1>
  ${wizard(0)}
  <div class="drop"><b>Drop an audio file</b>MP3 or WAV · chapter, passage or single verse<div style="margin-top:16px"><button class="btn">Choose file</button></div></div>
  <h2 style="margin:26px 0 12px">Metadata</h2><div class="form">
- <label>Translation<select><option>ESV</option><option>WEB</option></select></label><label>Genre<select><option>Pop</option><option>Rock</option><option>R&B</option></select></label>
+ <label>Translation<select><option>ESV</option><option>WEB</option></select></label><label>Genre<select id="genreSel" onchange="document.getElementById('customGenre').style.display=this.value==='Custom'?'flex':'none'"><option>Pop</option><option>Rock</option><option>R&B</option><option>Custom</option></select></label>
  <label>Book<select><option>John</option></select></label><div class="row"><label style="flex:1">Chapter<input value="1"></label><label style="flex:1">From verse<input value="1"></label><label style="flex:1">To verse<input value="18"></label></div>
- <label>Track title<input value="Morning Light"></label><label>Version / arrangement<input value="Arrangement 1"></label>
+ <label id="customGenre" style="display:none">Custom genre name<input placeholder="e.g. Folk Acoustic" oninput="const p=this.selectionStart;this.value=titleCase(this.value);this.setSelectionRange(p,p)"></label>
  <label class="full">Description (optional)<textarea rows="2"></textarea></label></div>
  <div class="note">Saved as a new version — matching passage references never overwrite an existing recording.</div>
  <div class="row" style="margin-top:20px"><button class="btn solid" onclick="go('timing')">Save draft & set verse timing →</button></div></main>`;};
+function titleCase(v){return v.replace(/(^|[\s\-\/])([a-z])/g,(m,a,b)=>a+b.toUpperCase())}
 function wizard(cur){const L=['Upload','Metadata','Verse timing','Validation','Preview','Publish'];return `<div class="wizard">${L.map((l,i)=>`<div class="wz ${i===cur?'on':i<cur?'done':''}"><i>${i<cur?'✓':i+1}</i>${l}</div>`).join('')}</div>`}
 V.library=()=>{setApp('admin');return sun()+header('Track library',1)+adminSide('library')+`<main><div class="row between"><h1>Track library</h1><button class="btn solid sm" onclick="go('upload')">Upload recording</button></div>
  <div class="tabs" style="margin-top:16px"><button class="on">All</button><button>Published</button><button>Ready for review</button><button>Drafts</button></div>
- <table><tr><th>Passage</th><th>Genre</th><th>Arrangement</th><th>Status</th><th>Uploaded</th><th></th></tr>${TRACKS.map(t=>`<tr><td>${t[0]}</td><td>${t[1]}</td><td>${t[2]}</td><td>${pill(t[3])}</td><td class="sub">Oct 19</td><td><button class="btn sm" onclick="go('timing')">Timing</button></td></tr>`).join('')}</table></main>`;};
+ <table><tr><th>Passage</th><th>Genre</th><th>Status</th><th>Uploaded</th><th></th></tr>${TRACKS.map(t=>`<tr><td>${t[0]}</td><td>${t[1]}</td><td>${pill(t[3])}</td><td class="sub">Oct 19</td><td><button class="btn sm" onclick="go('timing')">Timing</button></td></tr>`).join('')}</table></main>`;};
 
 function peaks(){if(S._p)return S._p;let x=7;const r=()=>(x=(x*16807)%2147483647)/2147483647;S._p=Array.from({length:600},(_,i)=>{const e=.35+.5*Math.abs(Math.sin(i/23))+.15*r();return Math.min(1,e*(.6+.4*r()))});return S._p}
 function problems(){const P=[];const T=S.timing;
@@ -557,7 +558,7 @@ V.timing=()=>{setApp('admin');const W=1000,H=170,px=t=>t/S.dur*W;const pk=peaks(
  const hand=sel&&sel.s!=null&&sel.e!=null?[['s',sel.s],['e',sel.e]].map(([k,t])=>`<g class="h" data-k="${k}" style="cursor:ew-resize"><line x1="${px(t)}" x2="${px(t)}" y1="0" y2="${H}" stroke="#fff" stroke-width="1.5"/><rect x="${px(t)-5}" y="${H/2-14}" width="10" height="28" rx="3" fill="#e6c98a"/></g>`).join(''):'';
  const ticks=Array.from({length:Math.floor(S.dur/20)+1},(_,i)=>i*20).map(t=>`<text x="${px(t)+2}" y="${H-4}" fill="#948c7a" font-size="10">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`).join('');
  const P=problems();
- return sun()+header('Timing editor',1)+adminSide('timing')+`<main><div class="row between"><div><h1>Timing editor</h1><div class="sub">John 1:1–18 · Anthem (Rock) · duration ${fmt(S.dur)}</div></div><div class="row"><span class="pill review">Draft v2 · autosaved</span><button class="btn ghost sm">Saved sessions ▾</button><button class="btn sm" onclick="go('publish')">Continue →</button></div></div>
+ return sun()+header('Timing editor',1)+adminSide('timing')+`<main><div class="row between"><div><h1>Timing editor</h1><div class="sub">John 1:1–18 · Rock · duration ${fmt(S.dur)}</div></div><div class="row"><span class="pill review">Draft v2 · autosaved</span><button class="btn ghost sm">Saved sessions ▾</button><button class="btn sm" onclick="go('publish')">Continue →</button></div></div>
  ${wizard(2)}
  <div class="row" style="margin-bottom:8px"><button class="ico play" style="width:40px;height:40px">${ICON.play}</button><button class="btn sm ghost">Play verse ${S.sel}</button><span class="sub">Zoom</span><input type="range" min="1" max="8" value="1" style="width:120px;padding:0"><span class="sub" style="margin-left:auto">Drag the gold handles or type exact times below</span></div>
  <svg id="wf" class="wf" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}${regs}${hand}${ticks}</svg>
@@ -575,7 +576,7 @@ function wfDrag(){const svg=$('#wf');if(!svg)return;
   window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up)}))}
 
 V.publish=()=>{setApp('admin');const P=problems().filter(p=>p.k==='err');const ok=!P.length;
- return sun()+header('Preview & publish',1)+adminSide('publish')+`<main><h1>Preview & publish</h1><div class="sub">John 1:1–18 · Anthem (Rock)</div>${wizard(ok?4:3)}
+ return sun()+header('Preview & publish',1)+adminSide('publish')+`<main><h1>Preview & publish</h1><div class="sub">John 1:1–18 · Rock</div>${wizard(ok?4:3)}
  <div class="row" style="align-items:flex-start;gap:20px"><div class="card" style="flex:1.3"><h2>Listener preview</h2><p class="sub" style="margin:6px 0 14px">Uses the real playback engine and your verse timestamps.</p>
   <div class="row"><button class="btn sm">Verse 1</button><button class="btn sm ghost">Selected passage</button><button class="btn sm ghost">Entire recording</button></div>
   <div class="row" style="margin-top:18px;gap:8px"><button class="ico">${ICON.loop}</button><button class="ico">${ICON.stop}</button><button class="ico">${ICON.next}</button><span class="sub">Test each playback-end mode</span></div>
