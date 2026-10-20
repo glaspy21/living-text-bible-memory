@@ -31,4 +31,4 @@ Match the prototype (`prototype/index.html`) and `docs/reference/prototype-*` sc
 `npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run test:e2e` · `npx prisma migrate dev` · `npx prisma studio`. Update this list when scripts change.
 
 ## Repo map
-`prototype/` approved design (reference only) · `docs/` decisions + reference media · `src/` app (after M1) · `prisma/` schema · root `*.md` project docs.
+`prototype/` approved design (reference only) · `docs/` decisions + reference media · `src/app` routes · `src/client` frontend · `src/server` backend · `src/shared` logic used by both (lint enforces the boundaries) · `assets/brand` logos · `tests/` e2e · `prisma/` schema · root `*.md` project docs.

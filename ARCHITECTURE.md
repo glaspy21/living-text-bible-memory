@@ -11,21 +11,21 @@ Status: **proposed, not yet approved.** Items marked [R] are recommendations; co
 - **Motion** for component animation. **Vitest** (unit), **Playwright** (e2e), ESLint/Prettier, Zod for validation.
 - Hosting: Vercel (app), Neon (DB), R2 (audio). **Nothing is deployed without owner approval.**
 
-## 2. Repo layout (target)
+## 2. Repo layout (approved structure)
+Frontend, backend and shared code live in separate folders. ESLint blocks imports across the boundary (client ↔ server; shared imports neither).
 ```
+/assets/brand         owner-supplied logo SVGs and brand board
 /prototype            approved HTML design (reference; do not ship)
 /docs                 decisions, reference images, motion clips
-/src/app              routes: (listener) /, /read/[book]/[chapter], /memorize, /flashcards ; /admin/*
-/src/components       ui/ (tokens, primitives), listener/, admin/
-/src/lib
-  scripture/          provider interface, ESV + WEB adapters, cache
-  audio/              playback engine, state machine, timing math
-  timing/             validation, normalization, versioning
-  storage/            interface + r2/local adapters
-  auth/               allowlist, guards
 /prisma               schema.prisma, migrations, seed
-/tests                unit + e2e
+/tests                e2e (Playwright) and cross-cutting tests
+/src
+  /app                routing only: (listener)/, admin/, api/ (route handlers)
+  /client             FRONTEND: components/{ui,listener,admin}, hooks
+  /server             BACKEND: db, auth, storage, scripture, services (server-only)
+  /shared             pure logic + types used by both: timing, audio, scripture, schemas, text
 ```
+Unit tests sit beside the code they test. Each of `src/app`, `src/client`, `src/server`, `src/shared` has a README stating its rules.
 
 ## 3. Data model (Prisma sketch)
 ```

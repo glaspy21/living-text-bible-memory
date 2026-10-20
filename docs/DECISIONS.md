@@ -17,3 +17,5 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Verse ranges may cross chapters; ranges can span multiple songs (player chains recordings) | [C] |
 | 2026-10-20 | Title/arrangement hidden in upload UI; stored as title "Default" + auto arrangement "Default", "Default 2", "Default 3" per passage+genre; reserved for future custom tracks | [C] |
 | 2026-10-20 | Initial ESV scope: John 1–2 only; ask Crossway about music/audio permission before publishing ESV-based tracks | [C] scope / open question |
+| 2026-10-20 | Stack and hosting approved by owner (Next.js, Prisma/Postgres, Motion; Vercel + Neon + R2; nothing deployed without approval) | [C] |
+| 2026-10-20 | Folder structure: `src/client` (frontend), `src/server` (backend), `src/shared` (pure logic), `src/app` (routing only); boundaries enforced by lint | [C] |
