@@ -25,3 +25,7 @@
 - Owner chose **EB Garamond** (option B) for all serif text, headings and numerals; Cormorant Garamond removed (its old-style "1" read like a capital I).
 - Staggered verse fade (single↔multi), selector anchored under clicked control, Switch to Flashcards/Steps buttons added.
 - Open: could not reproduce "verses not appearing" on single→multi toggle; made faded Recall dashes brighter. Need step + browser if it recurs.
+
+## 2026-10-20 — Home reveal + faster verse toggle
+- Home "Recently Studied" extended to 13 items; rows fade/rise progressively as they scroll up from the bottom edge (scroll-linked, reduced-motion respected).
+- Single↔multi verse transition sped up (~.45s per verse, 70ms stagger; leave .2s) per owner feedback.
