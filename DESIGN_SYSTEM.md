@@ -18,6 +18,8 @@ Character: deep black, metallic gold, sunlight from the **upper-right**, serif S
 | `--muted` | `#948c7a` | secondary text |
 | `--ok` `#8bb27a` · `--warn` `#d9a441` · `--err` `#d86a5a` | validation / status |
 
+**Measured from the owner's mockups (2026-10-20; pixel-sampled, approximate because the mockups are rendered images with glow):** bright highlight gold (selected verse buttons, play glyph) ≈ `#ecba5b`–`#eec56d`; main UI gold (icons, borders, verse numbers) ≈ `#cfa854`–`#d19e4a`; shaded/gradient gold ≈ `#ae803a`–`#af8c46`; dim gold (thin lines, glow edges) ≈ `#8e6830`–`#8f6f38`. Logo board: gradient gold on dark ≈ `#d2af77` (highlights `#e4c690`), flat gold on cream ≈ `#bb935b`–`#c0955a`. The prototype tokens above are close to these; confirm final values with the owner before locking tokens.
+
 Sunlight layer (`.sun`): conic rays + two radial glows anchored at `100% -6%`, slow opacity pulse (9s). Persistent node: **do not re-create on route/render changes** or the animation restarts.
 
 ## Typography
