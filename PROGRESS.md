@@ -59,3 +59,4 @@
 
 ## 2026-10-20 — M2 design tokens and primitives (branch `m2-design-tokens`)
 - Added the design tokens (colors, fonts, sunlight layer, gold hover-wipe styles, reduced-motion rule) and loaded EB Garamond and Inter through Next.js fonts.
+- M2: added the icon set (three end-mode icons, stacked cards, shuffle, help and the player icons) with a test that there are exactly three end modes and none is a pause icon.
