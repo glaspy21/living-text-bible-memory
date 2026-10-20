@@ -8,3 +8,4 @@ assets
 src/server/db/generated
 prisma/migrations
 .next-e2e
+src/server/scripture/web-data

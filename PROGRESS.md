@@ -95,3 +95,11 @@
 - Found and fixed before it could bite: the AWS SDK's default checksum would have made every real R2 upload fail; turned off and covered by a test.
 - **Not verified:** the R2 driver has not talked to a real bucket. When the owner creates one, set the R2 variables, `STORAGE_DRIVER=r2`, and a CORS rule (see ARCHITECTURE.md §6), then try one upload.
 - Next (M13): the upload page itself, duration probe and waveform peaks, which create the database rows.
+
+## 2026-10-20 — M7 Scripture provider (branch `m7-scripture`)
+- Added the Scripture provider: one interface, a WEB adapter that reads the public-domain World English Bible (all 66 books, imported from ebible.org into the repo), and an ESV adapter that talks to Crossway's API from the server only.
+- ESV is off by default (`ESV_ENABLED` plus a key) and limited to John 1–2; anything else is refused before any request. ESV text is held in memory for an hour and never stored. Nothing here claims Crossway permission exists.
+- Passages can cross chapters. Added reference helpers ("John 1:51–2:5") and an `Attribution` component showing the right copyright notice (also on `/design`).
+- Tests: USFM import, references and the ESV scope, WEB reads of real text (including all 66 books), the ESV adapter with a fake service (scope, caching, errors, no key leaks), the flag.
+- Open: the ESV adapter has never talked to the real service (no key yet). Footnotes and Psalm titles are not in the WEB import.
+

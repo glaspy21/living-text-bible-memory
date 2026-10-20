@@ -98,13 +98,19 @@ Do not split chapter audio into per-verse files.
 - Cache per Crossway's current terms (see `PROJECT.md` §7; re-verify before building the cache). Initial scope is **John 1–2 only**: add a server-side allowlist of permitted ESV ranges (config) so the adapter refuses anything outside it. Render the required copyright notice with ESV text. Respect query/length limits. Never bundle ESV text in the repo or ship it to the client beyond what is displayed.
 - Reader/Steps/Flashcards consume the interface only, so translation is swappable.
 
+**As built (M7):** `src/server/scripture` holds the provider interface (`getChapter`, `getPassage`, `verseCount`) and two adapters. Pages ask `getProvider("WEB" | "ESV")` and never touch a source directly.
+- *WEB:* reads per-book JSON in `web-data/` (31,098 verses, imported once with `npx tsx scripts/import-web.ts <folder of USFM>`). Verse numbers are real numbers, not positions: the WEB leaves out some verses (for example Acts 8:37).
+- *ESV:* calls `api.esv.org` server-side with the key in a header. Asks for plain text with no headings, footnotes or references. Refuses anything outside the scope in `src/shared/scripture/esv-scope.ts` (John 1–2) before any request is made. Only available when `ESV_ENABLED=true` and a key exist (`availableTranslations()`). Cached in memory for an hour, never stored.
+- *Passages* can cross chapters; both adapters build them from chapter reads.
+- *Attribution:* `<Attribution translation="ESV" />` shows Crossway's notice (text in `src/shared/scripture/translations.ts`); render it wherever ESV text appears.
+
 ## 8. Security
 - Admin guard enforced **server-side** in the proxy (`src/proxy.ts`, Next 16's name for middleware) **and** inside every admin layout, page, route handler and server action via `requireAdmin()` / `getAdminEmail()` (never UI-only). Allowlist from env. Sessions are signed, encrypted JWT cookies (no session tables); sign-in is limited to verified Google accounts on the allowlist, and a `User` row (role ADMIN) is upserted on each sign-in.
 - No secrets in client bundles; storage credentials server-only; presigned URLs short-lived; validate MIME + size + magic bytes on upload; Zod on all inputs; CSRF via Auth.js defaults; rate-limit upload and auth endpoints.
 - `.env*` never committed; `.env.example` documents variables.
 
 ## 9. Environment variables (`.env.example`)
-`DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ADMIN_EMAILS`, `STORAGE_DRIVER` (`local|r2`, default `local`), `LOCAL_STORAGE_DIR?` (default `.local-storage`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE?`, `ESV_API_KEY`, `NEXT_PUBLIC_APP_URL`.
+`DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ADMIN_EMAILS`, `STORAGE_DRIVER` (`local|r2`, default `local`), `LOCAL_STORAGE_DIR?` (default `.local-storage`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE?`, `ESV_API_KEY`, `ESV_ENABLED` (default off), `NEXT_PUBLIC_APP_URL`.
 
 ## 10. Testing strategy
 - Unit: timing validation edge cases (missing, reversed, out-of-range, gaps, overlaps, acknowledgement invalidation, cross-chapter), playback state machine (all three end modes, last verse, skip while playing, seek during loop), verse-range selection logic, Title Case util.

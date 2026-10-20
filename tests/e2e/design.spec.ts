@@ -9,6 +9,14 @@ test.describe("design reference page", () => {
     await expect(page.getByRole("img", { name: "Living Text", exact: true })).toBeVisible();
   });
 
+  test("shows the ESV copyright notice and the WEB public-domain notice", async ({ page }) => {
+    await page.goto("/design");
+    const esv = page.locator('[data-translation="ESV"]');
+    await expect(esv).toContainText("© 2001 by Crossway");
+    await expect(esv).toContainText("Used by permission");
+    await expect(page.locator('[data-translation="WEB"]')).toContainText("public domain");
+  });
+
   test("hovering a bar sweeps the gold fill across", async ({ page, isMobile }) => {
     test.skip(isMobile, "hover only applies to pointer devices");
     await page.goto("/design");

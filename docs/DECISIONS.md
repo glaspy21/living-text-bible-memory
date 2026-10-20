@@ -34,3 +34,6 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | MVP accepts MP3 and WAV up to 300 MB. WAV streaming conversion is still open (needs a worker, see ARCHITECTURE.md §6) | [R] limit is mine |
 | 2026-10-20 | Listeners can fetch audio only for published recordings; drafts are admin-only. Audio URLs are by asset id, so replacing audio (new asset) never changes a published URL's content | [R] |
 | 2026-10-20 | Browser tests use their own build folder (`.next-e2e`) so they can run while `npm run dev` is running | [R] |
+| 2026-10-20 | WEB text is bundled as per-book JSON (`src/server/scripture/web-data`, public domain, from ebible.org USFM via `scripts/import-web.ts`) rather than fetched from a third-party API at runtime: no rate limits, no outage risk, tests are deterministic. Psalm titles and footnotes are not imported | [R] |
+| 2026-10-20 | ESV is behind two switches: `ESV_API_KEY` and `ESV_ENABLED=true`. The flag is the owner's confirmation that Crossway's terms are met, so it stays off by default. The adapter refuses anything outside John 1–2 before calling the API | [R] |
+| 2026-10-20 | ESV text is cached in memory only (1 hour, at most 10 chapters), never on disk or in the database. The ESV API page states no caching terms, so this is the conservative choice; re-check with Crossway before widening | [R] |

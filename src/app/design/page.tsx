@@ -1,3 +1,4 @@
+import { Attribution } from "@/client/components/scripture/attribution";
 import { notFound } from "next/navigation";
 import { Logo } from "@/client/components/brand/logo";
 import { Bar } from "@/client/components/ui/bar";
@@ -111,6 +112,13 @@ export default function DesignReference() {
                 {mode.label}
               </div>
             ))}
+          </div>
+        </Section>
+
+        <Section title="Copyright notices">
+          <div className="grid gap-4">
+            <Attribution translation="WEB" />
+            <Attribution translation="ESV" />
           </div>
         </Section>
 
