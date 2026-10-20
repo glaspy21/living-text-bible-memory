@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Living Text — Desktop Design Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070707; --bg2:#0e0e0e; --panel:#121212; --line:rgba(201,164,92,.28); --line2:rgba(201,164,92,.5);
+  --gold:#c9a45c; --gold2:#e6c98a; --gold-dim:#8f7440; --text:#ece6d8; --muted:#948c7a; --err:#d86a5a; --ok:#8bb27a; --warn:#d9a441;
+  --serif:'EB Garamond','Cormorant Garamond',Georgia,serif; --display:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;color:var(--text);font-family:var(--sans);font-size:14px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--text);background:#0b0b0b;border:1px solid var(--line);border-radius:6px;padding:8px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+
+/* review bar */
+#review{display:flex;gap:6px;align-items:center;padding:8px 14px;background:#000;border-bottom:1px solid #222;overflow-x:auto;white-space:nowrap}
+#review .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin-right:6px}
+#review button{padding:5px 11px;border:1px solid #2a2a2a;border-radius:99px;color:#aaa;font-size:12px}
+#review button.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,164,92,.08)}
+#review .sep{width:1px;height:18px;background:#333;margin:0 6px}
+
+/* app frame */
+#stage{height:calc(100% - 45px);padding:14px;display:flex;justify-content:center;background:#050505}
+#app{width:100%;max-width:1440px;height:100%;min-height:600px;border:1px solid #1f1f1f;border-radius:10px;overflow:hidden;position:relative;background:var(--bg);display:grid;grid-template-columns:250px 1fr 300px;grid-template-rows:56px 1fr 84px}
+#app.admin{grid-template-columns:230px 1fr;grid-template-rows:56px 1fr}
+#app.noright{grid-template-columns:250px 1fr}
+#app.noplayer{grid-template-rows:56px 1fr}
+.sun{position:absolute;inset:0;pointer-events:none;background:radial-gradient(900px 420px at 100% -8%,rgba(230,201,138,.16),transparent 60%),radial-gradient(500px 260px at 100% 0,rgba(230,201,138,.10),transparent 70%);z-index:0}
+#app>*{position:relative;z-index:1}
+#app>.sun{position:absolute;z-index:0}
+
+header.top{grid-column:1/-1;display:grid;grid-template-columns:250px 1fr 300px;align-items:center;border-bottom:1px solid var(--line);background:rgba(7,7,7,.85)}
+#app.admin header.top{grid-template-columns:230px 1fr auto}
+#app.noright header.top{grid-template-columns:250px 1fr 250px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 18px}
+.brand img{width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid var(--line)}
+.brand span{font-family:var(--display);letter-spacing:.22em;font-size:13px;color:var(--gold2)}
+.ref{justify-self:center;font-family:var(--display);font-size:20px;letter-spacing:.04em;color:var(--gold2);padding:6px 16px;border-radius:6px}
+.ref:hover{background:rgba(201,164,92,.08)}
+.topr{justify-self:end;display:flex;align-items:center;gap:10px;padding:0 18px;color:var(--muted)}
+.chip{border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:12px;color:var(--gold2)}
+.dots{letter-spacing:2px;color:var(--gold)}
+
+aside.side{border-right:1px solid var(--line);padding:16px 12px;overflow:auto;background:rgba(10,10,10,.7)}
+.nav button{display:flex;width:100%;gap:10px;align-items:center;padding:9px 12px;border-radius:6px;color:var(--muted);text-align:left}
+.nav button:hover{color:var(--text)}
+.nav button.on{color:var(--gold2);background:rgba(201,164,92,.09);box-shadow:inset 2px 0 var(--gold)}
+.side h4{font-size:10.5px;letter-spacing:.16em;color:var(--gold-dim);text-transform:uppercase;margin:20px 12px 8px;font-weight:500}
+.book{display:flex;justify-content:space-between;width:100%;padding:6px 12px;color:var(--muted);font-family:var(--serif);font-size:15px;border-radius:5px}
+.book:hover{color:var(--text)} .book.on{color:var(--gold2)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--gold);align-self:center;box-shadow:0 0 6px var(--gold)}
+
+main{overflow:auto;padding:30px 44px}
+main.center{display:flex;flex-direction:column;align-items:center}
+.col{width:100%;max-width:700px}
+h1{font-family:var(--display);font-weight:500;font-size:34px;color:var(--gold2);letter-spacing:.02em}
+h2{font-family:var(--display);font-weight:500;font-size:22px;color:var(--gold2)}
+.sub{color:var(--muted);margin-top:4px}
+.scripture{font-family:var(--serif);font-size:21px;line-height:1.75;margin-top:22px}
+.v{display:block;padding:3px 10px;border-radius:5px;cursor:pointer;margin:0 -10px}
+.v:hover{background:rgba(201,164,92,.05)}
+.v sup{font-family:var(--sans);font-size:11px;color:var(--gold);margin-right:9px;font-weight:500}
+.v.sel{background:rgba(201,164,92,.12);box-shadow:inset 2px 0 var(--gold)}
+.v.hid{color:transparent;text-shadow:none;position:relative}
+.v.hid .ph{display:inline-block;height:.6em;border-radius:3px;background:linear-gradient(90deg,rgba(201,164,92,.22),rgba(201,164,92,.08));vertical-align:middle}
+.btn{border:1px solid var(--gold);color:var(--gold2);padding:9px 20px;border-radius:6px;background:rgba(201,164,92,.07)}
+.btn:hover{background:rgba(201,164,92,.16);box-shadow:0 0 18px rgba(201,164,92,.18)}
+.btn.solid{background:linear-gradient(180deg,#d8b872,#a8843f);color:#120d03;border-color:#d8b872;font-weight:600}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn.sm{padding:5px 12px;font-size:12px}
+.row{display:flex;gap:12px;align-items:center}
+.between{justify-content:space-between}
+.card{border:1px solid var(--line);border-radius:10px;padding:18px;background:rgba(18,18,18,.7)}
+.tabs{display:flex;gap:26px;border-bottom:1px solid var(--line)}
+.tabs button{padding:8px 2px;color:var(--muted)} .tabs button.on{color:var(--gold2);box-shadow:0 1px var(--gold)}
+
+/* right panel */
+aside.right{border-left:1px solid var(--line);padding:18px;overflow:auto;background:rgba(10,10,10,.7)}
+.steps{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.step{display:flex;gap:12px;align-items:center;padding:11px 12px;border:1px solid transparent;border-radius:8px;text-align:left;color:var(--muted)}
+.step .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:11px}
+.step.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,164,92,.09);box-shadow:0 0 22px rgba(201,164,92,.12)}
+.step.on .n{background:var(--gold);color:#111;border-color:var(--gold)}
+.step small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.stage-strip{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:24px}
+.arrow{width:34px;height:34px;border:1px solid var(--line);border-radius:50%;color:var(--gold);display:grid;place-items:center}
+.arrow:hover{border-color:var(--gold)}
+.arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.seg{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.seg button{padding:7px 18px;color:var(--muted);font-family:var(--display);font-size:16px;letter-spacing:.06em}
+.seg button.on{background:rgba(201,164,92,.16);color:var(--gold2)}
+
+/* player */
+footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(8,8,8,.92);display:grid;grid-template-columns:250px 1fr 300px;align-items:center}
+#app.noright footer.player{grid-template-columns:250px 1fr}
+.pl-left{display:flex;align-items:center;gap:12px;padding:0 18px;position:relative}
+.pl-mid{padding:0 24px;display:flex;flex-direction:column;gap:6px}
+.pl-right{display:flex;justify-content:flex-end;gap:10px;padding:0 18px;position:relative;align-items:center}
+.ico{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--gold)}
+.ico:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(201,164,92,.2)}
+.ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.play{width:44px;height:44px;background:linear-gradient(180deg,#d8b872,#a8843f);color:#111;border:0}
+.play svg{fill:#111;stroke:none}
+.transport{display:flex;justify-content:center;align-items:center;gap:14px}
+.bar{height:3px;background:#2a2a2a;border-radius:3px;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:32%;background:var(--gold);border-radius:3px}
+.bar i:after{content:"";position:absolute;right:-5px;top:-4px;width:11px;height:11px;border-radius:50%;background:var(--gold2)}
+.times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.menu{position:absolute;bottom:72px;left:14px;width:230px;background:#0c0c0c;border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.7);z-index:5}
+.pl-right .menu{left:auto;right:14px;width:170px}
+.menu button{display:flex;gap:12px;align-items:center;width:100%;padding:10px;border-radius:6px;text-align:left}
+.menu button:hover{background:rgba(201,164,92,.08)}
+.menu svg{width:20px;height:20px;fill:none;stroke:var(--gold);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.menu .chk{margin-left:auto;color:var(--gold)}
+.menu small{display:block;color:var(--muted);font-size:11px}
+
+/* flashcards */
+.fc-wrap{perspective:1200px;margin-top:22px}
+.fc{width:100%;max-width:560px;height:340px;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.7,.2,1);cursor:pointer}
+.fc.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line2);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(500px 220px at 90% 0,rgba(230,201,138,.12),transparent 70%),#0c0c0c;padding:34px;text-align:center}
+.face.back{transform:rotateY(180deg)}
+.face .book{display:block;width:auto;font-family:var(--display);letter-spacing:.3em;color:var(--gold);font-size:15px;padding:0}
+.face .cv{font-family:var(--display);font-size:78px;color:var(--gold2);margin:12px 0}
+.face .hint{color:var(--muted);font-size:12px;letter-spacing:.12em}
+.face .vt{font-family:var(--serif);font-size:25px;line-height:1.55}
+
+/* verse selector */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin-top:16px}
+.vb{height:46px;border:1px solid var(--line);border-radius:8px;font-family:var(--display);font-size:19px;color:var(--text)}
+.vb:hover{border-color:var(--gold)}
+.vb.range{background:rgba(201,164,92,.13);border-color:var(--gold-dim)}
+.vb.end{background:linear-gradient(180deg,#d8b872,#a8843f);color:#111;border-color:#d8b872;font-weight:600}
+
+/* admin */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.stat b{display:block;font-family:var(--display);font-size:34px;color:var(--gold2);font-weight:500}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th{font-weight:500;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid #1a1a1a}
+tr:hover td{background:rgba(201,164,92,.04)}
+.pill{padding:2px 9px;border-radius:99px;font-size:11.5px;border:1px solid}
+.pill.draft{color:var(--muted);border-color:#444}.pill.review{color:var(--warn);border-color:var(--warn)}.pill.pub{color:var(--ok);border-color:var(--ok)}
+.wizard{display:flex;gap:4px;margin:18px 0 22px;align-items:center}
+.wz{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:6px 10px}
+.wz i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:11px}
+.wz.on{color:var(--gold2)}.wz.on i{background:var(--gold);color:#111;border-color:var(--gold)}.wz.done i{border-color:var(--ok);color:var(--ok)}
+.wz+.wz:before{content:"";width:18px;height:1px;background:var(--line);margin-right:6px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.form label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:12px}
+.form .full{grid-column:1/-1}
+.drop{border:1px dashed var(--line2);border-radius:12px;padding:40px;text-align:center;color:var(--muted);background:rgba(201,164,92,.03)}
+.drop b{display:block;font-family:var(--display);font-size:22px;color:var(--gold2);font-weight:500;margin-bottom:6px}
+.wf{width:100%;height:170px;background:#090909;border:1px solid var(--line);border-radius:8px;display:block;touch-action:none}
+.tl{display:grid;grid-template-columns:44px 1fr 1fr 80px 1fr;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.tl input{width:100%;padding:5px 8px;font-variant-numeric:tabular-nums;text-align:center}
+.tl.sel{background:rgba(201,164,92,.09)}
+.flag{font-size:11.5px}.flag.err{color:var(--err)}.flag.warn{color:var(--warn)}.flag.ok{color:var(--ok)}
+.note{padding:10px 14px;border-left:2px solid var(--gold);background:rgba(201,164,92,.06);color:var(--muted);border-radius:0 6px 6px 0;font-size:12.5px;margin-top:14px}
+@media (max-width:1100px){#app,#app.noright{grid-template-columns:1fr}#app aside.side,#app aside.right{display:none}header.top,footer.player{grid-template-columns:1fr auto !important}.pl-left,.pl-right{display:none}}
+</style>
+</head>
+<body>
+<div id="review"></div>
+<div id="stage"><div id="app"></div></div>
+
+<script>
+const BOOKS=['Genesis','Exodus','Psalms','Isaiah','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','Ephesians','Philippians','Hebrews','James'];
+const VERSES=[
+"In the beginning was the Word, and the Word was with God, and the Word was God.",
+"The same was in the beginning with God.",
+"All things were made through him. Without him was not anything made that has been made.",
+"In him was life, and the life was the light of men.",
+"The light shines in the darkness, and the darkness hasn't overcome it.",
+"There came a man, sent from God, whose name was John.",
+"The same came as a witness, that he might testify about the light, that all might believe through him.",
+"He was not the light, but was sent that he might testify about the light.",
+"The true light that enlightens everyone was coming into the world.",
+"He was in the world, and the world was made through him, and the world didn't recognize him."];
+const TOTAL=18; // John 1 has 18 verses; prototype text covers 1–10
+const ICON={
+ loop:'<svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>',
+ stop:'<svg viewBox="0 0 24 24"><polygon points="8.4,3 15.6,3 21,8.4 21,15.6 15.6,21 8.4,21 3,15.6 3,8.4"/></svg>',
+ next:'<svg viewBox="0 0 24 24"><path d="M4 18v-2a6 6 0 0 1 6-6h10"/><path d="M16 5.5l4 4.5-4 4.5"/></svg>',
+ play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+ note:'<svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>',
+ prev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>', fwd:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+ back10:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>'};
+const MODES=[['loop','Loop Verse','Repeat the current verse'],['stop','Stop After Verse','Finish the verse, then stop'],['next','Next Verse','Continue to the following verse']];
+
+const S={screen:'home',step:0,mode:'next',menu:null,genre:'Pop',fc:{i:0,flip:false,order:null},
+  range:{a:3,b:7,picking:null},revealed:false,
+  tab:'New Testament',book:'John',
+  dur:238,sel:1,
+  timing:[],ack:{},wizard:4,status:'Ready for Review'};
+// seed timing for John 1:1–18 (a gap after v4, overlap v9/v10, v18 missing)
+(function(){const s=[[2.0,14.2],[14.2,20.1],[20.8,36.5],[37.0,49.6],[52.5,63.0],[63.0,74.3],[74.3,95.4],[95.4,108.2],[108.2,124.8],[123.9,141.6],[141.6,154.0],[154.0,170.2],[170.2,186.0],[186.0,203.5],[203.5,214.9],[214.9,226.0],[226.0,236.1],[null,null]];
+ S.timing=s.map((x,i)=>({v:i+1,s:x[0],e:x[1]}));})();
+
+const SCREENS=[
+ ['home','Home','L'],['read','Reader','L'],['choice','Memorize','L'],['steps','Steps','L'],['cards','Flashcards','L'],['range','Verse range','L'],
+ ['dash','Dashboard','A'],['upload','Upload','A'],['library','Library','A'],['timing','Timing editor','A'],['publish','Preview & publish','A']];
+
+const $=s=>document.querySelector(s);
+const fmt=t=>t==null?'':(Math.floor(t/60)+':'+(t%60).toFixed(2).padStart(5,'0'));
+const parse=v=>{v=String(v).trim();if(!v)return null;if(v.includes(':')){const[m,s]=v.split(':');return (+m)*60+(+s)}return +v};
+function go(s){S.screen=s;S.menu=null;render()}
+
+function reviewBar(){
+ let h='<span class="lbl">Living Text · design prototype</span>';
+ SCREENS.forEach(([id,l,k],i)=>{if(i&&SCREENS[i-1][2]!==k)h+='<span class="sep"></span>';h+=`<button class="${S.screen===id?'on':''}" onclick="go('${id}')">${(k==='A'?'Admin · ':'')+l}</button>`});
+ $('#review').innerHTML=h;}
+
+function playerBar(){
+ const m=MODES.find(x=>x[0]===S.mode);
+ const menu=S.menu==='mode'?`<div class="menu">${MODES.map(([k,l,d])=>`<button onclick="setMode('${k}')">${ICON[k]}<span>${l}<small>${d}</small></span><span class="chk">${S.mode===k?'✓':''}</span></button>`).join('')}</div>`:'';
+ const gmenu=S.menu==='genre'?`<div class="menu">${['Pop','Rock','R&B'].map(g=>`<button onclick="setGenre('${g}')"><span>${g}</span><span class="chk">${S.genre===g?'✓':''}</span></button>`).join('')}</div>`:'';
+ return `<footer class="player">
+  <div class="pl-left"><button class="ico" title="Playback-end: ${m[1]}" onclick="tog('mode')">${ICON[S.mode]}</button><span style="color:var(--muted);font-size:12px">${m[1]}</span>${menu}</div>
+  <div class="pl-mid"><div class="transport"><button class="ico" onclick="">${ICON.prev}</button><button class="ico play">${ICON.play}</button><button class="ico">${ICON.fwd}</button></div>
+   <div class="bar"><i></i></div><div class="times"><span>0:00</span><span>-0:28</span></div></div>
+  ${document.getElementById('app').classList.contains('noright')?'':`<div class="pl-right"><span style="color:var(--muted);font-size:12px">${S.genre} · Arrangement 1</span><button class="ico" onclick="tog('genre')" title="Genre">${ICON.note}</button>${gmenu}</div>`}
+ </footer>`;}
+function tog(k){S.menu=S.menu===k?null:k;render()}
+function setMode(k){S.mode=k;S.menu=null;render()}
+function setGenre(g){S.genre=g;S.menu=null;render()}
+
+function header(center,admin){
+ return `<header class="top"><div class="brand"><img src="assets/reference/logo-reference-mark.png" alt="LT"><span>${admin?'LIVING TEXT · ADMIN':'LIVING TEXT'}</span></div>
+ <button class="ref" onclick="${admin?'':"go('read')"}">${center}</button>
+ <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="chip">ESV · pending license</span><span class="dots">•••</span>'}</div></header>`;}
+
+function listenerSide(active){
+ const nav=[['home','Home'],['read','Read Scripture'],['choice','Memorize'],['cards','Flashcards']];
+ return `<aside class="side"><div class="nav">${nav.map(([k,l])=>`<button class="${active===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</div>
+ <h4>${S.tab}</h4>${BOOKS.slice(S.tab==='Old Testament'?0:4).slice(0,S.tab==='Old Testament'?4:11).map(b=>`<button class="book ${b===S.book?'on':''}" onclick="S.book='${b}';go('read')"><span>${b}</span>${b==='John'||b==='Psalms'?'<i class="dot" title="Music available"></i>':''}</button>`).join('')}
+ <h4 style="margin-top:22px">Switch</h4><div class="nav"><button onclick="S.tab='${S.tab==='Old Testament'?'New Testament':'Old Testament'}';render()">${S.tab==='Old Testament'?'New Testament':'Old Testament'} →</button></div>
+ <div class="nav" style="margin-top:22px"><button onclick="go('dash')" style="color:var(--gold-dim)">Administrator →</button></div></aside>`;}
+
+function setApp(cls){const a=$('#app');a.className=cls||'';}
+function sun(){return '<div class="sun"></div>'}
+
+function scripture(opts={}){
+ const {hideFrom=999,max=10,select=false}=opts;
+ return `<div class="scripture">${VERSES.slice(0,max).map((t,i)=>{
+  const n=i+1;const inR=n>=S.range.a&&n<=S.range.b;
+  const hidden=n>=hideFrom&&!S.revealed;
+  const body=hidden?t.split(' ').map(w=>`<span class="ph" style="width:${Math.max(18,w.length*9)}px"></span>`).join(' '):t;
+  return `<span class="v ${select&&inR?'sel':''} ${hidden?'hid':''}" onclick="${select?`pickVerse(${n})`:''}"><sup>${n}</sup>${body}</span>`}).join('')}</div>`;}
+
+/* ---------- LISTENER SCREENS ---------- */
+const V={};
+V.home=()=>{setApp('noright');return sun()+header('Home')+listenerSide('home')+`<main class="center"><div class="col" style="max-width:780px;text-align:center;padding-top:20px">
+ <img src="assets/reference/logo-reference-wordmark.png" alt="Living Text logo reference" style="width:280px;border-radius:10px;border:1px solid var(--line)">
+ <p class="sub" style="margin:14px 0 34px;font-family:var(--serif);font-size:18px;font-style:italic">Hide the Word in your heart — one verse at a time.</p>
+ <div class="card" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><div class="sub" style="font-size:11px;letter-spacing:.14em">CONTINUE</div><h2 style="margin-top:4px">John 1:1</h2><div class="sub">Last: Step 2 · Sing</div></div><button class="btn solid" onclick="go('steps')">Resume</button></div>
+ <div class="row between" style="margin:30px 0 8px"><h2>Recently studied</h2><button class="sub" onclick="go('read')">See all</button></div>
+ ${[['John 1','The Word Became Flesh'],['Psalm 23','The Lord Is My Shepherd'],['Exodus 23','The Angel Before You']].map(([a,b])=>`<div class="card" style="text-align:left;margin-top:10px;padding:14px 18px;cursor:pointer" onclick="go('read')"><div class="row between"><div><b style="font-family:var(--display);font-size:20px;color:var(--gold2);font-weight:500">${a}</b><div class="sub">${b}</div></div><span class="dot"></span></div></div>`).join('')}
+ </div></main>`+playerBar();};
+
+V.read=()=>{setApp('');return sun()+header('John 1')+listenerSide('read')+`<main><div class="col" style="margin:0 auto"><div class="row between"><div><h1>John 1</h1><div class="sub" style="font-family:var(--serif);font-size:17px;font-style:italic">The Word Became Flesh</div></div><div class="row"><button class="btn ghost sm" onclick="">‹ Prev</button><button class="btn ghost sm">Next ›</button></div></div>
+ ${scripture({max:10,select:true})}
+ <div class="note" style="margin-top:22px">Prototype text is public-domain WEB placeholder, covering vv.1–10. ESV will load through a server-side provider once licensed.</div></div></main>
+ <aside class="right"><h2>Memorize</h2><p class="sub" style="margin:6px 0 16px">Selected: John 1:${S.range.a}–${S.range.b}</p><button class="btn solid" style="width:100%" onclick="go('choice')">Memorize</button>
+ <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b><span class="dot"></span></div><p class="sub" style="margin-top:6px">${S.genre} · Arrangement 1 available for John 1:1–18</p></div>
+ <button class="btn ghost" style="width:100%;margin-top:14px" onclick="go('range')">Edit verse range</button></aside>`+playerBar();};
+
+V.choice=()=>{setApp('noright noplayer');return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main class="center"><div class="col" style="text-align:center;padding-top:50px;max-width:460px"><h1>Choose a method</h1><p class="sub" style="margin:8px 0 34px">John 1:${S.range.a}–${S.range.b}</p>
+ <button class="card" style="width:100%;margin-bottom:16px;padding:30px" onclick="go('steps')"><h2>Steps</h2><div class="sub" style="margin-top:6px">Listen · Sing · Recall · Chain</div></button>
+ <button class="card" style="width:100%;padding:30px" onclick="go('range')"><h2>Flashcards</h2><div class="sub" style="margin-top:6px">Select a range, then practice in random order if you like</div></button></div></main>`;};
+
+const STEPS=[['Listen','Read along as the music plays'],['Sing','Sing from the text, without the recording'],['Recall','Text hidden — reveal when needed'],['Chain','Several verses hidden — recite them all']];
+V.steps=()=>{setApp('');const st=S.step;const hide=st===2?S.range.a+0:st===3?S.range.a:999;
+ let body;
+ if(st===2){const cur=Math.min(S.range.a+1,S.range.b);body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>{const n=S.range.a+i;return {n,t,hid:n===cur&&!S.revealed}});}
+ else if(st===3)body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>({n:S.range.a+i,t,hid:!S.revealed}));
+ else body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>({n:S.range.a+i,t,hid:false}));
+ const verses=body.map(x=>`<span class="v ${x.hid?'hid':''}"><sup>${x.n}</sup>${x.hid?x.t.split(' ').map(w=>`<span class="ph" style="width:${Math.max(18,w.length*9)}px"></span>`).join(' '):x.t}</span>`).join('');
+ return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main><div class="col" style="margin:0 auto">
+ <div class="stage-strip"><button class="arrow" onclick="stepTo(${(st+3)%4})">${ICON.prev}</button><div class="seg">${STEPS.map((s,i)=>`<button class="${i===st?'on':''}" onclick="stepTo(${i})">${s[0]}</button>`).join('')}</div><button class="arrow" onclick="stepTo(${(st+1)%4})">${ICON.fwd}</button></div>
+ <h1 style="text-align:center">${STEPS[st][0]}</h1><p class="sub" style="text-align:center">${STEPS[st][1]}</p>
+ <div class="scripture">${verses}</div>
+ ${st>=2?`<div style="text-align:center;margin-top:24px"><button class="btn" onclick="S.revealed=!S.revealed;render()">${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
+ </div></main>
+ <aside class="right"><h2>Memorization steps</h2><div class="steps">${STEPS.map((s,i)=>`<button class="step ${i===st?'on':''}" onclick="stepTo(${i})"><span class="n">${i+1}</span><span>${s[0]}<small>${s[1]}</small></span></button>`).join('')}</div>
+ <button class="btn ghost" style="width:100%;margin-top:18px" onclick="go('range')">John 1:${S.range.a}–${S.range.b} · edit range</button></aside>`+playerBar();};
+function stepTo(i){S.step=i;S.revealed=false;render()}
+
+function fcOrder(){const a=[];for(let n=S.range.a;n<=Math.min(S.range.b,10);n++)a.push(n);return S.fc.order||a}
+V.cards=()=>{setApp('noright');const o=fcOrder();const n=o[S.fc.i%o.length];
+ return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:560px;text-align:center">
+ <div class="sub" style="letter-spacing:.14em">CARD ${S.fc.i%o.length+1} OF ${o.length}</div>
+ <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''}" onclick="S.fc.flip=!S.fc.flip;render()">
+  <div class="face"><span class="book">JOHN</span><div class="cv">1:${n}</div><span class="hint">TAP TO REVEAL</span></div>
+  <div class="face back"><span class="book">JOHN 1:${n}</span><p class="vt" style="margin-top:14px">${VERSES[n-1]}</p></div></div></div>
+ <div class="row" style="justify-content:center;margin-top:26px"><button class="arrow" onclick="fcMove(-1)">${ICON.prev}</button><button class="btn" onclick="fcShuffle()">Shuffle</button><button class="arrow" onclick="fcMove(1)">${ICON.fwd}</button></div>
+ <p class="sub" style="margin-top:16px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar();};
+function fcMove(d){const o=fcOrder();S.fc.i=(S.fc.i+d+o.length)%o.length;S.fc.flip=false;render()}
+function fcShuffle(){const a=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.order=a;S.fc.i=0;S.fc.flip=false;render()}
+
+V.range=()=>{setApp('noright noplayer');const{a,b}=S.range;
+ return sun()+header('Select verses')+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:640px"><h1>Select the range</h1>
+ <div class="row" style="margin-top:12px"><button class="seg" style="padding:0"><span class="chip" style="border:0;cursor:pointer" onclick="S.tab='New Testament'">John</span></button><button class="chip" onclick="">Chapter 1 ▾</button></div>
+ <p class="sub" style="margin-top:16px">${S.range.picking==='end'?'Now tap the closing verse.':'Tap a verse to start. Tap again to set the end. Use the chips below to change either endpoint.'}</p>
+ <div class="vgrid">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="vb ${n===a||n===b?'end':(n>a&&n<b?'range':'')}" onclick="pickVerse(${n})">${n}</button>`).join('')}</div>
+ <div class="row between" style="margin-top:26px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span class="sub">${b-a+1} verse${b>a?'s':''}</span></div>
+ <div class="row" style="margin-top:22px"><button class="btn solid" onclick="S.fc={i:0,flip:false,order:null};go('cards')">Start Flashcards</button><button class="btn" onclick="go('steps')">Use for Steps</button></div>
+ <div class="note">No fixed limit on range length. Cross-chapter selection is designed here but flagged as provisional in the project docs.</div></div></main>`;};
+function pickVerse(n){const r=S.range;
+ if(r.picking==='start'){r.a=n;if(r.b<n)r.b=n;r.picking=null}
+ else if(r.picking==='end'){r.b=n;if(r.a>n)r.a=n;r.picking=null}
+ else if(r.picking==='first'){r.b=n;if(n<r.a){r.b=r.a;r.a=n}r.picking=null}
+ else{r.a=n;r.b=n;r.picking='first'}
+ render()}
+
+/* ---------- ADMIN ---------- */
+function adminSide(active){const nav=[['dash','Dashboard'],['upload','Upload music'],['library','Track library'],['timing','Timing editor'],['publish','Preview & publish']];
+ return `<aside class="side"><div class="nav">${nav.map(([k,l])=>`<button class="${active===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</div><div class="nav" style="margin-top:26px"><button onclick="go('home')" style="color:var(--gold-dim)">← Listener app</button></div></aside>`;}
+const TRACKS=[['John 1:1–18','Pop','Morning Light','Published'],['John 1:1–18','Rock','Anthem','Ready for Review'],['John 1:1–18','R&B','Slow Burn','Draft'],['Psalm 23','Pop','Still Waters','Published'],['Exodus 23:20–25','Rock','Angel Before You','Draft']];
+const pill=s=>`<span class="pill ${s==='Published'?'pub':s==='Draft'?'draft':'review'}">${s}</span>`;
+V.dash=()=>{setApp('admin');return sun()+header('Administrator',1)+adminSide('dash')+`<main><h1>Dashboard</h1><div class="sub">Scripture music workspace</div>
+ <div class="grid4"><div class="card stat"><span class="sub">Published</span><b>2</b></div><div class="card stat"><span class="sub">Ready for review</span><b>1</b></div><div class="card stat"><span class="sub">Drafts</span><b>2</b></div><div class="card stat"><span class="sub">Passages with music</span><b>3</b></div></div>
+ <div class="row between" style="margin-top:30px"><h2>Needs attention</h2><button class="btn solid sm" onclick="go('upload')">Upload recording</button></div>
+ <table><tr><th>Track</th><th>Issue</th><th></th></tr><tr><td>John 1:1–18 · Anthem</td><td class="flag warn">Gap and overlap need review · verse 18 unmapped</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr><tr><td>John 1:1–18 · Slow Burn</td><td class="flag">No verse timing yet</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr></table></main>`;};
+V.upload=()=>{setApp('admin');const w=S.wizard;return sun()+header('Upload music',1)+adminSide('upload')+`<main><h1>Upload music</h1>
+ ${wizard(0)}
+ <div class="drop"><b>Drop an audio file</b>MP3 or WAV · chapter, passage or single verse<div style="margin-top:16px"><button class="btn">Choose file</button></div></div>
+ <h2 style="margin:26px 0 12px">Metadata</h2><div class="form">
+ <label>Translation<select><option>ESV</option><option>WEB</option></select></label><label>Genre<select><option>Pop</option><option>Rock</option><option>R&B</option></select></label>
+ <label>Book<select><option>John</option></select></label><div class="row"><label style="flex:1">Chapter<input value="1"></label><label style="flex:1">From verse<input value="1"></label><label style="flex:1">To verse<input value="18"></label></div>
+ <label>Track title<input value="Morning Light"></label><label>Version / arrangement<input value="Arrangement 1"></label>
+ <label class="full">Description (optional)<textarea rows="2"></textarea></label></div>
+ <div class="note">Saved as a new version — matching passage references never overwrite an existing recording.</div>
+ <div class="row" style="margin-top:20px"><button class="btn solid" onclick="go('timing')">Save draft & set verse timing →</button></div></main>`;};
+function wizard(cur){const L=['Upload','Metadata','Verse timing','Validation','Preview','Publish'];return `<div class="wizard">${L.map((l,i)=>`<div class="wz ${i===cur?'on':i<cur?'done':''}"><i>${i<cur?'✓':i+1}</i>${l}</div>`).join('')}</div>`}
+V.library=()=>{setApp('admin');return sun()+header('Track library',1)+adminSide('library')+`<main><div class="row between"><h1>Track library</h1><button class="btn solid sm" onclick="go('upload')">Upload recording</button></div>
+ <div class="tabs" style="margin-top:16px"><button class="on">All</button><button>Published</button><button>Ready for review</button><button>Drafts</button></div>
+ <table><tr><th>Passage</th><th>Genre</th><th>Arrangement</th><th>Status</th><th>Uploaded</th><th></th></tr>${TRACKS.map(t=>`<tr><td>${t[0]}</td><td>${t[1]}</td><td>${t[2]}</td><td>${pill(t[3])}</td><td class="sub">Oct 19</td><td><button class="btn sm" onclick="go('timing')">Timing</button></td></tr>`).join('')}</table></main>`;};
+
+/* waveform + timing */
+function peaks(){if(S._p)return S._p;let x=7;const r=()=>(x=(x*16807)%2147483647)/2147483647;S._p=Array.from({length:600},(_,i)=>{const e=.35+.5*Math.abs(Math.sin(i/23))+.15*r();return Math.min(1,e*(.6+.4*r()))});return S._p}
+function problems(){const P=[];const T=S.timing;
+ T.forEach((t,i)=>{const id=t.v;
+  if(t.s==null||t.e==null){P.push({v:id,k:'err',m:'Missing boundary'});return}
+  if(t.e<=t.s)P.push({v:id,k:'err',m:'End is before start'});
+  if(t.s<0||t.e>S.dur)P.push({v:id,k:'err',m:'Outside audio duration'});
+  const n=T[i+1];
+  if(n&&n.s!=null&&t.e!=null){const d=n.s-t.e;
+   if(d>0.5&&!S.ack['g'+id])P.push({v:id,k:'warn',m:`Gap of ${d.toFixed(2)}s before v${n.v}`,ack:'g'+id});
+   if(d<-0.01&&!S.ack['o'+id])P.push({v:id,k:'warn',m:`Overlaps v${n.v} by ${(-d).toFixed(2)}s`,ack:'o'+id});}
+ });return P}
+V.timing=()=>{setApp('admin');const W=1000,H=170,px=t=>t/S.dur*W;const pk=peaks();
+ const bars=pk.map((p,i)=>{const x=i/600*W;const h=p*H*.8;return `<rect x="${x}" y="${(H-h)/2}" width="1.4" height="${h}" fill="#7b6636"/>`}).join('');
+ const regs=S.timing.filter(t=>t.s!=null&&t.e!=null).map(t=>{const sel=t.v===S.sel;return `<rect x="${px(t.s)}" y="0" width="${Math.max(1,px(t.e)-px(t.s))}" height="${H}" fill="${sel?'rgba(230,201,138,.28)':'rgba(201,164,92,.09)'}" stroke="${sel?'#e6c98a':'rgba(201,164,92,.35)'}" stroke-width=".6"/><text x="${px(t.s)+3}" y="13" fill="#e6c98a" font-size="10" font-family="Inter">${t.v}</text>`}).join('');
+ const sel=S.timing[S.sel-1];
+ const hand=sel&&sel.s!=null&&sel.e!=null?[['s',sel.s],['e',sel.e]].map(([k,t])=>`<g class="h" data-k="${k}" style="cursor:ew-resize"><line x1="${px(t)}" x2="${px(t)}" y1="0" y2="${H}" stroke="#fff" stroke-width="1.5"/><rect x="${px(t)-5}" y="${H/2-14}" width="10" height="28" rx="3" fill="#e6c98a"/></g>`).join(''):'';
+ const ticks=Array.from({length:Math.floor(S.dur/20)+1},(_,i)=>i*20).map(t=>`<text x="${px(t)+2}" y="10" fill="#948c7a" font-size="10">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`).join('');
+ const P=problems();
+ return sun()+header('Timing editor',1)+adminSide('timing')+`<main><div class="row between"><div><h1>Timing editor</h1><div class="sub">John 1:1–18 · Anthem (Rock) · duration ${fmt(S.dur)}</div></div><div class="row"><span class="pill review">Draft v2 · autosaved</span><button class="btn ghost sm">Saved sessions ▾</button><button class="btn sm" onclick="go('publish')">Continue →</button></div></div>
+ ${wizard(2)}
+ <div class="row" style="margin-bottom:8px"><button class="ico play" style="width:38px;height:38px">${ICON.play}</button><button class="btn sm ghost">Play verse ${S.sel}</button><span class="sub">Zoom</span><input type="range" min="1" max="8" value="1" style="width:120px;padding:0"><span class="sub" style="margin-left:auto">Drag the gold handles or type exact times below</span></div>
+ <svg id="wf" class="wf" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}${regs}${hand}${ticks}</svg>
+ <div class="row" style="gap:20px;align-items:flex-start;margin-top:16px">
+  <div style="flex:1.5"><div class="tl" style="color:var(--gold-dim);font-size:11px;letter-spacing:.1em"><span>VERSE</span><span>START</span><span>END</span><span></span><span>STATUS</span></div>
+  ${S.timing.map((t,i)=>{const pr=P.filter(p=>p.v===t.v);return `<div class="tl ${t.v===S.sel?'sel':''}" onclick="S.sel=${t.v};render()"><b style="color:var(--gold2);font-family:var(--display);font-size:17px">${t.v}</b><input value="${fmt(t.s)}" placeholder="m:ss.ss" onchange="setT(${i},'s',this.value)" onclick="event.stopPropagation()"><input value="${fmt(t.e)}" placeholder="m:ss.ss" onchange="setT(${i},'e',this.value)" onclick="event.stopPropagation()"><button class="btn sm ghost" onclick="event.stopPropagation()">▶</button><span class="flag ${pr.length?pr[0].k:'ok'}">${pr.length?pr.map(p=>p.m+(p.ack?` <a href="#" style="color:var(--gold)" onclick="event.preventDefault();event.stopPropagation();S.ack['${p.ack}']=1;render()">acknowledge</a>`:'')).join('<br>'):'✓'}</span></div>`}).join('')}</div>
+  <div style="flex:.8" class="card"><h2>Validation</h2><p class="sub" style="margin:6px 0 12px">${P.filter(p=>p.k==='err').length} error(s) · ${P.filter(p=>p.k==='warn').length} to review</p>
+  ${P.length?P.map(p=>`<div class="flag ${p.k}" style="margin-bottom:8px">v${p.v}: ${p.m}</div>`).join(''):'<div class="flag ok">All verses mapped.</div>'}
+  <div class="note">Gaps and overlaps are never auto-fixed. Acknowledge the ones that are intentional.</div></div></div></main>`;};
+function setT(i,k,v){S.timing[i][k]=parse(v);render()}
+function wfDrag(){const svg=$('#wf');if(!svg)return;const W=1000;
+ svg.querySelectorAll('.h').forEach(g=>g.addEventListener('pointerdown',ev=>{ev.preventDefault();g.setPointerCapture(ev.pointerId);const k=g.dataset.k;
+  const mv=e=>{const r=svg.getBoundingClientRect();let t=(e.clientX-r.left)/r.width*S.dur;t=Math.max(0,Math.min(S.dur,Math.round(t*100)/100));S.timing[S.sel-1][k]=t;render()};
+  const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up)};
+  window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up)}))}
+
+V.publish=()=>{setApp('admin');const P=problems().filter(p=>p.k==='err');const ok=!P.length;
+ return sun()+header('Preview & publish',1)+adminSide('publish')+`<main><h1>Preview & publish</h1><div class="sub">John 1:1–18 · Anthem (Rock)</div>${wizard(ok?4:3)}
+ <div class="row" style="align-items:flex-start;gap:20px"><div class="card" style="flex:1.3"><h2>Listener preview</h2><p class="sub" style="margin:6px 0 14px">Uses the real playback engine and your verse timestamps.</p>
+  <div class="row"><button class="btn sm">Verse 1</button><button class="btn sm ghost">Selected passage</button><button class="btn sm ghost">Entire recording</button></div>
+  <div class="row" style="margin-top:18px;gap:8px"><button class="ico">${ICON.loop}</button><button class="ico">${ICON.stop}</button><button class="ico">${ICON.next}</button><span class="sub">Test each playback-end mode</span></div>
+  <div class="bar" style="margin-top:20px"><i></i></div></div>
+ <div class="card" style="flex:1"><h2>Checklist</h2>
+  <div class="flag ${ok?'ok':'err'}" style="margin:12px 0 6px">${ok?'✓ No blocking errors':'✕ '+P.length+' blocking error(s) — fix in the timing editor'}</div>
+  <div class="flag ${problems().some(p=>p.k==='warn')?'warn':'ok'}">${problems().some(p=>p.k==='warn')?'! Gaps/overlaps still need review or acknowledgement':'✓ Gaps and overlaps reviewed'}</div>
+  <div class="sub" style="margin:14px 0 6px">Status</div>${pill(S.status)}
+  <div class="note">Editing a published track creates a new draft version. Listeners keep hearing the current version until you publish the new one.</div>
+  <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="S.status='Ready for Review';render()">Mark ready</button><button class="btn solid" ${ok?'':'disabled style="opacity:.4;cursor:not-allowed"'} onclick="if(${ok}){S.status='Published';render()}">Publish</button></div></div></div></main>`;};
+
+function render(){reviewBar();$('#app').innerHTML=V[S.screen]();if(S.screen==='timing')wfDrag();}
+render();
+</script>
+</body>
+</html>
