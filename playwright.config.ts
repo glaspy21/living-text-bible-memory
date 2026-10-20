@@ -1,14 +1,27 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Own port and test-only auth settings, so a dev server you have running (and your
+// .env.local) never affects the tests. These values are not secrets.
+const PORT = 3100;
+export const E2E_AUTH_SECRET = "e2e-only-secret-not-used-anywhere-else-0123456789";
+export const E2E_ADMIN_EMAIL = "admin@example.test";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: "http://localhost:3000" },
+  use: { baseURL: `http://localhost:${PORT}` },
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `npx next dev --port ${PORT}`,
+    url: `http://localhost:${PORT}`,
+    reuseExistingServer: false,
+    env: {
+      AUTH_SECRET: E2E_AUTH_SECRET,
+      AUTH_GOOGLE_ID: "e2e",
+      AUTH_GOOGLE_SECRET: "e2e",
+      AUTH_URL: `http://localhost:${PORT}`,
+      ADMIN_EMAILS: E2E_ADMIN_EMAIL,
+    },
   },
   projects: [
     {

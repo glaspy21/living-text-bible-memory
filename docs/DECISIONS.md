@@ -28,3 +28,5 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Prisma 7.10.1 (stable; npm's `latest` tag is an 8.0 release candidate) with the `pg` driver adapter; generated client in `src/server/db/generated` | [R] |
 | 2026-10-20 | No Chapter table: Book stores `chapterCount`; per-chapter verse counts come from the scripture provider (they differ slightly between translations) | [R] |
 | 2026-10-20 | Database tests run against a separate `livingtext_test` database and refuse any database not ending in `_test`; CI runs them against a Postgres service | [R] |
+| 2026-10-20 | Auth.js v5 (`next-auth@5.0.0-beta.32`, the App Router version; v4 is the older API) with Google, JWT sessions, no auth tables. Only verified, allowlisted Google accounts can sign in; non-admins who are somehow signed in get 404 on admin pages | [R] |
+| 2026-10-20 | Browser tests run their own dev server on port 3100 with test-only auth settings and sign in by minting a session cookie with the test secret | [R] |

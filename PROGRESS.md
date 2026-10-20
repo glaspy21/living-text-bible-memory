@@ -79,3 +79,10 @@
 - Reader header now uses the real book name ("Song of Solomon 2").
 - Setup for the owner: start Docker, `docker compose up -d`, make sure `.env.local` has the `DATABASE_URL` line from `.env.example`, then `npm run db:migrate` and `npm run db:seed`.
 - Note: `npm audit` reports 5 high warnings, all from one dev-only lint dependency (`eslint-config-next` → `braces`); the suggested fix downgrades to Next 14, so left as is.
+
+## 2026-10-20 — M5 admin sign-in (branch `m5-auth`)
+- Added Google sign-in for administrators (Auth.js). Only verified Google accounts listed in `ADMIN_EMAILS` can sign in. Admin pages are checked twice on the server: by the proxy for every `/admin` request and by `requireAdmin()` in the admin layout and every page. Signed-out visitors go to `/sign-in`; anyone else gets a 404.
+- New `/sign-in` page in the app's style, with a clear message for a rejected account. Admin header shows the signed-in email; sidebar has Sign out.
+- Each admin sign-in records a `User` row (role ADMIN) so later uploads can name their author.
+- Tests: allowlist, redirect safety, sign-in rules, the gate (unit); browser tests for signed-out, non-admin, forged-cookie and admin access.
+- Owner setup needed: create a Google OAuth client and put `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` and `AUTH_SECRET` in `.env.local` (see `.env.example`).

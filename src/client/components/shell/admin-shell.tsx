@@ -9,7 +9,15 @@ import { Brand } from "./brand";
 import { NavLink } from "./side-nav";
 
 /** Admin frame: sidebar 230 | main, no player, no right panel. Desktop-first. */
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({
+  email,
+  signOutAction,
+  children,
+}: {
+  email: string;
+  signOutAction: () => Promise<void>;
+  children: ReactNode;
+}) {
   const current = adminNavItem(usePathname());
   return (
     <div className="app admin">
@@ -20,6 +28,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {current?.label ?? "Administrator"}
         </span>
         <div className="flex items-center gap-[14px] justify-self-end px-[18px]">
+          <span className="rounded-full border border-line px-[10px] py-1 text-xs text-gold2">
+            {email}
+          </span>
           <Link
             href="/"
             className="rounded-[7px] border border-line px-3 py-[5px] text-xs text-muted hover:text-text"
@@ -40,6 +51,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Link href="/" className="block rounded-md px-3 py-[9px] text-gold-dim hover:text-gold">
             ← Listener app
           </Link>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="block w-full rounded-md px-3 py-[9px] text-left text-muted hover:text-text"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
       </aside>
       {children}

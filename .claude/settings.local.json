@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -v \"^remote: *$\")"
+      "Bash(grep -v \"^remote: *$\")",
+      "Bash(npm run *)"
     ]
   }
 }

@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { E2E_ADMIN_EMAIL } from "../../playwright.config";
+import { signInAs } from "./session";
 
 const player = (page: import("@playwright/test").Page) => page.getByRole("contentinfo");
 
@@ -42,7 +44,8 @@ test.describe("desktop", () => {
     await expect(page.getByRole("complementary", { name: "Passage settings" })).toBeVisible();
   });
 
-  test("admin has its own sidebar", async ({ page }) => {
+  test("admin has its own sidebar", async ({ page, context }) => {
+    await signInAs(context, E2E_ADMIN_EMAIL);
     await page.goto("/admin/upload");
     const nav = page.getByRole("navigation", { name: "Admin" });
     await expect(nav.getByRole("link", { name: "Upload music" })).toHaveAttribute(

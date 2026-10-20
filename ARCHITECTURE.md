@@ -92,7 +92,7 @@ Do not split chapter audio into per-verse files.
 - Reader/Steps/Flashcards consume the interface only, so translation is swappable.
 
 ## 8. Security
-- Admin guard enforced **server-side** in middleware **and** inside every admin route handler/server action (never UI-only). Allowlist from env.
+- Admin guard enforced **server-side** in the proxy (`src/proxy.ts`, Next 16's name for middleware) **and** inside every admin layout, page, route handler and server action via `requireAdmin()` / `getAdminEmail()` (never UI-only). Allowlist from env. Sessions are signed, encrypted JWT cookies (no session tables); sign-in is limited to verified Google accounts on the allowlist, and a `User` row (role ADMIN) is upserted on each sign-in.
 - No secrets in client bundles; storage credentials server-only; presigned URLs short-lived; validate MIME + size + magic bytes on upload; Zod on all inputs; CSRF via Auth.js defaults; rate-limit upload and auth endpoints.
 - `.env*` never committed; `.env.example` documents variables.
 
