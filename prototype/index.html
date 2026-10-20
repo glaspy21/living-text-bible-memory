@@ -182,9 +182,10 @@ footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(
 .navback.clear{inset:0;background:transparent}
 .navpanel{position:absolute;background:#0a0a0a;border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px;z-index:21;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.8)}
 .navpanel.under{border-top:1px solid var(--line2);border-radius:12px}
-.tabs2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
-.tabs2 button{padding:14px;font-family:var(--display);font-size:18px;color:var(--muted);border-bottom:2px solid transparent}
-.tabs2 button.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);position:relative}
+.tabs2 .slider{position:absolute;left:0;bottom:-1px;width:50%;height:2px;background:var(--gold);transition:transform .38s cubic-bezier(.65,0,.25,1);pointer-events:none}
+.tabs2 button{padding:14px;font-family:var(--display);font-size:18px;color:var(--muted);transition:color .3s}
+.tabs2 button.on{color:var(--gold2)}
 .navlist{overflow:auto;padding:8px 18px 18px}
 .nb{display:flex;justify-content:space-between;width:100%;padding:9px 4px;font-family:var(--display);font-size:20px;color:var(--muted);text-align:left}
 .nb:hover{color:var(--text)}.nb.on{color:var(--gold2)}
@@ -455,7 +456,7 @@ function navPanel(){if(!S.nav)return '';
  const list=S.navTab==='Old Testament'?OT:NT;
  const pos=S.navPos||{top:56,left:0,width:560,mode:'center'},anim=S.navAnim;S.navAnim=false;
  return `<div class="navback ${pos.mode==='left'?'clear':''} ${anim?'popin':''}" onclick="closeNav()"></div><div class="navpanel ${pos.mode==='left'?'under':''} ${anim?'popin':''}" style="top:${pos.top}px;left:${pos.left}px;width:${pos.width}px;max-height:calc(100% - ${pos.top+16}px)">
- <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="S.navTab='${t}';S.navBook=null;render()">${t}</button>`).join('')}</div>
+ <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="setNavTab('${t}')">${t}</button>`).join('')}<i class="slider" style="transform:translateX(${(S.navFrom!=null?S.navFrom:S.navTab==='New Testament'?1:0)*100}%)"></i></div>
  <div class="navlist">${list.map(([b,n])=>{const open=S.navBook===b;const mus=MUSIC[b];
   return `<button class="nb ${open||(b===S.book&&!S.navBook)?'on':''}" onclick="navBook('${b}')"><span>${b}</span>${mus?'<i class="dot" title="Music available"></i>':''}</button>`+
   (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')}</div></div>`}
@@ -466,6 +467,8 @@ function openNav(el,mode){const a=$('#app').getBoundingClientRect(),r=el.getBoun
  S.navPos={top:mode==='left'?Math.round(r.bottom-a.top+6):56,left:Math.round(left),width,mode};S.nav=true;S.navAnim=true;render()}
 function closeNav(){S.nav=false;render()}
 function toggleNav(el){S.nav?closeNav():openNav(el,'center')}
+function setNavTab(t){if(S.navTab===t)return;S.navFrom=S.navTab==='New Testament'?1:0;S.navTab=t;S.navBook=null;S.navAnim=false;render();
+ const sl=$('.tabs2 .slider');if(sl){void sl.offsetWidth;sl.style.transform=`translateX(${t==='New Testament'?100:0}%)`}S.navFrom=null}
 function navBook(b){S.navBook=S.navBook===b?null:b;render()}
 function pickChap(b,c){S.enter=true;S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
 
