@@ -80,7 +80,8 @@ h2{font-family:var(--display);font-weight:500;font-size:22px;color:var(--gold2)}
 .v.sel{background:rgba(201,164,92,.10);box-shadow:inset 2px 0 var(--gold)}
 .v.cur{border-color:var(--gold);background:linear-gradient(180deg,rgba(212,168,79,.16),rgba(212,168,79,.07));box-shadow:0 0 24px rgba(212,168,79,.12)}
 .v.gone{opacity:0;pointer-events:none}
-.v.fade{opacity:.34}.v.fade:hover{opacity:.6}
+.v.fade{opacity:.34;--o:.34}
+@keyframes cascade{from{opacity:0;transform:translateY(6px)}to{opacity:var(--o,1);transform:none}}.v.fade:hover{opacity:.6}
 .mini.on{background:rgba(212,168,79,.18);box-shadow:0 0 14px rgba(212,168,79,.25)}
 .v.big{font-size:32px;line-height:1.5;padding:10px 0;grid-template-columns:60px 1fr}
 .v.big .vn{font-size:28px}
@@ -334,7 +335,7 @@ const refName=()=>S.book+' '+S.chap;
 const isJ1=()=>S.book==='John'&&S.chap===1;
 const vt=n=>(isJ1()&&VERSES[n-1])||'Placeholder — only John 1:1–10 is loaded in this prototype.';
 const curMode=()=>(S.screen==='read'||S.screen==='home')?S.modes.read:S.modes.practice;
-function go(s){S.menu=null;S.help=false;S.revealed=false;S.enter=true;
+function go(s){S.stagger=true;S.menu=null;S.help=false;S.revealed=false;S.enter=true;
  if(s==='nav'){S.screen='read';S.nav=false;render();openNav($('.ref'),'center');return}S.screen=s;S.nav=false;render()}
 
 function reviewBar(){
@@ -401,14 +402,20 @@ function pickChap(b,c){S.enter=true;S.book=b;S.chap=c;S.nav=false;S.navBook=null
 
 /* ---------- verse helpers ---------- */
 function dashed(t){const n=Math.max(1,Math.ceil(t.length/70));return Array.from({length:n},(_,i)=>`<div class="dl" style="width:${i===n-1&&n>1?55+((t.length*7)%35):100}%"></div>`).join('')}
-function verseRow(n,body,cls,click){return `<div class="v ${cls||''}" data-n="${n}" ${click?`onclick="${click}"`:''}><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
+function verseRow(n,body,cls,click,style){return `<div class="v ${cls||''}" data-n="${n}" ${click?`onclick="${click}"`:''} ${style?`style="${style}"`:''}><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
 // single vs multi verse view: Listen/Recall default single, Sing defaults multi, until the user toggles it
 const multiOn=st=>S.multi===null?st===1:S.multi;
 function focusLabel(st){return st===3?'Whole passage':multiOn(st)?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+S.range.a+'–'+S.range.b}
 function multiTitle(st){return st===3?'Chain always shows the whole passage':multiOn(st)?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}
 // update focus/visibility in place so text never moves or resizes — only opacity transitions
 function applyFocus(){const st=S.step;if(st===3)return;const multi=multiOn(st);
- document.querySelectorAll('.scripture .v').forEach(e=>{const f=+e.dataset.n===S.cur;e.classList.toggle('fade',multi&&!f);e.classList.toggle('gone',!multi&&!f)});
+ const rows=[...document.querySelectorAll('.scripture .v')];const maxD=Math.max(...rows.map(e=>Math.abs(+e.dataset.n-S.cur)));
+ rows.forEach(e=>{const n=+e.dataset.n,d=Math.abs(n-S.cur),f=n===S.cur,wasGone=e.classList.contains('gone'),nowGone=!multi&&!f;
+  // stagger: verses ease in one after another, rippling out from the focused verse; they leave quickly, farthest first
+  if(!f&&wasGone&&!nowGone){e.style.transitionDuration='.8s';e.style.transitionDelay=(d*140)+'ms'}
+  else if(nowGone&&!wasGone){e.style.transitionDuration='.3s';e.style.transitionDelay=((maxD-d)*45)+'ms'}
+  else{e.style.transitionDuration='.35s';e.style.transitionDelay='0ms'}
+  e.classList.toggle('fade',multi&&!f);e.classList.toggle('gone',nowGone)});
  const l=$('#focuslbl');if(l)l.textContent=focusLabel(st);const b=$('#multibtn');if(b){b.classList.toggle('on',multi);b.title=multiTitle(st)}}
 function toggleMulti(){if(S.step===3)return;S.multi=!multiOn(S.step);if(S.revealed){S.revealed=false;render()}else applyFocus()}
 function focusTo(n){const was=S.revealed;S.cur=n;S.revealed=false;
@@ -447,7 +454,8 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  const multi=multiOn(st);
  const content=(n,hide)=>hide&&!(S.revealed&&n===S.cur)?dashed(vt(n)):vt(n);
  if(st===3)body=all.map(n=>verseRow(n,S.revealed?vt(n):dashed(vt(n)))).join('');
- else body=all.map(n=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':(multi?'fade':'gone')),`setCur(${n})`)).join('');
+ else body=all.map((n,i)=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':(multi?'fade':'gone')),`setCur(${n})`,S.stagger&&multi?`animation:cascade .8s ${i*120}ms backwards`:'')).join('');
+ S.stagger=false;
  return sun()+header(refName()+':'+a+'–'+b)+listenerSide('choice')+`<main><div class="fillcol" style="max-width:760px">
   <div class="row between"><button id="multibtn" class="mini ${multi||st===3?'on':''}" title="${multiTitle(st)}" onclick="toggleMulti()">${ICON.list}</button><span class="row" style="gap:16px"><span class="sub" id="focuslbl">${focusLabel(st)}</span><button class="btn sm" onclick="go('cards')">${ICON.shuffle}Switch to Flashcards</button></span></div>
   <div class="scripture" style="flex:1;margin-top:26px">${body}</div>
@@ -462,7 +470,7 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
   <div class="card"><div class="sub" style="font-size:11px;letter-spacing:.14em">PASSAGE</div><div style="font-family:var(--display);font-size:22px;color:var(--gold2);margin-top:4px">${refName()}:${a}–${b}</div><button class="btn ghost sm" style="margin-top:12px" onclick="go('range')">Edit range</button></div>
   <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">WHEN THE VERSE ENDS</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON[S.modes.practice].replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${MODES.find(x=>x[0]===S.modes.practice)[1]}</span></div></div>
  </aside>`+playerBar()+navPanel();};
-function stepTo(i){S.step=i;S.revealed=false;S.help=false;render()}
+function stepTo(i){S.stagger=true;S.step=i;S.revealed=false;S.help=false;render()}
 
 function fcOrder(){const a=[];for(let n=S.range.a;n<=S.range.b;n++)a.push(n);return S.fc.order||a}
 V.cards=()=>{setApp('noright');const anim=S.cardAnim;S.cardAnim=false;const o=fcOrder();const n=o[S.fc.i%o.length];
