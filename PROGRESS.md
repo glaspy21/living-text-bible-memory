@@ -37,3 +37,4 @@
 - Added Desktop/Mobile toggle in the prototype bar. Mobile renders listener screens in a 390px phone frame (no sidebar/right panel, LF mark + ESV + menu header, gear on Home, 5-column verse grid). Same layout applies on real phone-width screens. Admin stays desktop-only.
 - Differences from the mockups: Switch to Flashcards/Steps buttons and help icon are additions requested later; Reader shows the selected verse range highlight; hero art is still code-drawn, not photography.
 - Book selector: Old/New Testament underline now slides between tabs (.38s ease).
+- Flashcards now use a stacked-cards icon (Memorize choice, Switch to Flashcards); the crossing-arrows icon is kept only for Shuffle.
