@@ -47,3 +47,9 @@
 - Owner: cross-chapter ranges confirmed; title/arrangement hidden in UI, stored as "Default"/"Default 2"... per passage+genre. ESV key stays in local .env.local only (never in chat/git); settings.json deny rules narrowed so .env.example stays readable.
 - Owner supplied a clean logo board (PNG) → assets/brand/. It is raster, not vector; production SVG still needed.
 - Added owner-supplied logo SVGs (mark + lockup, dark/light ink) to assets/brand/svg/. Flat single-color redraws; app recolors to gold. Verified shapes against the PNG board.
+
+## 2026-10-20 — M1 scaffold started
+- Stack approved by owner (Next.js, TypeScript, Tailwind, Prisma/Postgres, Motion; Vercel + Neon + R2 for later). Work is on branch `m1-scaffold`.
+- Added the Next.js app skeleton with a plain placeholder home page. `npm run lint`, `typecheck` and `build` pass.
+- Logo SVGs from `assets/brand/svg/` reviewed; they will be wired into the app shell at M2/M3.
+- Next in M1: Prettier, Vitest, Playwright, CI, docker-compose Postgres, `.env.example` check.
