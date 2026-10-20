@@ -84,7 +84,7 @@ Owner holds the ESV API key and does **not** paste it into chat. It lives only i
 
 ## 8. Open items / unrecovered
 - [?] ESV API key and Crossway terms (caching, attribution, display rules). Apply early.
-- [?] Production logo (vector, transparent). Repo logos are **reference renders only**.
+- [~] Logo: owner supplied four SVGs (`assets/brand/svg/`), flat single-color redraws of the board; usable as production vectors pending owner confirmation that they are final. Earlier PNG renders in `prototype/assets/reference/` remain reference only.
 - [?] Photography for hero/thumbnails: prototype draws scenery in SVG. Owner to choose: originals / cropped placeholders / commissioned licensed art.
 - [?] Original PROJECT/DESIGN_SYSTEM/ASSET_INVENTORY recovery drafts from Drive were partial; Drive FlashCard pages had no readable text; "Memorization Page" HTML not inspected.
 - [A] Flashcard flip gesture; end-mode defaults (see table).

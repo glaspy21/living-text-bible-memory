@@ -46,3 +46,4 @@
 - ESV: owner scope is John 1–2 initially; Crossway policy summarized in PROJECT.md §7; music/audio permission is an open question. **Next: Gate 0 owner approvals, then M1 scaffold.**
 - Owner: cross-chapter ranges confirmed; title/arrangement hidden in UI, stored as "Default"/"Default 2"... per passage+genre. ESV key stays in local .env.local only (never in chat/git); settings.json deny rules narrowed so .env.example stays readable.
 - Owner supplied a clean logo board (PNG) → assets/brand/. It is raster, not vector; production SVG still needed.
+- Added owner-supplied logo SVGs (mark + lockup, dark/light ink) to assets/brand/svg/. Flat single-color redraws; app recolors to gold. Verified shapes against the PNG board.
