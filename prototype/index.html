@@ -220,6 +220,12 @@ tr:hover td{background:rgba(201,164,92,.04)}
 .v{transition:opacity .35s ease,background .2s}
 .btn,.ico,.vb,.cb,.nav button,.opt,.rec,.mini,.tri,.sd i{transition:background .2s,box-shadow .25s,border-color .2s,color .2s,transform .15s}
 .vb:active,.cb:active,.btn:active{transform:scale(.97)}
+.wipe{position:relative;overflow:hidden}
+.wipe .fillx{position:absolute;inset:0;display:flex;align-items:center;justify-content:inherit;gap:inherit;padding:inherit;border-radius:inherit;
+ background:linear-gradient(180deg,#e2c37e,#cfa44f);color:#16110a;clip-path:inset(0 100% 0 0);transition:clip-path .5s cubic-bezier(.22,.7,.2,1);pointer-events:none;text-align:left}
+.wipe:hover .fillx,.wipe:focus-visible .fillx{clip-path:inset(0 0 0 0)}
+.wipe .fillx *{color:#16110a !important}
+.wipe .fillx svg{stroke:#16110a !important}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes cardin{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
@@ -577,9 +583,14 @@ V.publish=()=>{setApp('admin');const P=problems().filter(p=>p.k==='err');const o
   <div class="note">Editing a published track creates a new draft version. Listeners keep hearing the current version until you publish the new one.</div>
   <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="S.status='Ready for Review';render()">Mark ready</button><button class="btn solid" ${ok?'':'disabled style="opacity:.4;cursor:not-allowed"'} onclick="if(${ok}){S.status='Published';render()}">Publish</button></div></div></div></main>`;};
 
+// hover wipe: duplicate each bar's content into a dark-on-gold overlay that is revealed left→right on hover and retracts on leave
+function enhanceBars(){document.querySelectorAll('#app .opt,#app .btn:not(.solid)').forEach(el=>{
+ if(el.classList.contains('wipe'))return;el.classList.add('wipe');
+ const o=document.createElement('span');o.className='fillx';o.setAttribute('aria-hidden','true');o.innerHTML=el.innerHTML;el.appendChild(o)})}
 function render(){reviewBar();const app=$('#app');const old=app.querySelector('.sun');
  app.innerHTML=V[S.screen]();const n=app.querySelector('.sun');if(old&&n)n.replaceWith(old);   // keep the ambient light animating across re-renders
  if(S.enter){app.classList.add('enter');S.enter=false}
+ enhanceBars();
  if(S.screen==='timing')wfDrag();}
 render();
 </script>
