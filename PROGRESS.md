@@ -9,3 +9,9 @@
 - GitHub push access: Claude GitHub App must be installed on this repo.
 - Desktop design approval from the owner, then Phase 2 (Next.js foundation).
 - Confirm provisional items listed in PROJECT.md (default playback-end mode, flip gesture, cross-chapter selection).
+
+## 2026-10-20 — Prototype v2 (matches mobile mockups)
+- Rebuilt listener screens from the owner's mobile mockup sheets: ring-style play with skip-verse buttons, end-mode icon at far left and genre note at far right, dot-and-line step indicator with gold triangle arrows, dashed-line Recall/Chain views, highlighted Sing verse, hanging gold verse numbers, OT/NT book + chapter selector, 1–51 verse-range grid, flashcard card with side arrows.
+- Playback-end defaults taken from the mockup captions (**assumption, to confirm**): Reader = Next Verse, memorization (Steps/Flashcards) = Loop Verse.
+- Mockup monograms read inconsistently ("LF"/"LE"); the owner-supplied L+cross logo is used instead.
+- Home hero is a CSS placeholder; landscape art is AI-generated and not used as an asset.

@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#070707; --bg2:#0e0e0e; --panel:#121212; --line:rgba(201,164,92,.28); --line2:rgba(201,164,92,.5);
-  --gold:#c9a45c; --gold2:#e6c98a; --gold-dim:#8f7440; --text:#ece6d8; --muted:#948c7a; --err:#d86a5a; --ok:#8bb27a; --warn:#d9a441;
+  --bg:#070707; --panel:#121212; --line:rgba(201,164,92,.28); --line2:rgba(201,164,92,.55);
+  --gold:#d4a84f; --gold2:#e8cb8a; --gold-dim:#8f7440; --text:#ece6d8; --muted:#948c7a; --err:#d86a5a; --ok:#8bb27a; --warn:#d9a441;
   --serif:'EB Garamond','Cormorant Garamond',Georgia,serif; --display:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -18,127 +18,171 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit;color:var(--text);background:#0b0b0b;border:1px solid var(--line);border-radius:6px;padding:8px 10px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
-/* review bar */
 #review{display:flex;gap:6px;align-items:center;padding:8px 14px;background:#000;border-bottom:1px solid #222;overflow-x:auto;white-space:nowrap}
 #review .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin-right:6px}
 #review button{padding:5px 11px;border:1px solid #2a2a2a;border-radius:99px;color:#aaa;font-size:12px}
 #review button.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,164,92,.08)}
 #review .sep{width:1px;height:18px;background:#333;margin:0 6px}
 
-/* app frame */
 #stage{height:calc(100% - 45px);padding:14px;display:flex;justify-content:center;background:#050505}
-#app{width:100%;max-width:1440px;height:100%;min-height:600px;border:1px solid #1f1f1f;border-radius:10px;overflow:hidden;position:relative;background:var(--bg);display:grid;grid-template-columns:250px 1fr 300px;grid-template-rows:56px 1fr 84px}
-#app.admin{grid-template-columns:230px 1fr;grid-template-rows:56px 1fr}
-#app.noright{grid-template-columns:250px 1fr}
-#app.noplayer{grid-template-rows:56px 1fr}
-.sun{position:absolute;inset:0;pointer-events:none;background:radial-gradient(900px 420px at 100% -8%,rgba(230,201,138,.16),transparent 60%),radial-gradient(500px 260px at 100% 0,rgba(230,201,138,.10),transparent 70%);z-index:0}
+#app{width:100%;max-width:1440px;height:100%;min-height:620px;border:1px solid #1f1f1f;border-radius:10px;overflow:hidden;position:relative;background:var(--bg);display:grid;grid-template-columns:240px 1fr 300px;grid-template-rows:56px minmax(0,1fr) 124px}
+#app.admin{grid-template-columns:230px 1fr;grid-template-rows:56px minmax(0,1fr)}
+#app.noright{grid-template-columns:240px 1fr}
+#app.noplayer{grid-template-rows:56px minmax(0,1fr)}
+.sun{position:absolute;inset:0;pointer-events:none;z-index:0;
+ background:
+  conic-gradient(from 196deg at 100% -6%,transparent 0deg,rgba(232,203,138,.10) 6deg,transparent 12deg,rgba(232,203,138,.07) 20deg,transparent 28deg,rgba(232,203,138,.09) 36deg,transparent 46deg),
+  radial-gradient(760px 380px at 100% -6%,rgba(232,203,138,.20),transparent 62%),
+  radial-gradient(380px 200px at 100% 0,rgba(255,226,160,.14),transparent 70%)}
 #app>*{position:relative;z-index:1}
 #app>.sun{position:absolute;z-index:0}
+#app>.navback{position:absolute;z-index:20}
+#app>.navpanel{position:absolute;z-index:21}
 
-header.top{grid-column:1/-1;display:grid;grid-template-columns:250px 1fr 300px;align-items:center;border-bottom:1px solid var(--line);background:rgba(7,7,7,.85)}
+header.top{grid-column:1/-1;display:grid;grid-template-columns:240px 1fr 300px;align-items:center;border-bottom:1px solid var(--line);background:rgba(7,7,7,.88)}
 #app.admin header.top{grid-template-columns:230px 1fr auto}
-#app.noright header.top{grid-template-columns:250px 1fr 250px}
+#app.noright header.top{grid-template-columns:240px 1fr 240px}
 .brand{display:flex;align-items:center;gap:10px;padding:0 18px}
 .brand img{width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid var(--line)}
 .brand span{font-family:var(--display);letter-spacing:.22em;font-size:13px;color:var(--gold2)}
-.ref{justify-self:center;font-family:var(--display);font-size:20px;letter-spacing:.04em;color:var(--gold2);padding:6px 16px;border-radius:6px}
+.ref{justify-self:center;font-family:var(--display);font-size:21px;letter-spacing:.03em;color:var(--text);padding:6px 16px;border-radius:6px;display:flex;gap:7px;align-items:center}
 .ref:hover{background:rgba(201,164,92,.08)}
-.topr{justify-self:end;display:flex;align-items:center;gap:10px;padding:0 18px;color:var(--muted)}
+.ref small{color:var(--gold);font-size:11px}
+.topr{justify-self:end;display:flex;align-items:center;gap:14px;padding:0 18px;color:var(--text)}
+.esv{font-family:var(--display);font-size:18px}.esv small{color:var(--gold);font-size:10px}
+.more{letter-spacing:3px;color:var(--gold);font-weight:700}
 .chip{border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:12px;color:var(--gold2)}
-.dots{letter-spacing:2px;color:var(--gold)}
 
-aside.side{border-right:1px solid var(--line);padding:16px 12px;overflow:auto;background:rgba(10,10,10,.7)}
+aside.side{border-right:1px solid var(--line);padding:16px 12px;overflow:auto;background:rgba(10,10,10,.72)}
 .nav button{display:flex;width:100%;gap:10px;align-items:center;padding:9px 12px;border-radius:6px;color:var(--muted);text-align:left}
 .nav button:hover{color:var(--text)}
 .nav button.on{color:var(--gold2);background:rgba(201,164,92,.09);box-shadow:inset 2px 0 var(--gold)}
-.side h4{font-size:10.5px;letter-spacing:.16em;color:var(--gold-dim);text-transform:uppercase;margin:20px 12px 8px;font-weight:500}
-.book{display:flex;justify-content:space-between;width:100%;padding:6px 12px;color:var(--muted);font-family:var(--serif);font-size:15px;border-radius:5px}
-.book:hover{color:var(--text)} .book.on{color:var(--gold2)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--gold);align-self:center;box-shadow:0 0 6px var(--gold)}
+.side h4{font-size:10.5px;letter-spacing:.16em;color:var(--gold-dim);text-transform:uppercase;margin:22px 12px 8px;font-weight:500}
+.rec{display:flex;gap:10px;align-items:center;width:100%;padding:7px 8px;border-radius:6px;text-align:left}
+.rec:hover{background:rgba(201,164,92,.06)}
+.thumb{width:40px;height:40px;border-radius:5px;flex:none;border:1px solid var(--line)}
+.rec b{display:block;font-family:var(--display);font-size:16px;font-weight:500}
+.rec small{color:var(--muted);font-size:11.5px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);display:inline-block}
 
-main{overflow:auto;padding:30px 44px}
+main{overflow:auto;padding:28px 44px}
 main.center{display:flex;flex-direction:column;align-items:center}
-.col{width:100%;max-width:700px}
+.col{width:100%;max-width:720px}
+.fillcol{min-height:100%;display:flex;flex-direction:column;margin:0 auto}
 h1{font-family:var(--display);font-weight:500;font-size:34px;color:var(--gold2);letter-spacing:.02em}
 h2{font-family:var(--display);font-weight:500;font-size:22px;color:var(--gold2)}
 .sub{color:var(--muted);margin-top:4px}
-.scripture{font-family:var(--serif);font-size:21px;line-height:1.75;margin-top:22px}
-.v{display:block;padding:3px 10px;border-radius:5px;cursor:pointer;margin:0 -10px}
-.v:hover{background:rgba(201,164,92,.05)}
-.v sup{font-family:var(--sans);font-size:11px;color:var(--gold);margin-right:9px;font-weight:500}
-.v.sel{background:rgba(201,164,92,.12);box-shadow:inset 2px 0 var(--gold)}
-.v.hid{color:transparent;text-shadow:none;position:relative}
-.v.hid .ph{display:inline-block;height:.6em;border-radius:3px;background:linear-gradient(90deg,rgba(201,164,92,.22),rgba(201,164,92,.08));vertical-align:middle}
-.btn{border:1px solid var(--gold);color:var(--gold2);padding:9px 20px;border-radius:6px;background:rgba(201,164,92,.07)}
+.scripture{font-family:var(--serif);font-size:22px;line-height:1.6;margin-top:18px}
+.v{display:grid;grid-template-columns:46px 1fr;padding:6px 12px 6px 0;border-radius:8px;cursor:default;border:1px solid transparent;margin-bottom:2px}
+.v .vn{font-family:var(--display);color:var(--gold);font-size:21px;line-height:1.5;padding-left:10px}
+.v.pick{cursor:pointer}.v.pick:hover{background:rgba(201,164,92,.05)}
+.v.sel{background:rgba(201,164,92,.10);box-shadow:inset 2px 0 var(--gold)}
+.v.cur{border-color:var(--gold);background:linear-gradient(180deg,rgba(212,168,79,.16),rgba(212,168,79,.07));box-shadow:0 0 24px rgba(212,168,79,.12)}
+.v.dim .vt{color:#a69e8c}
+.v.big{font-size:32px;line-height:1.5;padding:10px 0;grid-template-columns:60px 1fr}
+.v.big .vn{font-size:28px}
+.dl{border-bottom:1.5px dashed rgba(236,230,216,.42);height:26px;margin-bottom:4px}
+.btn{border:1px solid var(--gold);color:var(--gold2);padding:9px 20px;border-radius:7px;background:rgba(201,164,92,.07);display:inline-flex;gap:9px;align-items:center;justify-content:center}
 .btn:hover{background:rgba(201,164,92,.16);box-shadow:0 0 18px rgba(201,164,92,.18)}
-.btn.solid{background:linear-gradient(180deg,#d8b872,#a8843f);color:#120d03;border-color:#d8b872;font-weight:600}
+.btn.solid{background:linear-gradient(180deg,#e0c07a,#a8843f);color:#120d03;border-color:#d8b872;font-weight:600}
 .btn.ghost{border-color:var(--line);color:var(--muted)}
 .btn.sm{padding:5px 12px;font-size:12px}
-.row{display:flex;gap:12px;align-items:center}
-.between{justify-content:space-between}
+.btn.wide{width:100%;padding:13px;font-family:var(--display);font-size:19px;border-radius:9px;background:rgba(20,18,12,.85)}
+.btn svg,.menu svg,.bi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.row{display:flex;gap:12px;align-items:center}.between{justify-content:space-between}
 .card{border:1px solid var(--line);border-radius:10px;padding:18px;background:rgba(18,18,18,.7)}
 .tabs{display:flex;gap:26px;border-bottom:1px solid var(--line)}
-.tabs button{padding:8px 2px;color:var(--muted)} .tabs button.on{color:var(--gold2);box-shadow:0 1px var(--gold)}
+.tabs button{padding:8px 2px;color:var(--muted)}.tabs button.on{color:var(--gold2);box-shadow:0 1px var(--gold)}
 
-/* right panel */
-aside.right{border-left:1px solid var(--line);padding:18px;overflow:auto;background:rgba(10,10,10,.7)}
-.steps{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.step{display:flex;gap:12px;align-items:center;padding:11px 12px;border:1px solid transparent;border-radius:8px;text-align:left;color:var(--muted)}
-.step .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:11px}
-.step.on{border-color:var(--gold);color:var(--gold2);background:rgba(201,164,92,.09);box-shadow:0 0 22px rgba(201,164,92,.12)}
-.step.on .n{background:var(--gold);color:#111;border-color:var(--gold)}
-.step small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
-.stage-strip{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:24px}
-.arrow{width:34px;height:34px;border:1px solid var(--line);border-radius:50%;color:var(--gold);display:grid;place-items:center}
-.arrow:hover{border-color:var(--gold)}
-.arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.seg{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
-.seg button{padding:7px 18px;color:var(--muted);font-family:var(--display);font-size:16px;letter-spacing:.06em}
-.seg button.on{background:rgba(201,164,92,.16);color:var(--gold2)}
+aside.right{border-left:1px solid var(--line);padding:18px;overflow:auto;background:rgba(10,10,10,.72)}
 
-/* player */
-footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(8,8,8,.92);display:flex;align-items:center;justify-content:center}
-.pl-left{display:flex;align-items:center;gap:12px;padding:0 18px;position:relative}
-.pl-mid{padding:0 24px;display:flex;flex-direction:column;gap:6px;max-width:640px;width:100%;margin:0 auto}
+/* player — matches mobile: end-mode | skip back | ring play | skip fwd | genre */
+footer.player{grid-column:1/-1;border-top:1px solid var(--line);background:rgba(8,8,8,.94);display:flex;align-items:center;justify-content:center}
+.pl-mid{padding:0 24px;display:flex;flex-direction:column;gap:4px;max-width:680px;width:100%}
+.bar{height:4px;background:#2c2a26;border-radius:4px;position:relative;margin-top:4px}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:18%;background:linear-gradient(90deg,#e8cb8a,#d4a84f);border-radius:4px}
+.bar i:after{content:"";position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:50%;background:var(--gold2);box-shadow:0 0 8px rgba(232,203,138,.6)}
+.times{display:flex;justify-content:space-between;font-size:12px;color:var(--text)}
+.transport{display:flex;justify-content:space-between;align-items:center;padding:2px 6px}
+.ico{width:40px;height:40px;display:grid;place-items:center;color:var(--gold);border-radius:50%}
+.ico:hover{color:var(--gold2);box-shadow:0 0 14px rgba(212,168,79,.25)}
+.ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ico.play{width:60px;height:60px;border:1.5px solid var(--gold);background:#0a0a0a}
+.ico.play svg{width:28px;height:28px;fill:var(--gold);stroke:none}
 .tw{position:relative;display:inline-flex}
-.tw .menu{bottom:52px;left:0}
-.tw+.ico+.play+.ico+.tw .menu,.tw:last-child .menu{left:auto;right:0;width:150px}
-.pl-right{display:flex;justify-content:flex-end;gap:10px;padding:0 18px;position:relative;align-items:center}
-.ico{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--gold)}
-.ico:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(201,164,92,.2)}
-.ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.play{width:44px;height:44px;background:linear-gradient(180deg,#d8b872,#a8843f);color:#111;border:0}
-.play svg{fill:#111;stroke:none}
-.transport{display:flex;justify-content:center;align-items:center;gap:14px}
-.bar{height:3px;background:#2a2a2a;border-radius:3px;position:relative}
-.bar i{position:absolute;left:0;top:0;bottom:0;width:32%;background:var(--gold);border-radius:3px}
-.bar i:after{content:"";position:absolute;right:-5px;top:-4px;width:11px;height:11px;border-radius:50%;background:var(--gold2)}
-.times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-.menu{position:absolute;bottom:72px;left:14px;width:230px;background:#0c0c0c;border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.7);z-index:5}
-.pl-right .menu{left:auto;right:14px;width:170px}
-.menu button{display:flex;gap:12px;align-items:center;width:100%;padding:10px;border-radius:6px;text-align:left}
+.menu{position:absolute;bottom:54px;left:0;width:250px;background:#0c0c0c;border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.75);z-index:8}
+.menu.r{left:auto;right:0;width:150px}
+.menu button{display:flex;gap:12px;align-items:center;width:100%;padding:10px;border-radius:6px;text-align:left;color:var(--text)}
 .menu button:hover{background:rgba(201,164,92,.08)}
-.menu svg{width:20px;height:20px;fill:none;stroke:var(--gold);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.menu .chk{margin-left:auto;color:var(--gold)}
+.menu svg{stroke:var(--gold)}
+.menu .chk{margin-left:auto;color:var(--gold);font-size:16px}
 .menu small{display:block;color:var(--muted);font-size:11px}
 
+/* memorization stepper */
+.stepper{display:flex;align-items:center;gap:10px;background:rgba(22,19,13,.85);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;margin-top:auto}
+.tri{width:30px;height:30px;color:var(--gold);display:grid;place-items:center}
+.tri svg{width:22px;height:22px}
+.tri:hover{color:var(--gold2)}
+.sdots{flex:1;display:flex;justify-content:space-between;position:relative;padding:0 6%}
+.sdots:before{content:"";position:absolute;left:12%;right:12%;top:11px;height:1px;background:var(--gold-dim)}
+.sd{display:flex;flex-direction:column;align-items:center;gap:9px;position:relative;z-index:1;font-family:var(--display);font-size:17px;color:var(--text)}
+.sd i{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gold-dim);background:#0b0b0b;display:block}
+.sd.on{color:var(--gold2)}
+.sd.on i{background:radial-gradient(circle at 40% 35%,#fff4d2,#e8cb8a 50%,#a8843f);box-shadow:0 0 16px rgba(232,203,138,.75);border-color:var(--gold2)}
+.mini{width:42px;height:42px;border:1.5px solid var(--gold);border-radius:10px;color:var(--gold);display:grid;place-items:center;background:rgba(12,10,6,.8)}
+.mini svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.mini.q{border-radius:50%;font-family:var(--display);font-size:22px}
+.help{margin-top:12px;padding:12px 16px;border-left:2px solid var(--gold);background:rgba(212,168,79,.07);color:var(--muted);border-radius:0 8px 8px 0;font-size:13px}
+
 /* flashcards */
-.fc-wrap{perspective:1200px;margin-top:22px}
-.fc{width:100%;max-width:560px;height:340px;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.7,.2,1);cursor:pointer}
+.fcrow{display:flex;align-items:center;gap:18px;margin-top:18px;width:100%;max-width:760px}
+.fc-wrap{perspective:1200px;flex:1}
+.fc{width:100%;height:330px;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.7,.2,1);cursor:pointer}
 .fc.flip{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line2);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(500px 220px at 90% 0,rgba(230,201,138,.12),transparent 70%),#0c0c0c;padding:34px;text-align:center}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:1.5px solid var(--gold);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(520px 240px at 95% 0,rgba(232,203,138,.20),transparent 70%),#0a0a0a;padding:30px 40px;text-align:center}
 .face.back{transform:rotateY(180deg)}
-.face .book{display:block;width:auto;font-family:var(--display);letter-spacing:.3em;color:var(--gold);font-size:15px;padding:0}
-.face .cv{font-family:var(--display);font-size:78px;color:var(--gold2);margin:12px 0}
-.face .hint{color:var(--muted);font-size:12px;letter-spacing:.12em}
-.face .vt{font-family:var(--serif);font-size:25px;line-height:1.55}
+.face .bk{font-family:var(--display);letter-spacing:.3em;color:var(--gold);font-size:16px}
+.face .cv{font-family:var(--display);font-size:82px;color:var(--text);margin:8px 0}
+.face .hint{color:var(--muted);font-family:var(--display);font-size:17px}
+.face .vt{font-family:var(--serif);font-size:26px;line-height:1.5;display:grid;grid-template-columns:44px auto;gap:6px;text-align:left;align-items:start}
+.face .vt b{font-family:var(--display);color:var(--gold);font-size:28px;font-weight:500}
+.shuf{color:var(--gold);font-family:var(--display);font-size:19px;display:flex;gap:9px;align-items:center;margin-top:18px}
+.shuf svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* choice */
+.opt{width:100%;display:flex;align-items:center;gap:18px;text-align:left;border:1px solid var(--gold);border-radius:12px;padding:22px 24px;background:rgba(20,18,12,.8);margin-bottom:16px}
+.opt:hover{box-shadow:0 0 26px rgba(212,168,79,.18)}
+.opt svg.big{width:34px;height:34px;fill:none;stroke:var(--gold);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.opt h2{color:var(--text);font-size:24px}.opt .sub{font-family:var(--serif);font-size:15px}.opt .go{margin-left:auto;color:var(--gold);font-size:24px}
+
+/* home */
+.hero{width:100%;max-width:880px;border-radius:14px;border:1px solid var(--line);overflow:hidden;text-align:center;padding:34px 20px 26px;position:relative;
+ background:radial-gradient(600px 240px at 92% -10%,rgba(255,226,160,.38),transparent 65%),linear-gradient(180deg,#1c1710 0%,#0b0a08 55%,#070707 100%)}
+.hero:before{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6)),linear-gradient(160deg,transparent 40%,#14110c 41%,#14110c 60%,transparent 61%),linear-gradient(200deg,transparent 45%,#100e0a 46%,#100e0a 70%,transparent 71%)}
+.hero img{width:250px;border-radius:10px;position:relative}
+.hint-img{font-size:11px;color:var(--gold-dim);margin-top:10px;position:relative}
 
 /* verse selector */
-.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin-top:16px}
-.vb{height:46px;border:1px solid var(--line);border-radius:8px;font-family:var(--display);font-size:19px;color:var(--text)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:9px;margin-top:16px}
+.vb{height:48px;border:1px solid var(--line);border-radius:8px;font-family:var(--display);font-size:20px;color:var(--text);background:#0d0d0d}
 .vb:hover{border-color:var(--gold)}
-.vb.range{background:rgba(201,164,92,.13);border-color:var(--gold-dim)}
-.vb.end{background:linear-gradient(180deg,#d8b872,#a8843f);color:#111;border-color:#d8b872;font-weight:600}
+.vb.range{background:rgba(212,168,79,.22);border-color:var(--gold-dim);color:var(--gold2)}
+.vb.end{background:linear-gradient(180deg,#e8c97e,#c99c44);color:#17110a;border-color:#e8cb8a;font-weight:600}
+.dd{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px solid var(--gold);border-radius:9px;padding:12px 16px;font-family:var(--display);font-size:21px;background:#0b0b0b}
+.dd small{color:var(--gold)}
+
+/* book / chapter selector */
+.navback{position:absolute;inset:56px 0 0 0;background:rgba(0,0,0,.55);z-index:20}
+.navpanel{position:absolute;top:56px;left:50%;transform:translateX(-50%);width:min(560px,94%);max-height:calc(100% - 80px);background:#0a0a0a;border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px;z-index:21;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.8)}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.tabs2 button{padding:14px;font-family:var(--display);font-size:18px;color:var(--muted);border-bottom:2px solid transparent}
+.tabs2 button.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.navlist{overflow:auto;padding:8px 18px 18px}
+.nb{display:flex;justify-content:space-between;width:100%;padding:9px 4px;font-family:var(--display);font-size:20px;color:var(--muted);text-align:left}
+.nb:hover{color:var(--text)}.nb.on{color:var(--gold2)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;padding:6px 0 12px}
+.cb{height:40px;border:1px solid var(--line);border-radius:7px;font-family:var(--display);font-size:18px;background:#101010}
+.cb:hover{border-color:var(--gold)}.cb.cur{background:linear-gradient(180deg,#e8c97e,#c99c44);color:#17110a;border-color:#e8cb8a}
 
 /* admin */
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
@@ -165,7 +209,8 @@ tr:hover td{background:rgba(201,164,92,.04)}
 .tl.sel{background:rgba(201,164,92,.09)}
 .flag{font-size:11.5px}.flag.err{color:var(--err)}.flag.warn{color:var(--warn)}.flag.ok{color:var(--ok)}
 .note{padding:10px 14px;border-left:2px solid var(--gold);background:rgba(201,164,92,.06);color:var(--muted);border-radius:0 6px 6px 0;font-size:12.5px;margin-top:14px}
-@media (max-width:1100px){#app,#app.noright{grid-template-columns:1fr}#app aside.side,#app aside.right{display:none}header.top,footer.player{grid-template-columns:1fr auto !important}.pl-left,.pl-right{display:none}}
+.apbar{height:4px;background:#2c2a26;border-radius:4px;position:relative}.apbar i{position:absolute;left:0;top:0;bottom:0;width:30%;background:var(--gold);border-radius:4px}
+@media (max-width:1100px){#app,#app.noright{grid-template-columns:1fr}#app aside.side,#app aside.right{display:none}header.top{grid-template-columns:1fr auto !important}}
 </style>
 </head>
 <body>
@@ -173,155 +218,196 @@ tr:hover td{background:rgba(201,164,92,.04)}
 <div id="stage"><div id="app"></div></div>
 
 <script>
-const BOOKS=['Genesis','Exodus','Psalms','Isaiah','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','Ephesians','Philippians','Hebrews','James'];
+const OT=[['Genesis',50],['Exodus',40],['Leviticus',27],['Numbers',36],['Deuteronomy',34],['Joshua',24],['Judges',21],['Ruth',4],['1 Samuel',31],['2 Samuel',24],['1 Kings',22],['2 Kings',25],['1 Chronicles',29],['2 Chronicles',36],['Ezra',10],['Nehemiah',13],['Esther',10],['Job',42],['Psalms',150],['Proverbs',31],['Ecclesiastes',12],['Song of Solomon',8],['Isaiah',66],['Jeremiah',52],['Lamentations',5],['Ezekiel',48],['Daniel',12],['Hosea',14],['Joel',3],['Amos',9],['Obadiah',1],['Jonah',4],['Micah',7],['Nahum',3],['Habakkuk',3],['Zephaniah',3],['Haggai',2],['Zechariah',14],['Malachi',4]];
+const NT=[['Matthew',28],['Mark',16],['Luke',24],['John',21],['Acts',28],['Romans',16],['1 Corinthians',16],['2 Corinthians',13],['Galatians',6],['Ephesians',6],['Philippians',4],['Colossians',4],['1 Thessalonians',5],['2 Thessalonians',3],['1 Timothy',6],['2 Timothy',4],['Titus',3],['Philemon',1],['Hebrews',13],['James',5],['1 Peter',5],['2 Peter',3],['1 John',5],['2 John',1],['3 John',1],['Jude',1],['Revelation',22]];
+const MUSIC={John:[1],Psalms:[23],Exodus:[23]};
 const VERSES=[
 "In the beginning was the Word, and the Word was with God, and the Word was God.",
-"The same was in the beginning with God.",
-"All things were made through him. Without him was not anything made that has been made.",
+"He was in the beginning with God.",
+"All things were made through him, and without him was not any thing made that was made.",
 "In him was life, and the life was the light of men.",
-"The light shines in the darkness, and the darkness hasn't overcome it.",
-"There came a man, sent from God, whose name was John.",
-"The same came as a witness, that he might testify about the light, that all might believe through him.",
-"He was not the light, but was sent that he might testify about the light.",
-"The true light that enlightens everyone was coming into the world.",
-"He was in the world, and the world was made through him, and the world didn't recognize him."];
-const TOTAL=18; // John 1 has 18 verses; prototype text covers 1–10
+"The light shines in the darkness, and the darkness has not overcome it.",
+"There was a man sent from God, whose name was John.",
+"He came as a witness, to bear witness about the light, that all might believe through him.",
+"He was not the light, but came to bear witness about the light.",
+"The true light, which gives light to everyone, was coming into the world.",
+"He was in the world, and the world was made through him, yet the world did not know him."];
+const TOTAL=51;
 const ICON={
  loop:'<svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>',
  stop:'<svg viewBox="0 0 24 24"><polygon points="8.4,3 15.6,3 21,8.4 21,15.6 15.6,21 8.4,21 3,15.6 3,8.4"/></svg>',
  next:'<svg viewBox="0 0 24 24"><path d="M4 18v-2a6 6 0 0 1 6-6h10"/><path d="M16 5.5l4 4.5-4 4.5"/></svg>',
- play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+ play:'<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
  note:'<svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>',
+ skipb:'<svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M19 5v14L8 12z" fill="currentColor"/></svg>',
+ skipf:'<svg viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5v14l11-7z" fill="currentColor"/></svg>',
  prev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>', fwd:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
- back10:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>'};
+ triL:'<svg viewBox="0 0 24 24"><path d="M16 5v14L6 12z" fill="currentColor" stroke="none"/></svg>',
+ triR:'<svg viewBox="0 0 24 24"><path d="M8 5v14l10-7z" fill="currentColor" stroke="none"/></svg>',
+ shuffle:'<svg viewBox="0 0 24 24"><path d="M3 7h3c3 0 5 2 7 5s4 5 7 5h1"/><path d="M3 17h3c1.5 0 2.7-.6 3.8-1.6"/><path d="M13 8c1-1 2.200-2 4-2h3"/><path d="M18 3l3 3-3 3"/><path d="M18 14l3 3-3 3"/></svg>',
+ list:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+ eye:'<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ book:'<svg viewBox="0 0 24 24"><path d="M12 6C10 4.5 7 4 3 4v14c4 0 7 .5 9 2 2-1.5 5-2 9-2V4c-4 0-7 .5-9 2z"/><path d="M12 6v14"/></svg>'};
 const MODES=[['loop','Loop Verse','Repeat the current verse'],['stop','Stop After Verse','Finish the verse, then stop'],['next','Next Verse','Continue to the following verse']];
 
-const S={screen:'home',step:0,mode:'next',menu:null,genre:'Pop',fc:{i:0,flip:false,order:null},
-  range:{a:3,b:7,picking:null},revealed:false,
-  tab:'New Testament',book:'John',
-  dur:238,sel:1,
-  timing:[],ack:{},wizard:4,status:'Ready for Review'};
-// seed timing for John 1:1–18 (a gap after v4, overlap v9/v10, v18 missing)
+const S={screen:'home',step:0,
+  modes:{read:'next',practice:'loop'},   // defaults per mockup captions — to be confirmed
+  menu:null,genre:'Pop',playing:false,help:false,
+  fc:{i:0,flip:false,order:null},range:{a:3,b:7,picking:null},cur:3,revealed:false,
+  book:'John',chap:1,nav:false,navTab:'New Testament',navBook:null,
+  dur:238,sel:1,timing:[],ack:{},status:'Ready for Review'};
 (function(){const s=[[2.0,14.2],[14.2,20.1],[20.8,36.5],[37.0,49.6],[52.5,63.0],[63.0,74.3],[74.3,95.4],[95.4,108.2],[108.2,124.8],[123.9,141.6],[141.6,154.0],[154.0,170.2],[170.2,186.0],[186.0,203.5],[203.5,214.9],[214.9,226.0],[226.0,236.1],[null,null]];
  S.timing=s.map((x,i)=>({v:i+1,s:x[0],e:x[1]}));})();
 
-const SCREENS=[
- ['home','Home','L'],['read','Reader','L'],['choice','Memorize','L'],['steps','Steps','L'],['cards','Flashcards','L'],['range','Verse range','L'],
+const SCREENS=[['home','Home','L'],['read','Reader','L'],['nav','Book selector','L'],['choice','Memorize','L'],['steps','Steps','L'],['cards','Flashcards','L'],['range','Verse range','L'],
  ['dash','Dashboard','A'],['upload','Upload','A'],['library','Library','A'],['timing','Timing editor','A'],['publish','Preview & publish','A']];
 
 const $=s=>document.querySelector(s);
 const fmt=t=>t==null?'':(Math.floor(t/60)+':'+(t%60).toFixed(2).padStart(5,'0'));
 const parse=v=>{v=String(v).trim();if(!v)return null;if(v.includes(':')){const[m,s]=v.split(':');return (+m)*60+(+s)}return +v};
-function go(s){S.screen=s;S.menu=null;render()}
+const refName=()=>S.book+' '+S.chap;
+const isJ1=()=>S.book==='John'&&S.chap===1;
+const vt=n=>(isJ1()&&VERSES[n-1])||'Placeholder — only John 1:1–10 is loaded in this prototype.';
+const curMode=()=>(S.screen==='read'||S.screen==='home')?S.modes.read:S.modes.practice;
+function go(s){S.menu=null;S.help=false;S.revealed=false;
+ if(s==='nav'){S.screen='read';S.nav=true}else{S.screen=s;S.nav=false}render()}
 
 function reviewBar(){
  let h='<span class="lbl">Living Text · design prototype</span>';
- SCREENS.forEach(([id,l,k],i)=>{if(i&&SCREENS[i-1][2]!==k)h+='<span class="sep"></span>';h+=`<button class="${S.screen===id?'on':''}" onclick="go('${id}')">${(k==='A'?'Admin · ':'')+l}</button>`});
+ SCREENS.forEach(([id,l,k],i)=>{if(i&&SCREENS[i-1][2]!==k)h+='<span class="sep"></span>';
+  const on=id==='nav'?S.nav:(S.screen===id&&!(id==='read'&&S.nav));
+  h+=`<button class="${on?'on':''}" onclick="go('${id}')">${(k==='A'?'Admin · ':'')+l}</button>`});
  $('#review').innerHTML=h;}
 
+/* ---------- player ---------- */
 function playerBar(){
- const m=MODES.find(x=>x[0]===S.mode);
- const menu=S.menu==='mode'?`<div class="menu">${MODES.map(([k,l,d])=>`<button onclick="setMode('${k}')">${ICON[k]}<span>${l}<small>${d}</small></span><span class="chk">${S.mode===k?'✓':''}</span></button>`).join('')}</div>`:'';
- const gmenu=S.menu==='genre'?`<div class="menu">${['Pop','Rock','R&B'].map(g=>`<button onclick="setGenre('${g}')"><span>${g}</span><span class="chk">${S.genre===g?'✓':''}</span></button>`).join('')}</div>`:'';
- return `<footer class="player">
-  <div class="pl-mid"><div class="transport">
-    <span class="tw"><button class="ico" title="Playback-end: ${m[1]}" onclick="tog('mode')">${ICON[S.mode]}</button>${menu}</span>
-    <button class="ico">${ICON.prev}</button><button class="ico play">${ICON.play}</button><button class="ico">${ICON.fwd}</button>
-    <span class="tw"><button class="ico" onclick="tog('genre')" title="Genre: ${S.genre}">${ICON.note}</button>${gmenu}</span>
-   </div>
-   <div class="bar"><i></i></div><div class="times"><span>0:00</span><span>-0:28</span></div></div>
- </footer>`;}
+ const mode=curMode();const m=MODES.find(x=>x[0]===mode);
+ const menu=S.menu==='mode'?`<div class="menu">${MODES.map(([k,l,d])=>`<button onclick="setMode('${k}')">${ICON[k]}<span>${l}<small>${d}</small></span><span class="chk">${mode===k?'✓':''}</span></button>`).join('')}</div>`:'';
+ const gmenu=S.menu==='genre'?`<div class="menu r">${['Pop','Rock','R&B'].map(g=>`<button onclick="setGenre('${g}')"><span>${g}</span><span class="chk">${S.genre===g?'✓':''}</span></button>`).join('')}</div>`:'';
+ return `<footer class="player"><div class="pl-mid">
+  <div class="bar"><i></i></div><div class="times"><span>0:00</span><span>-0:28</span></div>
+  <div class="transport">
+   <span class="tw"><button class="ico" title="When the verse ends: ${m[1]}" onclick="tog('mode')">${ICON[mode]}</button>${menu}</span>
+   <button class="ico" title="Previous verse" onclick="skip(-1)">${ICON.skipb}</button>
+   <button class="ico play" onclick="S.playing=!S.playing;render()" title="${S.playing?'Pause':'Play'}">${S.playing?ICON.pause:ICON.play}</button>
+   <button class="ico" title="Next verse" onclick="skip(1)">${ICON.skipf}</button>
+   <span class="tw"><button class="ico" title="Genre: ${S.genre}" onclick="tog('genre')">${ICON.note}</button>${gmenu}</span>
+  </div></div></footer>`;}
 function tog(k){S.menu=S.menu===k?null:k;render()}
-function setMode(k){S.mode=k;S.menu=null;render()}
+function setMode(k){if(S.screen==='read'||S.screen==='home')S.modes.read=k;else S.modes.practice=k;S.menu=null;render()}
 function setGenre(g){S.genre=g;S.menu=null;render()}
+function skip(d){
+ if(S.screen==='steps'){S.cur=Math.max(S.range.a,Math.min(S.range.b,S.cur+d));S.revealed=false;render()}
+ else if(S.screen==='cards')fcMove(d)}
 
-function header(center,admin){
+/* ---------- chrome ---------- */
+function header(center,admin,arrow){
  return `<header class="top"><div class="brand"><img src="assets/reference/logo-reference-mark.png" alt="LT"><span>${admin?'LIVING TEXT · ADMIN':'LIVING TEXT'}</span></div>
- <button class="ref" onclick="${admin?'':"go('read')"}">${center}</button>
- <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="chip">ESV · pending license</span><span class="dots">•••</span>'}</div></header>`;}
-
+ <button class="ref" ${admin?'':'onclick="S.nav=!S.nav;if(S.nav)S.screen=S.screen;render()"'}>${center}${arrow?'<small>▾</small>':''}</button>
+ <div class="topr">${admin?'<span class="chip">glaspy21@gmail.com</span><button class="btn ghost sm" onclick="go(\'home\')">Exit admin</button>':'<span class="esv">ESV <small>▾</small></span><span class="more">•••</span>'}</div></header>`;}
+function thumb(a,b){return `<span class="thumb" style="background:linear-gradient(160deg,${a},${b})"></span>`}
 function listenerSide(active){
  const nav=[['home','Home'],['read','Read Scripture'],['choice','Memorize'],['cards','Flashcards']];
  return `<aside class="side"><div class="nav">${nav.map(([k,l])=>`<button class="${active===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</div>
- <h4>${S.tab}</h4>${BOOKS.slice(S.tab==='Old Testament'?0:4).slice(0,S.tab==='Old Testament'?4:11).map(b=>`<button class="book ${b===S.book?'on':''}" onclick="S.book='${b}';go('read')"><span>${b}</span>${b==='John'||b==='Psalms'?'<i class="dot" title="Music available"></i>':''}</button>`).join('')}
- <h4 style="margin-top:22px">Switch</h4><div class="nav"><button onclick="S.tab='${S.tab==='Old Testament'?'New Testament':'Old Testament'}';render()">${S.tab==='Old Testament'?'New Testament':'Old Testament'} →</button></div>
- <div class="nav" style="margin-top:22px"><button onclick="go('dash')" style="color:var(--gold-dim)">Administrator →</button></div></aside>`;}
+ <h4>Recently studied</h4>
+ ${[['John 1','The Word Became Flesh','#c99c44','#2a2112','John',1],['Psalm 23','The Lord Is My Shepherd','#d9a441','#3a2a10','Psalms',23],['Exodus 23','The Angel Before You','#8f7440','#1c1a14','Exodus',23]].map(r=>`<button class="rec" onclick="S.book='${r[4]}';S.chap=${r[5]};go('read')">${thumb(r[2],r[3])}<span><b>${r[0]}</b><small>${r[1]}</small></span></button>`).join('')}
+ <div class="nav" style="margin-top:26px"><button onclick="go('dash')" style="color:var(--gold-dim)">Administrator →</button></div></aside>`;}
+function setApp(c){$('#app').className=c||''}
+const sun=()=>'<div class="sun"></div>';
 
-function setApp(cls){const a=$('#app');a.className=cls||'';}
-function sun(){return '<div class="sun"></div>'}
+/* book / chapter selector */
+function navPanel(){if(!S.nav)return '';
+ const list=S.navTab==='Old Testament'?OT:NT;
+ return `<div class="navback" onclick="S.nav=false;render()"></div><div class="navpanel">
+ <div class="tabs2">${['Old Testament','New Testament'].map(t=>`<button class="${S.navTab===t?'on':''}" onclick="S.navTab='${t}';S.navBook=null;render()">${t}</button>`).join('')}</div>
+ <div class="navlist">${list.map(([b,n])=>{const open=S.navBook===b;const mus=MUSIC[b];
+  return `<button class="nb ${open||(b===S.book&&!S.navBook)?'on':''}" onclick="navBook('${b}')"><span>${b}</span>${mus?'<i class="dot" title="Music available"></i>':''}</button>`+
+  (open?`<div class="cgrid">${Array.from({length:n},(_,i)=>i+1).map(c=>`<button class="cb ${b===S.book&&c===S.chap?'cur':''}" onclick="pickChap('${b}',${c})">${c}${mus&&mus.includes(c)?'':''}</button>`).join('')}</div>`:'')}).join('')}</div></div>`}
+function navBook(b){S.navBook=S.navBook===b?null:b;render()}
+function pickChap(b,c){S.book=b;S.chap=c;S.nav=false;S.navBook=null;S.screen='read';render()}
 
-function scripture(opts={}){
- const {hideFrom=999,max=10,select=false}=opts;
- return `<div class="scripture">${VERSES.slice(0,max).map((t,i)=>{
-  const n=i+1;const inR=n>=S.range.a&&n<=S.range.b;
-  const hidden=n>=hideFrom&&!S.revealed;
-  const body=hidden?t.split(' ').map(w=>`<span class="ph" style="width:${Math.max(18,w.length*9)}px"></span>`).join(' '):t;
-  return `<span class="v ${select&&inR?'sel':''} ${hidden?'hid':''}" onclick="${select?`pickVerse(${n})`:''}"><sup>${n}</sup>${body}</span>`}).join('')}</div>`;}
+/* ---------- verse helpers ---------- */
+function dashed(t){const n=Math.max(1,Math.ceil(t.length/70));return Array.from({length:n},(_,i)=>`<div class="dl" style="width:${i===n-1&&n>1?55+((t.length*7)%35):100}%"></div>`).join('')}
+function verseRow(n,body,cls){return `<div class="v ${cls||''}"><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
 
-/* ---------- LISTENER SCREENS ---------- */
+/* ---------- LISTENER ---------- */
 const V={};
-V.home=()=>{setApp('noright');return sun()+header('Home')+listenerSide('home')+`<main class="center"><div class="col" style="max-width:780px;text-align:center;padding-top:20px">
- <img src="assets/reference/logo-reference-wordmark.png" alt="Living Text logo reference" style="width:280px;border-radius:10px;border:1px solid var(--line)">
- <p class="sub" style="margin:14px 0 34px;font-family:var(--serif);font-size:18px;font-style:italic">Hide the Word in your heart — one verse at a time.</p>
- <div class="card" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><div class="sub" style="font-size:11px;letter-spacing:.14em">CONTINUE</div><h2 style="margin-top:4px">John 1:1</h2><div class="sub">Last: Step 2 · Sing</div></div><button class="btn solid" onclick="go('steps')">Resume</button></div>
- <div class="row between" style="margin:30px 0 8px"><h2>Recently studied</h2><button class="sub" onclick="go('read')">See all</button></div>
- ${[['John 1','The Word Became Flesh'],['Psalm 23','The Lord Is My Shepherd'],['Exodus 23','The Angel Before You']].map(([a,b])=>`<div class="card" style="text-align:left;margin-top:10px;padding:14px 18px;cursor:pointer" onclick="go('read')"><div class="row between"><div><b style="font-family:var(--display);font-size:20px;color:var(--gold2);font-weight:500">${a}</b><div class="sub">${b}</div></div><span class="dot"></span></div></div>`).join('')}
- </div></main>`+playerBar();};
+V.home=()=>{setApp('noright noplayer');return sun()+header('Home')+listenerSide('home')+`<main class="center"><div class="col" style="max-width:880px;display:flex;flex-direction:column;align-items:center;padding-top:6px">
+ <div class="hero"><img src="assets/reference/logo-reference-wordmark.png" alt="Living Text logo reference"><div class="hint-img">Hero artwork placeholder — landscape image to be supplied</div></div>
+ <div style="width:100%;max-width:720px;margin-top:22px">
+  <button class="opt" onclick="go('steps')" style="padding:18px 22px"><span class="bi" style="color:var(--gold)">${ICON.note.replace('<svg','<svg class="big"')}</span><span><h2>Continue</h2><div class="sub">John 1:1 · last: Sing</div></span><span class="go">›</span></button>
+  <button class="opt" onclick="go('read')" style="padding:18px 22px"><span class="bi">${ICON.book.replace('<svg','<svg class="big"')}</span><span><h2>Browse Scripture</h2><div class="sub">Choose a book and chapter</div></span><span class="go">›</span></button>
+  <div class="row between" style="margin:26px 0 6px"><h2>Recently Studied</h2><button class="sub" style="color:var(--gold)" onclick="go('read')">See All</button></div>
+  ${[['John 1','The Word Became Flesh','#c99c44','#2a2112'],['Psalm 23','The Lord Is My Shepherd','#d9a441','#3a2a10'],['Exodus 23','The Angel Before You','#8f7440','#1c1a14']].map(r=>`<button class="rec" style="border-bottom:1px solid #1a1a1a;border-radius:0;padding:10px 4px" onclick="go('read')">${thumb(r[2],r[3])}<span><b>${r[0]}</b><small>${r[1]}</small></span></button>`).join('')}
+ </div></div></main>`+navPanel();};
 
-V.read=()=>{setApp('');return sun()+header('John 1')+listenerSide('read')+`<main><div class="col" style="margin:0 auto"><div class="row between"><div><h1>John 1</h1><div class="sub" style="font-family:var(--serif);font-size:17px;font-style:italic">The Word Became Flesh</div></div><div class="row"><button class="btn ghost sm" onclick="">‹ Prev</button><button class="btn ghost sm">Next ›</button></div></div>
- ${scripture({max:10,select:true})}
- <div class="note" style="margin-top:22px">Prototype text is public-domain WEB placeholder, covering vv.1–10. ESV will load through a server-side provider once licensed.</div></div></main>
- <aside class="right"><h2>Memorize</h2><p class="sub" style="margin:6px 0 16px">Selected: John 1:${S.range.a}–${S.range.b}</p><button class="btn solid" style="width:100%" onclick="go('choice')">Memorize</button>
- <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b><span class="dot"></span></div><p class="sub" style="margin-top:6px">${S.genre} · Arrangement 1 available for John 1:1–18</p></div>
- <button class="btn ghost" style="width:100%;margin-top:14px" onclick="go('range')">Edit verse range</button></aside>`+playerBar();};
+V.read=()=>{setApp('');
+ const body=isJ1()?`<div class="scripture">${VERSES.map((t,i)=>{const n=i+1;const inR=n>=S.range.a&&n<=S.range.b;return verseRow(n,t,'pick '+(inR?'sel':'')).replace('<div class="v','<div onclick="pickVerse('+n+')" class="v')}).join('')}</div>`
+  :`<div class="note" style="margin-top:24px">Only John 1 is loaded in this prototype. Scripture text will load from the ESV provider once licensed.</div>`;
+ return sun()+header(refName(),0,1)+listenerSide('read')+`<main><div class="col" style="margin:0 auto"><div class="row between"><div><h1>${refName()}</h1><div class="sub" style="font-family:var(--serif);font-size:17px;font-style:italic">${isJ1()?'The Word Became Flesh':''}</div></div><div class="row"><button class="btn ghost sm">‹ Prev</button><button class="btn ghost sm">Next ›</button></div></div>
+ ${body}
+ <button class="btn wide" style="margin-top:20px" onclick="go('choice')">Memorize</button>
+ <div class="note">ESV badge shows the intended translation; prototype text is a public-domain placeholder.</div></div></main>
+ <aside class="right"><h2>Memorize</h2><p class="sub" style="margin:6px 0 16px">Selected: ${refName()}:${S.range.a}–${S.range.b}</p><button class="btn solid" style="width:100%" onclick="go('choice')">Memorize</button>
+ <div class="card" style="margin-top:22px"><div class="row between"><b style="color:var(--gold2);font-weight:500">Music</b>${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?'<span class="dot"></span>':''}</div><p class="sub" style="margin-top:6px">${MUSIC[S.book]&&MUSIC[S.book].includes(S.chap)?S.genre+' · Arrangement 1 available':'No recording for this chapter yet'}</p></div>
+ <button class="btn ghost" style="width:100%;margin-top:14px" onclick="go('range')">Edit verse range</button></aside>`+playerBar()+navPanel();};
 
-V.choice=()=>{setApp('noright noplayer');return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main class="center"><div class="col" style="text-align:center;padding-top:50px;max-width:460px"><h1>Choose a method</h1><p class="sub" style="margin:8px 0 34px">John 1:${S.range.a}–${S.range.b}</p>
- <button class="card" style="width:100%;margin-bottom:16px;padding:30px" onclick="go('steps')"><h2>Steps</h2><div class="sub" style="margin-top:6px">Listen · Sing · Recall · Chain</div></button>
- <button class="card" style="width:100%;padding:30px" onclick="go('range')"><h2>Flashcards</h2><div class="sub" style="margin-top:6px">Select a range, then practice in random order if you like</div></button></div></main>`;};
+V.choice=()=>{setApp('noright noplayer');return sun()+header(refName()+':'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main class="center"><div class="col" style="padding-top:60px;max-width:520px"><h1 style="text-align:center;font-size:30px;color:var(--text)">Choose a Memorization Method</h1><p class="sub" style="text-align:center;margin:8px 0 34px">${refName()}:${S.range.a}–${S.range.b}</p>
+ <button class="opt" onclick="go('steps')">${ICON.list.replace('<svg','<svg class="big"')}<span><h2>Memorization Steps</h2><div class="sub">Listen, Sing, Recall, Chain</div></span><span class="go">›</span></button>
+ <button class="opt" onclick="go('range')">${ICON.shuffle.replace('<svg','<svg class="big"')}<span><h2>Flashcards</h2><div class="sub">Practice in random order</div></span><span class="go">›</span></button></div></main>`+navPanel();};
 
-const STEPS=[['Listen','Read along as the music plays'],['Sing','Sing from the text, without the recording'],['Recall','Text hidden — reveal when needed'],['Chain','Several verses hidden — recite them all']];
-V.steps=()=>{setApp('');const st=S.step;const hide=st===2?S.range.a+0:st===3?S.range.a:999;
- let body;
- if(st===2){const cur=Math.min(S.range.a+1,S.range.b);body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>{const n=S.range.a+i;return {n,t,hid:n===cur&&!S.revealed}});}
- else if(st===3)body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>({n:S.range.a+i,t,hid:!S.revealed}));
- else body=VERSES.slice(S.range.a-1,S.range.b).map((t,i)=>({n:S.range.a+i,t,hid:false}));
- const verses=body.map(x=>`<span class="v ${x.hid?'hid':''}"><sup>${x.n}</sup>${x.hid?x.t.split(' ').map(w=>`<span class="ph" style="width:${Math.max(18,w.length*9)}px"></span>`).join(' '):x.t}</span>`).join('');
- return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('choice')+`<main><div class="col" style="margin:0 auto">
- <div class="stage-strip"><button class="arrow" onclick="stepTo(${(st+3)%4})">${ICON.prev}</button><div class="seg">${STEPS.map((s,i)=>`<button class="${i===st?'on':''}" onclick="stepTo(${i})">${s[0]}</button>`).join('')}</div><button class="arrow" onclick="stepTo(${(st+1)%4})">${ICON.fwd}</button></div>
- <h1 style="text-align:center">${STEPS[st][0]}</h1><p class="sub" style="text-align:center">${STEPS[st][1]}</p>
- <div class="scripture">${verses}</div>
- ${st>=2?`<div style="text-align:center;margin-top:24px"><button class="btn" onclick="S.revealed=!S.revealed;render()">${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
+const STEPS=[['Listen','Read along as the music plays.'],['Sing','Sing from the text without relying on the recording.'],['Recall','The text is hidden — recite it, then reveal to check.'],['Chain','Several verses hidden — recite or sing them all in order.']];
+V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=a;
+ const all=Array.from({length:b-a+1},(_,i)=>a+i);let body;
+ if(st===0)body=verseRow(S.cur,vt(S.cur),'big');
+ else if(st===1)body=all.map(n=>verseRow(n,vt(n),n===S.cur?'cur':'dim')).join('');
+ else if(st===2)body=verseRow(S.cur,S.revealed?vt(S.cur):dashed(vt(S.cur)),'big');
+ else body=all.map(n=>verseRow(n,S.revealed?vt(n):dashed(vt(n)))).join('');
+ return sun()+header(refName()+':'+a+'–'+b)+listenerSide('choice')+`<main><div class="fillcol" style="max-width:760px">
+  <div class="row between"><button class="mini" title="Choose verses" onclick="go('range')">${ICON.list}</button><span class="sub">Verse ${S.cur} of ${a}–${b}</span></div>
+  <div class="scripture" style="flex:1;margin-top:26px">${body}</div>
+  ${st>=2?`<div style="text-align:center;margin:14px 0"><button class="btn" style="padding:12px 34px;font-family:var(--display);font-size:19px;border-radius:99px" onclick="S.revealed=!S.revealed;render()">${ICON.eye}${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
+  <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="mini q" onclick="S.help=!S.help;render()">?</button></div>
+  ${S.help?`<div class="help"><b style="color:var(--gold2)">${STEPS[st][0]}.</b> ${STEPS[st][1]}</div>`:''}
+  <div class="stepper" style="margin-top:12px"><button class="tri" onclick="stepTo(${(st+3)%4})">${ICON.triL}</button>
+   <div class="sdots">${STEPS.map((s,i)=>`<button class="sd ${i===st?'on':''}" onclick="stepTo(${i})"><i></i>${s[0]}</button>`).join('')}</div>
+   <button class="tri" onclick="stepTo(${(st+1)%4})">${ICON.triR}</button></div>
  </div></main>
- <aside class="right"><h2>Memorization steps</h2><div class="steps">${STEPS.map((s,i)=>`<button class="step ${i===st?'on':''}" onclick="stepTo(${i})"><span class="n">${i+1}</span><span>${s[0]}<small>${s[1]}</small></span></button>`).join('')}</div>
- <button class="btn ghost" style="width:100%;margin-top:18px" onclick="go('range')">John 1:${S.range.a}–${S.range.b} · edit range</button></aside>`+playerBar();};
-function stepTo(i){S.step=i;S.revealed=false;render()}
+ <aside class="right"><h2>${STEPS[st][0]}</h2><p class="sub" style="margin:6px 0 18px">${STEPS[st][1]}</p>
+  <div class="card"><div class="sub" style="font-size:11px;letter-spacing:.14em">PASSAGE</div><div style="font-family:var(--display);font-size:22px;color:var(--gold2);margin-top:4px">${refName()}:${a}–${b}</div><button class="btn ghost sm" style="margin-top:12px" onclick="go('range')">Edit range</button></div>
+  <div class="card" style="margin-top:14px"><div class="sub" style="font-size:11px;letter-spacing:.14em">WHEN THE VERSE ENDS</div><div class="row" style="margin-top:10px;color:var(--gold)">${ICON[S.modes.practice].replace('<svg','<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"')}<span style="color:var(--text)">${MODES.find(x=>x[0]===S.modes.practice)[1]}</span></div></div>
+ </aside>`+playerBar()+navPanel();};
+function stepTo(i){S.step=i;S.revealed=false;S.help=false;render()}
 
-function fcOrder(){const a=[];for(let n=S.range.a;n<=Math.min(S.range.b,10);n++)a.push(n);return S.fc.order||a}
+function fcOrder(){const a=[];for(let n=S.range.a;n<=S.range.b;n++)a.push(n);return S.fc.order||a}
 V.cards=()=>{setApp('noright');const o=fcOrder();const n=o[S.fc.i%o.length];
- return sun()+header('John 1:'+S.range.a+'–'+S.range.b)+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:560px;text-align:center">
+ return sun()+header(refName()+':'+S.range.a+'–'+S.range.b)+listenerSide('cards')+`<main class="center"><div style="width:100%;max-width:800px;text-align:center">
  <div class="sub" style="letter-spacing:.14em">CARD ${S.fc.i%o.length+1} OF ${o.length}</div>
- <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''}" onclick="S.fc.flip=!S.fc.flip;render()">
-  <div class="face"><span class="book">JOHN</span><div class="cv">1:${n}</div><span class="hint">TAP TO REVEAL</span></div>
-  <div class="face back"><span class="book">JOHN 1:${n}</span><p class="vt" style="margin-top:14px">${VERSES[n-1]}</p></div></div></div>
- <div class="row" style="justify-content:center;margin-top:26px"><button class="arrow" onclick="fcMove(-1)">${ICON.prev}</button><button class="btn" onclick="fcShuffle()">Shuffle</button><button class="arrow" onclick="fcMove(1)">${ICON.fwd}</button></div>
- <p class="sub" style="margin-top:16px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar();};
+ <div class="fcrow"><button class="ico" onclick="fcMove(-1)">${ICON.prev}</button>
+  <div class="fc-wrap"><div class="fc ${S.fc.flip?'flip':''}" onclick="S.fc.flip=!S.fc.flip;render()">
+   <div class="face"><span class="bk">${S.book.toUpperCase()}</span><div class="cv">${S.chap}:${n}</div><span class="hint">Tap to reveal</span></div>
+   <div class="face back"><span class="bk" style="margin-bottom:16px">${S.book.toUpperCase()}</span><div class="vt"><b>${n}</b><span>${vt(n)}</span></div></div></div></div>
+  <button class="ico" onclick="fcMove(1)">${ICON.fwd}</button></div>
+ <button class="shuf" style="margin:20px auto 0" onclick="fcShuffle()">${ICON.shuffle}Shuffle</button>
+ <p class="sub" style="margin-top:14px;font-size:12px">Audio plays only when you press Play — never on flip, next or shuffle.</p></div></main>`+playerBar()+navPanel();};
 function fcMove(d){const o=fcOrder();S.fc.i=(S.fc.i+d+o.length)%o.length;S.fc.flip=false;render()}
-function fcShuffle(){const a=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.order=a;S.fc.i=0;S.fc.flip=false;render()}
+function fcShuffle(){S.fc.order=[...fcOrder()].sort(()=>Math.random()-.5);S.fc.i=0;S.fc.flip=false;render()}
 
 V.range=()=>{setApp('noright noplayer');const{a,b}=S.range;
- return sun()+header('Select verses')+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:640px"><h1>Select the range</h1>
- <div class="row" style="margin-top:12px"><button class="seg" style="padding:0"><span class="chip" style="border:0;cursor:pointer" onclick="S.tab='New Testament'">John</span></button><button class="chip" onclick="">Chapter 1 ▾</button></div>
- <p class="sub" style="margin-top:16px">${S.range.picking==='end'?'Now tap the closing verse.':'Tap a verse to start. Tap again to set the end. Use the chips below to change either endpoint.'}</p>
+ return sun()+header('Flashcards')+listenerSide('cards')+`<main class="center"><div class="col" style="max-width:640px"><h1 style="font-size:30px">Select the range of verses</h1>
+ <button class="dd" style="margin-top:18px" onclick="S.nav=true;render()">${refName()}<small>▾</small></button>
+ <p class="sub" style="margin-top:16px;font-family:var(--serif);font-size:16px">${S.range.picking==='first'?'Now tap the closing verse.':'Tap a start verse, then an end verse. Tap Start or End below to change either one.'}</p>
  <div class="vgrid">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="vb ${n===a||n===b?'end':(n>a&&n<b?'range':'')}" onclick="pickVerse(${n})">${n}</button>`).join('')}</div>
- <div class="row between" style="margin-top:26px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span class="sub">${b-a+1} verse${b>a?'s':''}</span></div>
- <div class="row" style="margin-top:22px"><button class="btn solid" onclick="S.fc={i:0,flip:false,order:null};go('cards')">Start Flashcards</button><button class="btn" onclick="go('steps')">Use for Steps</button></div>
- <div class="note">No fixed limit on range length. Cross-chapter selection is designed here but flagged as provisional in the project docs.</div></div></main>`;};
+ <div class="row between" style="margin-top:22px"><div class="row"><button class="chip" onclick="S.range.picking='start';render()">Start: ${a}</button><span class="sub">→</span><button class="chip" onclick="S.range.picking='end';render()">End: ${b}</button></div><span style="font-family:var(--serif)">Selected: ${refName()}:${a} – ${S.chap}:${b}</span></div>
+ <div class="row" style="margin-top:22px"><button class="btn wide" style="flex:2" onclick="S.fc={i:0,flip:false,order:null};go('cards')">Start Flashcards</button><button class="btn wide ghost" style="flex:1;font-size:16px" onclick="go('steps')">Use for Steps</button></div>
+ <div class="note">No fixed limit on range length. Cross-chapter selection is designed but still provisional in the project docs.</div></div></main>`+navPanel();};
 function pickVerse(n){const r=S.range;
  if(r.picking==='start'){r.a=n;if(r.b<n)r.b=n;r.picking=null}
  else if(r.picking==='end'){r.b=n;if(r.a>n)r.a=n;r.picking=null}
- else if(r.picking==='first'){r.b=n;if(n<r.a){r.b=r.a;r.a=n}r.picking=null}
+ else if(r.picking==='first'){const s=r.a;r.a=Math.min(s,n);r.b=Math.max(s,n);r.picking=null}
  else{r.a=n;r.b=n;r.picking='first'}
- render()}
+ S.cur=r.a;S.fc={i:0,flip:false,order:null};render()}
 
 /* ---------- ADMIN ---------- */
 function adminSide(active){const nav=[['dash','Dashboard'],['upload','Upload music'],['library','Track library'],['timing','Timing editor'],['publish','Preview & publish']];
@@ -332,7 +418,7 @@ V.dash=()=>{setApp('admin');return sun()+header('Administrator',1)+adminSide('da
  <div class="grid4"><div class="card stat"><span class="sub">Published</span><b>2</b></div><div class="card stat"><span class="sub">Ready for review</span><b>1</b></div><div class="card stat"><span class="sub">Drafts</span><b>2</b></div><div class="card stat"><span class="sub">Passages with music</span><b>3</b></div></div>
  <div class="row between" style="margin-top:30px"><h2>Needs attention</h2><button class="btn solid sm" onclick="go('upload')">Upload recording</button></div>
  <table><tr><th>Track</th><th>Issue</th><th></th></tr><tr><td>John 1:1–18 · Anthem</td><td class="flag warn">Gap and overlap need review · verse 18 unmapped</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr><tr><td>John 1:1–18 · Slow Burn</td><td class="flag">No verse timing yet</td><td><button class="btn sm" onclick="go('timing')">Open editor</button></td></tr></table></main>`;};
-V.upload=()=>{setApp('admin');const w=S.wizard;return sun()+header('Upload music',1)+adminSide('upload')+`<main><h1>Upload music</h1>
+V.upload=()=>{setApp('admin');return sun()+header('Upload music',1)+adminSide('upload')+`<main><h1>Upload music</h1>
  ${wizard(0)}
  <div class="drop"><b>Drop an audio file</b>MP3 or WAV · chapter, passage or single verse<div style="margin-top:16px"><button class="btn">Choose file</button></div></div>
  <h2 style="margin:26px 0 12px">Metadata</h2><div class="form">
@@ -347,7 +433,6 @@ V.library=()=>{setApp('admin');return sun()+header('Track library',1)+adminSide(
  <div class="tabs" style="margin-top:16px"><button class="on">All</button><button>Published</button><button>Ready for review</button><button>Drafts</button></div>
  <table><tr><th>Passage</th><th>Genre</th><th>Arrangement</th><th>Status</th><th>Uploaded</th><th></th></tr>${TRACKS.map(t=>`<tr><td>${t[0]}</td><td>${t[1]}</td><td>${t[2]}</td><td>${pill(t[3])}</td><td class="sub">Oct 19</td><td><button class="btn sm" onclick="go('timing')">Timing</button></td></tr>`).join('')}</table></main>`;};
 
-/* waveform + timing */
 function peaks(){if(S._p)return S._p;let x=7;const r=()=>(x=(x*16807)%2147483647)/2147483647;S._p=Array.from({length:600},(_,i)=>{const e=.35+.5*Math.abs(Math.sin(i/23))+.15*r();return Math.min(1,e*(.6+.4*r()))});return S._p}
 function problems(){const P=[];const T=S.timing;
  T.forEach((t,i)=>{const id=t.v;
@@ -364,11 +449,11 @@ V.timing=()=>{setApp('admin');const W=1000,H=170,px=t=>t/S.dur*W;const pk=peaks(
  const regs=S.timing.filter(t=>t.s!=null&&t.e!=null).map(t=>{const sel=t.v===S.sel;return `<rect x="${px(t.s)}" y="0" width="${Math.max(1,px(t.e)-px(t.s))}" height="${H}" fill="${sel?'rgba(230,201,138,.28)':'rgba(201,164,92,.09)'}" stroke="${sel?'#e6c98a':'rgba(201,164,92,.35)'}" stroke-width=".6"/><text x="${px(t.s)+3}" y="13" fill="#e6c98a" font-size="10" font-family="Inter">${t.v}</text>`}).join('');
  const sel=S.timing[S.sel-1];
  const hand=sel&&sel.s!=null&&sel.e!=null?[['s',sel.s],['e',sel.e]].map(([k,t])=>`<g class="h" data-k="${k}" style="cursor:ew-resize"><line x1="${px(t)}" x2="${px(t)}" y1="0" y2="${H}" stroke="#fff" stroke-width="1.5"/><rect x="${px(t)-5}" y="${H/2-14}" width="10" height="28" rx="3" fill="#e6c98a"/></g>`).join(''):'';
- const ticks=Array.from({length:Math.floor(S.dur/20)+1},(_,i)=>i*20).map(t=>`<text x="${px(t)+2}" y="10" fill="#948c7a" font-size="10">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`).join('');
+ const ticks=Array.from({length:Math.floor(S.dur/20)+1},(_,i)=>i*20).map(t=>`<text x="${px(t)+2}" y="${H-4}" fill="#948c7a" font-size="10">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`).join('');
  const P=problems();
  return sun()+header('Timing editor',1)+adminSide('timing')+`<main><div class="row between"><div><h1>Timing editor</h1><div class="sub">John 1:1–18 · Anthem (Rock) · duration ${fmt(S.dur)}</div></div><div class="row"><span class="pill review">Draft v2 · autosaved</span><button class="btn ghost sm">Saved sessions ▾</button><button class="btn sm" onclick="go('publish')">Continue →</button></div></div>
  ${wizard(2)}
- <div class="row" style="margin-bottom:8px"><button class="ico play" style="width:38px;height:38px">${ICON.play}</button><button class="btn sm ghost">Play verse ${S.sel}</button><span class="sub">Zoom</span><input type="range" min="1" max="8" value="1" style="width:120px;padding:0"><span class="sub" style="margin-left:auto">Drag the gold handles or type exact times below</span></div>
+ <div class="row" style="margin-bottom:8px"><button class="ico play" style="width:40px;height:40px">${ICON.play}</button><button class="btn sm ghost">Play verse ${S.sel}</button><span class="sub">Zoom</span><input type="range" min="1" max="8" value="1" style="width:120px;padding:0"><span class="sub" style="margin-left:auto">Drag the gold handles or type exact times below</span></div>
  <svg id="wf" class="wf" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}${regs}${hand}${ticks}</svg>
  <div class="row" style="gap:20px;align-items:flex-start;margin-top:16px">
   <div style="flex:1.5"><div class="tl" style="color:var(--gold-dim);font-size:11px;letter-spacing:.1em"><span>VERSE</span><span>START</span><span>END</span><span></span><span>STATUS</span></div>
@@ -377,8 +462,8 @@ V.timing=()=>{setApp('admin');const W=1000,H=170,px=t=>t/S.dur*W;const pk=peaks(
   ${P.length?P.map(p=>`<div class="flag ${p.k}" style="margin-bottom:8px">v${p.v}: ${p.m}</div>`).join(''):'<div class="flag ok">All verses mapped.</div>'}
   <div class="note">Gaps and overlaps are never auto-fixed. Acknowledge the ones that are intentional.</div></div></div></main>`;};
 function setT(i,k,v){S.timing[i][k]=parse(v);render()}
-function wfDrag(){const svg=$('#wf');if(!svg)return;const W=1000;
- svg.querySelectorAll('.h').forEach(g=>g.addEventListener('pointerdown',ev=>{ev.preventDefault();g.setPointerCapture(ev.pointerId);const k=g.dataset.k;
+function wfDrag(){const svg=$('#wf');if(!svg)return;
+ svg.querySelectorAll('.h').forEach(g=>g.addEventListener('pointerdown',ev=>{ev.preventDefault();const k=g.dataset.k;
   const mv=e=>{const r=svg.getBoundingClientRect();let t=(e.clientX-r.left)/r.width*S.dur;t=Math.max(0,Math.min(S.dur,Math.round(t*100)/100));S.timing[S.sel-1][k]=t;render()};
   const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up)};
   window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up)}))}
@@ -388,7 +473,7 @@ V.publish=()=>{setApp('admin');const P=problems().filter(p=>p.k==='err');const o
  <div class="row" style="align-items:flex-start;gap:20px"><div class="card" style="flex:1.3"><h2>Listener preview</h2><p class="sub" style="margin:6px 0 14px">Uses the real playback engine and your verse timestamps.</p>
   <div class="row"><button class="btn sm">Verse 1</button><button class="btn sm ghost">Selected passage</button><button class="btn sm ghost">Entire recording</button></div>
   <div class="row" style="margin-top:18px;gap:8px"><button class="ico">${ICON.loop}</button><button class="ico">${ICON.stop}</button><button class="ico">${ICON.next}</button><span class="sub">Test each playback-end mode</span></div>
-  <div class="bar" style="margin-top:20px"><i></i></div></div>
+  <div class="apbar" style="margin-top:20px"><i></i></div></div>
  <div class="card" style="flex:1"><h2>Checklist</h2>
   <div class="flag ${ok?'ok':'err'}" style="margin:12px 0 6px">${ok?'✓ No blocking errors':'✕ '+P.length+' blocking error(s) — fix in the timing editor'}</div>
   <div class="flag ${problems().some(p=>p.k==='warn')?'warn':'ok'}">${problems().some(p=>p.k==='warn')?'! Gaps/overlaps still need review or acknowledgement':'✓ Gaps and overlaps reviewed'}</div>
