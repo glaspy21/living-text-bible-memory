@@ -28,10 +28,10 @@ export function Logo({ variant = "mark", tone = "gold", height = 40, className }
       {tone === "gold" && (
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#f0d89a" />
-            <stop offset="0.35" stopColor="#c9a15a" />
-            <stop offset="0.6" stopColor="#e6c98c" />
-            <stop offset="1" stopColor="#b98d4d" />
+            <stop offset="0" stopColor="#edbf64" />
+            <stop offset="0.4" stopColor="#d0a34f" />
+            <stop offset="0.65" stopColor="#edbf64" />
+            <stop offset="1" stopColor="#ae8640" />
           </linearGradient>
         </defs>
       )}

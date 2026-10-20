@@ -11,9 +11,11 @@ Character: deep black, metallic gold, sunlight from the **upper-right**, serif S
 | `--panel` | `#121212` | panels/cards base |
 | `--line` | `rgba(201,164,92,.28)` | thin gold borders, dividers |
 | `--line2` | `rgba(201,164,92,.55)` | emphasized borders |
-| `--gold` | `#d4a84f` | primary accent, icons, active borders |
+| `--gold-bright` | `#edbf64` | selected verse buttons, play triangle, glowing step dot (owner range `#ecba5b`–`#eec56d`) |
+| `--gold` | `#d0a34f` | primary accent, icons, borders, verse numbers (owner range `#cfa854`–`#d19e4a`; was `#d4a84f`) |
+| `--gold-shade` | `#ae8640` | gradient shadows (owner range `#ae803a`–`#af8c46`) |
 | `--gold2` | `#e8cb8a` | headings, highlights |
-| `--gold-dim` | `#8f7440` | inactive dots, subdued labels |
+| `--gold-dim` | `#8e6c34` | inactive dots, subdued labels, thin lines, glow edges (owner range `#8e6830`–`#8f6f38`; was `#8f7440`) |
 | `--text` | `#ece6d8` | body/Scripture |
 | `--muted` | `#948c7a` | secondary text |
 | `--ok` `#8bb27a` · `--warn` `#d9a441` · `--err` `#d86a5a` | validation / status |

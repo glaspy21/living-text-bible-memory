@@ -10,9 +10,11 @@ export const metadata = { title: "Design reference" };
 const COLORS = [
   ["bg", "#070707"],
   ["panel", "#121212"],
-  ["gold", "#d4a84f"],
+  ["gold-bright", "#edbf64"],
+  ["gold", "#d0a34f"],
+  ["gold-shade", "#ae8640"],
   ["gold2", "#e8cb8a"],
-  ["gold-dim", "#8f7440"],
+  ["gold-dim", "#8e6c34"],
   ["text", "#ece6d8"],
   ["muted", "#948c7a"],
   ["ok", "#8bb27a"],
