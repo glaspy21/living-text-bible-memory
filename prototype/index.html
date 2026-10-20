@@ -79,6 +79,7 @@ h2{font-family:var(--display);font-weight:500;font-size:22px;color:var(--gold2)}
 .v.pick{cursor:pointer}.v.pick:hover{background:rgba(201,164,92,.05)}
 .v.sel{background:rgba(201,164,92,.10);box-shadow:inset 2px 0 var(--gold)}
 .v.cur{border-color:var(--gold);background:linear-gradient(180deg,rgba(212,168,79,.16),rgba(212,168,79,.07));box-shadow:0 0 24px rgba(212,168,79,.12)}
+.v.gone{opacity:0;pointer-events:none}
 .v.fade{opacity:.34}.v.fade:hover{opacity:.6}
 .mini.on{background:rgba(212,168,79,.18);box-shadow:0 0 14px rgba(212,168,79,.25)}
 .v.big{font-size:32px;line-height:1.5;padding:10px 0;grid-template-columns:60px 1fr}
@@ -393,10 +394,15 @@ function dashed(t){const n=Math.max(1,Math.ceil(t.length/70));return Array.from(
 function verseRow(n,body,cls,click){return `<div class="v ${cls||''}" data-n="${n}" ${click?`onclick="${click}"`:''}><span class="vn">${n}</span><span class="vt">${body}</span></div>`}
 // single vs multi verse view: Listen/Recall default single, Sing defaults multi, until the user toggles it
 const multiOn=st=>S.multi===null?st===1:S.multi;
-function toggleMulti(){if(S.step===3)return;S.multi=!multiOn(S.step);S.revealed=false;render()}
-function focusTo(n){S.cur=n;S.revealed=false;
- if(S.screen==='steps'&&S.step<2&&multiOn(S.step)){document.querySelectorAll('.scripture .v').forEach(e=>e.classList.toggle('fade',+e.dataset.n!==n));const l=$('#focuslbl');if(l)l.textContent='Focus: verse '+n+' · click a verse to move focus'}
- else render()}
+function focusLabel(st){return st===3?'Whole passage':multiOn(st)?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+S.range.a+'–'+S.range.b}
+function multiTitle(st){return st===3?'Chain always shows the whole passage':multiOn(st)?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}
+// update focus/visibility in place so text never moves or resizes — only opacity transitions
+function applyFocus(){const st=S.step;if(st===3)return;const multi=multiOn(st);
+ document.querySelectorAll('.scripture .v').forEach(e=>{const f=+e.dataset.n===S.cur;e.classList.toggle('fade',multi&&!f);e.classList.toggle('gone',!multi&&!f)});
+ const l=$('#focuslbl');if(l)l.textContent=focusLabel(st);const b=$('#multibtn');if(b){b.classList.toggle('on',multi);b.title=multiTitle(st)}}
+function toggleMulti(){if(S.step===3)return;S.multi=!multiOn(S.step);if(S.revealed){S.revealed=false;render()}else applyFocus()}
+function focusTo(n){const was=S.revealed;S.cur=n;S.revealed=false;
+ if(S.screen==='steps'&&S.step!==3&&!was)applyFocus();else render()}
 function setCur(n){focusTo(n)}
 
 /* ---------- LISTENER ---------- */
@@ -431,10 +437,9 @@ V.steps=()=>{setApp('');const st=S.step,{a,b}=S.range;if(S.cur<a||S.cur>b)S.cur=
  const multi=multiOn(st);
  const content=(n,hide)=>hide&&!(S.revealed&&n===S.cur)?dashed(vt(n)):vt(n);
  if(st===3)body=all.map(n=>verseRow(n,S.revealed?vt(n):dashed(vt(n)))).join('');
- else if(!multi)body=verseRow(S.cur,content(S.cur,st===2),'big');
- else body=all.map(n=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':'fade'),`setCur(${n})`)).join('');
+ else body=all.map(n=>verseRow(n,content(n,st===2),'pick '+(n===S.cur?'':(multi?'fade':'gone')),`setCur(${n})`)).join('');
  return sun()+header(refName()+':'+a+'–'+b)+listenerSide('choice')+`<main><div class="fillcol" style="max-width:760px">
-  <div class="row between"><button class="mini ${multi||st===3?'on':''}" title="${st===3?'Chain always shows the whole passage':multi?'Showing several verses — click to focus on one':'Showing one verse — click to show the whole passage'}" onclick="toggleMulti()">${ICON.list}</button><span class="row" style="gap:16px"><span class="sub" id="focuslbl">${st===3?'Whole passage':multi?'Focus: verse '+S.cur+' · click a verse to move focus':'Verse '+S.cur+' of '+a+'–'+b}</span><button class="btn sm" onclick="go('cards')">${ICON.shuffle}Switch to Flashcards</button></span></div>
+  <div class="row between"><button id="multibtn" class="mini ${multi||st===3?'on':''}" title="${multiTitle(st)}" onclick="toggleMulti()">${ICON.list}</button><span class="row" style="gap:16px"><span class="sub" id="focuslbl">${focusLabel(st)}</span><button class="btn sm" onclick="go('cards')">${ICON.shuffle}Switch to Flashcards</button></span></div>
   <div class="scripture" style="flex:1;margin-top:26px">${body}</div>
   ${st>=2?`<div style="text-align:center;margin:14px 0"><button class="btn" style="padding:12px 34px;font-family:var(--display);font-size:19px;border-radius:99px" onclick="S.revealed=!S.revealed;render()">${ICON.eye}${S.revealed?'Hide Scripture':'Reveal Scripture'}</button></div>`:''}
   <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="mini q" onclick="S.help=!S.help;render()">?</button></div>
