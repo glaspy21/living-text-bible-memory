@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+.DS_Store
+.vercel/
+/prisma/*.db
+/.local-storage/
+playwright-report/
+test-results/

@@ -39,3 +39,8 @@
 - Book selector: Old/New Testament underline now slides between tabs (.38s ease).
 - Flashcards now use a stacked-cards icon (Memorize choice, Switch to Flashcards); the crossing-arrows icon is kept only for Shuffle.
 - Book selector: one continuous Old+New Testament list; tab underline follows scroll (and tab click smooth-scrolls); underline slide sped up to .17s. Scroll position preserved when a book expands.
+
+## 2026-10-20 — Handoff to Claude Code
+- Wrote PROJECT.md, DESIGN_SYSTEM.md (was empty), ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, CLAUDE.md, docs/DECISIONS.md, .claude/settings.json + /resume /checkpoint /decision commands, .gitignore, .env.example; rewrote ASSET_INVENTORY.md.
+- Added reference media under docs/reference (mockups, motion clips, prototype screenshots).
+- ESV: owner scope is John 1–2 initially; Crossway policy summarized in PROJECT.md §7; music/audio permission is an open question. **Next: Gate 0 owner approvals, then M1 scaffold.**
