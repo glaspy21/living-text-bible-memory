@@ -32,9 +32,10 @@ Legend: **[C]** confirmed by the owner · **[A]** assumption, needs confirmation
 | 8 | Stack: Next.js + TypeScript + Tailwind, Prisma/Postgres, WaveSurfer.js, Motion (Framer Motion) for component animation | [R] — approve at Phase 2 start |
 | 9 | Hosting: Vercel + Neon Postgres + Cloudflare R2 (S3-compatible, no egress fees) | [R] |
 | 10 | Playback-end defaults: Reader/Home = **Next Verse**; Steps/Flashcards = **Loop Verse** (from mockup captions) | [A] |
-| 11 | Admin upload metadata has **no track title and no version/arrangement field** (overrides original brief §8) | [C] 2026-10-20 |
+| 11 | Admin upload form shows **no track title or arrangement field** for now (overrides original brief §8 UI). The data model keeps both, defaulting to "Default"; they are reserved for future custom/user tracks | [C] 2026-10-20 |
 | 12 | Genre options: Pop, Rock, R&B, **Custom**. Choosing Custom reveals a "Custom genre name" input, auto Title Case | [C] 2026-10-20 |
-| 13 | Because of #11, same passage + genre can have several recordings; identify them by an internal auto-number / upload date | [R] — confirm |
+| 13 | Same passage + genre may have several recordings: automatic arrangement label by creation order — "Default", "Default 2", "Default 3"; title "Default". Listeners see genre first, and the label only when more than one exists | [C] 2026-10-20 |
+| 14 | **Verse ranges may cross chapters.** A range can span several songs; the player chains the needed recordings in order | [C] 2026-10-20 |
 
 ## 3. Listener screens (desktop; mobile follows the mockups)
 Home · Scripture Reader · Book/Chapter selector · Memorize choice · Memorization Steps · Flashcards · Verse-range selector.
@@ -46,7 +47,7 @@ Home · Scripture Reader · Book/Chapter selector · Memorize choice · Memoriza
 - **Memorize choice**: Memorization Steps (list icon) or Flashcards (**stacked-cards icon**; the crossing-arrows icon is reserved for Shuffle).
 - **Steps**: stepper with ◀ Listen Sing Recall Chain ▶; active step obvious (glowing gold dot). Top-left list button toggles **single ↔ multi-verse focus**: focused verse normal weight, others faded (~34%), **text size never changes**, others fade in/out in place with a staggered ripple from the focused verse (≈.45s per verse, 70ms stagger; leaving ≈.2s). Chain always shows the whole passage. Recall/Chain show dashed placeholders + **Reveal Scripture**. "Switch to Flashcards" button top right. Help icon (custom "?" glyph) toggles a one-line step explanation. Right panel: Passage, When the verse ends (mode), Genre.
 - **Flashcards**: front = BOOK + chapter:verse + "Tap to reveal"; back = verse text; side arrows; Shuffle; "Switch to Steps". Audio plays only on Play, never on flip/next/shuffle.
-- **Verse range**: book/chapter dropdown, verse grid, tap start then end; either endpoint editable afterwards; no length limit; cross-chapter selection designed but **provisional [A]**.
+- **Verse range**: book/chapter dropdown, verse grid, tap start then end; either endpoint editable afterwards; no length limit; cross-chapter selection **confirmed [C]**.
 - Reduced motion: all animation/transition disabled.
 
 ## 4. Playback-end modes
@@ -78,12 +79,16 @@ Phone layout mirrors the owner's mockups (`docs/reference/mobile-mockups/`): hea
 - **Open question — music:** Scripture songs set the ESV text to audio. Crossway lists audio and music as separate permission categories (audio products carry the full notice and verbal credit to the "ESV"). Ask Crossway whether the recordings need their own permission before publishing any ESV-based track. Until answered: develop with WEB text/placeholders, publish nothing publicly.
 - Scope guard: keep ESV text limited to the allowed range in the dev/early build; do not bulk-import or cache beyond Crossway's terms; display the notice in-app (About/footer and wherever ESV text appears).
 
+## Secrets handling (ESV key etc.)
+Owner holds the ESV API key and does **not** paste it into chat. It lives only in `.env.local` on the owner's machine (git-ignored; Claude Code is configured not to read it) and, at deploy time and only with owner approval, in the host's encrypted environment variables. Code reads `process.env.ESV_API_KEY` server-side; Claude never needs the value. Verify with a script that prints only the HTTP status. If a key is ever pasted into chat, a commit or a log, rotate it.
+
 ## 8. Open items / unrecovered
 - [?] ESV API key and Crossway terms (caching, attribution, display rules). Apply early.
 - [?] Production logo (vector, transparent). Repo logos are **reference renders only**.
 - [?] Photography for hero/thumbnails: prototype draws scenery in SVG. Owner to choose: originals / cropped placeholders / commissioned licensed art.
 - [?] Original PROJECT/DESIGN_SYSTEM/ASSET_INVENTORY recovery drafts from Drive were partial; Drive FlashCard pages had no readable text; "Memorization Page" HTML not inspected.
-- [A] Flashcard flip gesture; cross-chapter ranges; end-mode defaults (see table).
+- [A] Flashcard flip gesture; end-mode defaults (see table).
+- [?] Cross-chapter playback rules for mixed coverage (verses without music, different genres per chapter): proposed in `ARCHITECTURE.md` §5; owner to confirm.
 - [?] Bug report "verses aren't appearing" on single→multi toggle: never reproduced. If seen again, capture step + browser.
 - [?] Audio transcoding plan (WAV → streaming MP3/AAC) — see `ARCHITECTURE.md` risks.
 - Post-MVP: memorization progress tracking, calendar planning, public sign-up/auth for listeners.

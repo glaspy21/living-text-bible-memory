@@ -34,8 +34,9 @@ Book          id, osis, name, testament, chapterCount, sortOrder
 Passage ref   (not a table) = bookId + chapter + verseStart + verseEnd (+ optional endChapter for cross-chapter)
 
 Genre         id, slug, name (Title Case), isCustom, createdAt
-Recording     id, translationId, bookId, chapter, verseStart, verseEnd, endChapter?,
-              genreId, description?, versionNo (auto, per passage+genre), status (DRAFT|READY|PUBLISHED),
+Recording     id, translationId, bookId, chapter, verseStart, endChapter, verseEnd,   -- endChapter always set (= chapter when single-chapter)
+              genreId, title (default "Default"), arrangementNo (auto, per passage+genre; label "Default", "Default 2", ...),
+              description?, status (DRAFT|READY|PUBLISHED),
               originalAssetId, publishedTimingId?, createdAt, updatedAt, createdBy
 AudioAsset    id, storageKey, mime, bytes, durationMs, sha256, peaksKey?, derivativeKey?, uploadedAt   -- original is immutable
 TimingSet     id, recordingId, version, state (DRAFT|PUBLISHED|ARCHIVED), createdAt, createdBy, basedOnId?
@@ -45,6 +46,8 @@ User          id, email, name, role (ADMIN|LISTENER), createdAt
 MemProgress   (post-MVP) userId, passage ref, step, lastStudiedAt
 ```
 Rules: unique (recording, timingSet.version); **no uniqueness on passage+genre** (multiple recordings allowed); original `AudioAsset` is never mutated — replacing audio creates a new asset and a new TimingSet draft seeded from the old one. Times stored as integer **milliseconds**.
+
+`title` and arrangement label are not shown in the admin form yet; they exist for future custom/user-uploaded tracks. Arrangement number is assigned server-side in a transaction (max+1 per translation+passage+genre) so concurrent uploads can't collide.
 
 Genre options in UI: Pop, Rock, R&B, Custom. Custom creates a `Genre` row (`isCustom=true`) with Title Case enforced server-side too.
 
@@ -68,6 +71,13 @@ Warnings (require acknowledge, never auto-fixed): gap between consecutive verses
 - Range requests (HTTP 206) required for seeking: R2 supports it; local dev server must too.
 - Audio only starts on explicit Play (never on flip/next/shuffle).
 - Passages without recordings: UI shows "No recording yet"; Steps still work silently.
+
+### Cross-chapter ranges (confirmed) — proposed playback rules [R, confirm]
+- Verse refs are (chapter, verse) pairs ordered canonically; a selection is any contiguous run, possibly across chapters.
+- The player resolves, per verse, which published recording covers it for the chosen genre (preferring the selected arrangement), producing an ordered **segment list**: `[{recordingId, chapter, verse, startMs, endMs}]`. Consecutive verses from the same recording stay on one `<audio>` source; crossing to another recording swaps the source and preloads the next one a few seconds early to avoid a gap.
+- End modes work on segments: Next Verse at a recording boundary loads the next recording and continues; Loop/Stop behave per verse as before; the final verse of the selection always stops.
+- If a verse in the range has no recording for the chosen genre: Next Verse skips silently to the next covered verse; the UI marks uncovered verses (no music) and offers the genres that cover the whole range, falling back to partial coverage with a visible note. Never silently substitute another genre.
+- Memorization steps and flashcards work for the full range regardless of audio coverage.
 
 ## 6. Audio pipeline
 1. Admin requests a **presigned upload URL** (server verifies admin) → browser uploads direct to R2 (no secrets client-side, no function-size limit).
@@ -101,4 +111,4 @@ Do not split chapter audio into per-verse files.
 3. Transcoding/peaks generation off-Vercel.
 4. WaveSurfer ergonomics for precise handle editing + numeric entry (spike first).
 5. Missing production logo and photography.
-6. Cross-chapter ranges (provisional) affect data model (`endChapter`) — decide before Phase 3.
+6. Cross-chapter playback (swapping recordings mid-range, mixed genre coverage) needs a spike in M10 before the player UI is finalized.

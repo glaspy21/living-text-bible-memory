@@ -6,7 +6,7 @@ Each milestone = one or more feature commits pushed to GitHub (never straight to
 Interactive desktop + mobile prototype of all listener and admin screens; docs recovered/created.
 
 ## Gate 0 — owner approval needed before Phase 2
-Approve stack & hosting ([R] items in `ARCHITECTURE.md`); decide cross-chapter ranges, end-mode defaults, same-passage/genre disambiguation (`PROJECT.md` #10, #13); start ESV key application; choose photography path; supply production logo when available.
+Approve stack & hosting ([R] items in `ARCHITECTURE.md`); confirm end-mode defaults and the proposed cross-chapter playback rules (`ARCHITECTURE.md` §5). Cross-chapter ranges and the "Default / Default 2" arrangement labels are already confirmed; start ESV key application; choose photography path; supply production logo when available.
 
 ## Phase 2 — Foundation
 - **M1 Scaffold**: Next.js+TS+Tailwind, ESLint/Prettier, Vitest, Playwright, CI (lint, type-check, unit), `.env.example`, docker-compose Postgres.
@@ -20,8 +20,8 @@ Acceptance: app boots, shell matches prototype, admin routes locked to allowlist
 ## Phase 3 — Functional MVP
 - **M7 Scripture provider**: interface, WEB adapter, cache; ESV adapter behind flag once key exists; attribution component.
 - **M8 Reader + selector**: chapter text, hanging verse numbers, verse tap-to-select, continuous OT/NT selector with scroll-linked tab underline, Prev/Next chapter, translation switch, Recently Studied (local storage) with scroll reveal on Home.
-- **M9 Verse-range selector** (reusable): start/end, editable endpoints, no limit; cross-chapter per Gate 0 decision.
-- **M10 Audio engine**: playback state machine + rAF boundary detection, three end modes, player UI + menus, genre menu; unit tests for every transition.
+- **M9 Verse-range selector** (reusable): start/end, editable endpoints, no limit; **cross-chapter ranges supported** (confirmed).
+- **M10 Audio engine**: segment resolver for cross-chapter/multi-recording ranges (with preload of the next recording), playback state machine + rAF boundary detection, three end modes, player UI + menus, genre menu; unit tests for every transition.
 - **M11 Memorization Steps**: Listen/Sing/Recall/Chain, single↔multi focus with staggered fade, reveal, help, passage/mode/genre panel, Switch to Flashcards.
 - **M12 Flashcards**: front/back flip, advance/back, shuffle, Switch to Steps, audio only on Play.
 - **M13 Admin: upload**: wizard shell, direct-to-storage upload, metadata form (genre incl. Custom → Title Case input), duration probe, peaks generation.

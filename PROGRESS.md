@@ -44,3 +44,4 @@
 - Wrote PROJECT.md, DESIGN_SYSTEM.md (was empty), ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, CLAUDE.md, docs/DECISIONS.md, .claude/settings.json + /resume /checkpoint /decision commands, .gitignore, .env.example; rewrote ASSET_INVENTORY.md.
 - Added reference media under docs/reference (mockups, motion clips, prototype screenshots).
 - ESV: owner scope is John 1–2 initially; Crossway policy summarized in PROJECT.md §7; music/audio permission is an open question. **Next: Gate 0 owner approvals, then M1 scaffold.**
+- Owner: cross-chapter ranges confirmed; title/arrangement hidden in UI, stored as "Default"/"Default 2"... per passage+genre. ESV key stays in local .env.local only (never in chat/git); settings.json deny rules narrowed so .env.example stays readable.

@@ -14,4 +14,6 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Mobile layout mirrors owner mockups; admin desktop-only | [C] |
 | 2026-10-20 | Stack/hosting: Next.js+TS+Tailwind, Prisma/Postgres, WaveSurfer, Motion; Vercel+Neon+R2 | [R] |
 | 2026-10-20 | Verse boundary detection via rAF (Web Audio loop if needed); presigned direct uploads; peaks JSON | [R] |
+| 2026-10-20 | Verse ranges may cross chapters; ranges can span multiple songs (player chains recordings) | [C] |
+| 2026-10-20 | Title/arrangement hidden in upload UI; stored as title "Default" + auto arrangement "Default", "Default 2", "Default 3" per passage+genre; reserved for future custom tracks | [C] |
 | 2026-10-20 | Initial ESV scope: John 1–2 only; ask Crossway about music/audio permission before publishing ESV-based tracks | [C] scope / open question |
