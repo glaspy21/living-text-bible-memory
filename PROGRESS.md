@@ -60,3 +60,5 @@
 ## 2026-10-20 — M2 design tokens and primitives (branch `m2-design-tokens`)
 - Added the design tokens (colors, fonts, sunlight layer, gold hover-wipe styles, reduced-motion rule) and loaded EB Garamond and Inter through Next.js fonts.
 - M2: added the icon set (three end-mode icons, stacked cards, shuffle, help and the player icons) with a test that there are exactly three end modes and none is a pause icon.
+- M2: added Button and Bar (gold hover wipe), the Logo component (gold gradient or flat, from assets/brand/svg), and a dev-only `/design` reference page (404 in production) showing tokens, logo, bars, buttons and icons. Checked visually at 1440px and 390px; e2e tests cover the end modes, the wipe and reduced motion.
+- M2 differences from the prototype: none intended. The logo gradient stops are my approximation of the board's gold; confirm with the owner.
