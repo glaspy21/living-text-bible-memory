@@ -55,3 +55,4 @@
 - Next in M1: Prettier, Vitest, Playwright, CI, docker-compose Postgres, `.env.example` check.
 - M1: added Prettier (`npm run format`) and Vitest (`npm test`) with a first tested helper, Title Case for custom genre names.
 - M1: added Playwright with a home-page smoke test (desktop + mobile). Set up the folder structure: `src/client` (frontend), `src/server` (backend), `src/shared` (pure logic), `src/app` (routing). Lint blocks imports across those boundaries. Documented in ARCHITECTURE.md §2 and docs/DECISIONS.md.
+- M1: added GitHub CI (format, lint, typecheck, tests, build) and a docker-compose Postgres for local development.

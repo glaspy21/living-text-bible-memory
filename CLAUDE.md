@@ -27,8 +27,8 @@ Match the prototype (`prototype/index.html`) and `docs/reference/prototype-*` sc
 - Verify UI changes visually (Playwright screenshots) against the reference screenshots; check both desktop and mobile widths.
 - Surface risks early (see `ARCHITECTURE.md` §11). If the owner reports a bug you can't reproduce, say so and ask for the step/browser.
 
-## Commands (once scaffolded)
-`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run test:e2e` · `npx prisma migrate dev` · `npx prisma studio`. Update this list when scripts change.
+## Commands
+`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run test:e2e` · `npm run format` · `docker compose up -d` (local Postgres) · (after M4) `npx prisma migrate dev` · `npx prisma studio`. Update this list when scripts change.
 
 ## Repo map
 `prototype/` approved design (reference only) · `docs/` decisions + reference media · `src/app` routes · `src/client` frontend · `src/server` backend · `src/shared` logic used by both (lint enforces the boundaries) · `assets/brand` logos · `tests/` e2e · `prisma/` schema · root `*.md` project docs.
