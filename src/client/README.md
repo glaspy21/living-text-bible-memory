@@ -3,6 +3,8 @@
 Everything that runs in the browser: UI components, hooks, client state, the audio player UI.
 
 - `components/ui/` design-system primitives (buttons, bars, icons)
+- `components/brand/` the logo
+- `components/shell/` app frame: header, sidebars, player bar, page regions (`Main`, `RightPanel`)
 - `components/listener/` Reader, Steps, Flashcards, player
 - `components/admin/` upload, timing editor, library
 - `hooks/` React hooks

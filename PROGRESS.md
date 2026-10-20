@@ -64,3 +64,10 @@
 - M2 differences from the prototype: none intended. The logo gradient stops are my approximation of the board's gold; confirm with the owner.
 - M2: owner supplied the mockup gold colors. Added `--gold-bright` and `--gold-shade`, moved `--gold` and `--gold-dim` to the midpoints of the owner's ranges, and used the palette for the logo gradient. **Open:** the owner says headings use the main gold, but the prototype uses the lighter `--gold2` (`#e8cb8a`) for headings; left as is until confirmed. The hover-wipe and solid-button gradients still use the prototype's colors.
 - M2: headings now use the main gold (`--heading`, owner trial). Revert by pointing `--heading` back at `--gold2`.
+
+## 2026-10-20 — M3 app shell (branch `m3-app-shell`)
+- Added the app shell: header (logo, reference button, ESV, •••), listener and admin sidebars, and a static player bar (end mode, skip back, ring play, skip forward, genre; disabled until M10). Desktop grid 240 / main / 300 with a 56px header and 124px player; sidebar and right panel collapse at ≤1100px; phone layout at ≤520px with the transparent gear-only header on Home.
+- Added placeholder pages for every listener route (Home, Reader, Memorize choice, Steps, Flashcards, Verse range) and admin route (Dashboard, Upload, Library, Timing editor, Preview & publish). Each placeholder names the milestone that fills it.
+- Admin pages call a server-side `requireAdmin()`; until sign-in (M5) any production build answers 404.
+- Tests: route table unit tests; e2e for the player, redirects, sidebar highlighting, admin nav and the phone layout. Checked visually at 1440, 900 and 390px.
+- Open: player shows the Next Verse icon per the [A] end-mode defaults (PROJECT.md #10). Sidebar "Recently studied" is empty until M8.
