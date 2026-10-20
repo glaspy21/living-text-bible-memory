@@ -53,3 +53,4 @@
 - Added the Next.js app skeleton with a plain placeholder home page. `npm run lint`, `typecheck` and `build` pass.
 - Logo SVGs from `assets/brand/svg/` reviewed; they will be wired into the app shell at M2/M3.
 - Next in M1: Prettier, Vitest, Playwright, CI, docker-compose Postgres, `.env.example` check.
+- M1: added Prettier (`npm run format`) and Vitest (`npm test`) with a first tested helper, Title Case for custom genre names.
