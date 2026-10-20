@@ -41,7 +41,7 @@ export default function DesignReference() {
     <div className="relative min-h-screen overflow-hidden bg-bg">
       <Sun />
       <main className="relative z-10 mx-auto max-w-3xl px-6 py-10 sm:px-11">
-        <h1 className="mb-10 font-serif text-[34px] font-medium tracking-[0.02em] text-gold2 max-sm:text-2xl">
+        <h1 className="mb-10 font-serif text-[34px] font-medium tracking-[0.02em] text-heading max-sm:text-2xl">
           Design reference
         </h1>
 
@@ -70,7 +70,7 @@ export default function DesignReference() {
         </Section>
 
         <Section title="Typography">
-          <h1 className="font-serif text-[34px] font-medium text-gold2 max-sm:text-2xl">
+          <h1 className="font-serif text-[34px] font-medium text-heading max-sm:text-2xl">
             In the beginning
           </h1>
           <p className="mt-3 font-serif text-[22px] leading-[1.6] max-sm:text-[17.5px]">

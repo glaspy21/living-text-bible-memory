@@ -14,7 +14,8 @@ Character: deep black, metallic gold, sunlight from the **upper-right**, serif S
 | `--gold-bright` | `#edbf64` | selected verse buttons, play triangle, glowing step dot (owner range `#ecba5b`–`#eec56d`) |
 | `--gold` | `#d0a34f` | primary accent, icons, borders, verse numbers (owner range `#cfa854`–`#d19e4a`; was `#d4a84f`) |
 | `--gold-shade` | `#ae8640` | gradient shadows (owner range `#ae803a`–`#af8c46`) |
-| `--gold2` | `#e8cb8a` | headings, highlights |
+| `--heading` | = `--gold` | headings (owner trial 2026-10-20) |
+| `--gold2` | `#e8cb8a` | highlights, button text (was headings) |
 | `--gold-dim` | `#8e6c34` | inactive dots, subdued labels, thin lines, glow edges (owner range `#8e6830`–`#8f6f38`; was `#8f7440`) |
 | `--text` | `#ece6d8` | body/Scripture |
 | `--muted` | `#948c7a` | secondary text |

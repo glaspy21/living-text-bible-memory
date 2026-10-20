@@ -12,6 +12,7 @@
   --gold-shade: #ae8640; /* gradient shadows */
   --gold-dim: #8e6c34; /* thin lines, glow edges */
   --gold2: #e8cb8a; /* headings and highlights (prototype value, not in the owner's list) */
+  --heading: var(--gold); /* headings use the main gold (owner trial 2026-10-20); was --gold2 */
   --text: #ece6d8;
   --muted: #948c7a;
   --ok: #8bb27a;
@@ -30,6 +31,7 @@
   --color-gold-shade: var(--gold-shade);
   --color-gold2: var(--gold2);
   --color-gold-dim: var(--gold-dim);
+  --color-heading: var(--heading);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-ok: var(--ok);

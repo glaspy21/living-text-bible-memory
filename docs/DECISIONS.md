@@ -20,3 +20,4 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Stack and hosting approved by owner (Next.js, Prisma/Postgres, Motion; Vercel + Neon + R2; nothing deployed without approval) | [C] |
 | 2026-10-20 | Folder structure: `src/client` (frontend), `src/server` (backend), `src/shared` (pure logic), `src/app` (routing only); boundaries enforced by lint | [C] |
 | 2026-10-20 | Gold palette taken from the owner's mockup colors: bright `#edbf64`, main `#d0a34f`, shade `#ae8640`, dim `#8e6c34` (midpoints of the supplied ranges). `--gold2` `#e8cb8a` kept for headings pending owner answer | [C] ranges / midpoints are mine |
+| 2026-10-20 | Headings use the main gold via a `--heading` token (trial; owner: "try the main gold, then we can work from there"). Easy to revert in one place | [C] trial |
