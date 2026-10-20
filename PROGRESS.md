@@ -56,3 +56,6 @@
 - M1: added Prettier (`npm run format`) and Vitest (`npm test`) with a first tested helper, Title Case for custom genre names.
 - M1: added Playwright with a home-page smoke test (desktop + mobile). Set up the folder structure: `src/client` (frontend), `src/server` (backend), `src/shared` (pure logic), `src/app` (routing). Lint blocks imports across those boundaries. Documented in ARCHITECTURE.md §2 and docs/DECISIONS.md.
 - M1: added GitHub CI (format, lint, typecheck, tests, build) and a docker-compose Postgres for local development.
+
+## 2026-10-20 — M2 design tokens and primitives (branch `m2-design-tokens`)
+- Added the design tokens (colors, fonts, sunlight layer, gold hover-wipe styles, reduced-motion rule) and loaded EB Garamond and Inter through Next.js fonts.
