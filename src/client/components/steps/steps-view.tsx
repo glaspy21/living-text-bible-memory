@@ -244,8 +244,8 @@ export function StepsView({
             >
               <Icon name={mode === "single" ? "list-one" : "list"} size={22} />
             </button>
-            <div className="flex items-center gap-4">
-              <span className="text-muted max-[520px]:hidden" data-testid="focus-label">
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="min-w-0 truncate text-muted max-[520px]:hidden" data-testid="focus-label">
                 {passage.endBook && mode !== "whole" && focused
                   ? // Verse numbers alone are ambiguous across books, so name the verse.
                     `${bookBySlug(focused.book)?.name ?? focused.book} ${focused.chapter}:${focused.verse}${
@@ -260,7 +260,7 @@ export function StepsView({
               </span>
               <Link
                 href={withPassage("/memorize/flashcards", passage)}
-                className="wipe inline-flex h-[42px] items-center gap-[9px] rounded-[10px] border-[1.5px] border-gold bg-[rgba(201,164,92,.07)] px-4 font-serif text-[17px] text-gold2"
+                className="wipe inline-flex h-[42px] shrink-0 items-center whitespace-nowrap gap-[9px] rounded-[10px] border-[1.5px] border-gold bg-[rgba(201,164,92,.07)] px-4 font-serif text-[17px] text-gold2"
               >
                 <Icon name="cards" size={20} />
                 Switch to Flashcards
