@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Attribution } from "@/client/components/scripture/attribution";
 import { Main, RightPanel } from "@/client/components/shell/regions";
 import { Icon } from "@/client/components/ui/icons";
@@ -70,6 +70,13 @@ export function StepsView({
   const [revealed, setRevealed] = useState(false);
   const [help, setHelp] = useState(false);
   const [focus, setFocus] = useState(0);
+  // Several verses to one: the others fade away first with the chosen verse staying put (`fading`),
+  // then they close up at once (`snap`) and the verse glides up to the top.
+  const [fading, setFading] = useState(false);
+  const [snap, setSnap] = useState(false);
+  const glideFrom = useRef<number | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   // The verse being sung moves the focus along (adjusting state while rendering, not in an effect).
   const [seenPlayerIndex, setSeenPlayerIndex] = useState(player.index);
@@ -103,41 +110,102 @@ export function StepsView({
     setHelp(false);
   };
   /**
-   * While the verses before the focused one open up again (single to several), keep the focused
-   * verse exactly where it is on screen; the earlier ones are above it, to scroll up to.
+   * Keeps the focused verse completely still on screen while the verses before it open up again
+   * (single to several): each frame it is put back where it started, by scrolling when there is
+   * scroll to give, and otherwise by a spacer above it that shrinks away as they come back. The
+   * area also borrows some room below so there is always something to scroll over meanwhile.
    */
   const holdFocusedVerse = () => {
     const region = document.querySelector<HTMLElement>("[data-testid=scripture]");
     const verse = region?.querySelector<HTMLElement>("[data-vis=focused]");
     if (!region || !verse) return;
-    const offset = verse.getBoundingClientRect().top - region.getBoundingClientRect().top;
-    // Until the verses after it have opened too there is nothing below to scroll over, so lend
-    // the area some room; afterwards keep only as much as the position needs (verse 18 of 18
-    // has nothing after it, and simply stays where it is with space below).
-    const resting = parseFloat(getComputedStyle(region).paddingBottom);
+    const wanted = verse.getBoundingClientRect().top - region.getBoundingClientRect().top;
+    // The area's own padding, without any spacer left from an earlier hold.
+    region.style.removeProperty("padding-top");
+    region.style.removeProperty("padding-bottom");
+    const restingTop = parseFloat(getComputedStyle(region).paddingTop);
+    const restingBottom = parseFloat(getComputedStyle(region).paddingBottom);
     region.style.paddingBottom = `${region.clientHeight}px`;
     const until = performance.now() + 1500;
     const hold = () => {
-      const drift = verse.getBoundingClientRect().top - region.getBoundingClientRect().top - offset;
-      if (drift !== 0) region.scrollTop += drift;
+      region.style.paddingTop = `${restingTop}px`;
+      const drift = verse.getBoundingClientRect().top - region.getBoundingClientRect().top - wanted;
+      if (drift > 0) {
+        region.scrollTop += drift;
+      } else if (drift < 0) {
+        const back = Math.min(region.scrollTop, -drift);
+        region.scrollTop -= back;
+        region.style.paddingTop = `${restingTop + (-drift - back)}px`;
+      }
       if (performance.now() < until) return requestAnimationFrame(hold);
+      // Keep only as much room below as the position needs (verse 18 of 18 has nothing after
+      // it, and simply stays where it is with space below).
       const lent = parseFloat(region.style.paddingBottom);
       const content = region.scrollHeight - lent;
       const needed = region.scrollTop + region.clientHeight - content;
-      region.style.paddingBottom = `${Math.max(resting, Math.min(lent, needed))}px`;
+      region.style.paddingBottom = `${Math.max(restingBottom, Math.min(lent, needed))}px`;
     };
     requestAnimationFrame(hold);
   };
   const toggleMulti = () => {
-    if (mode === "whole") return;
-    if (mode === "single") holdFocusedVerse();
-    else
-      document
-        .querySelector<HTMLElement>("[data-testid=scripture]")
-        ?.style.removeProperty("padding-bottom");
-    setChosenMulti(mode !== "multi");
+    if (mode === "whole" || fading) return;
     setRevealed(false);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (mode === "single") {
+      holdFocusedVerse();
+      return setChosenMulti(true);
+    }
+    if (reduced) return setChosenMulti(false);
+    setFading(true);
+    timers.current.push(
+      setTimeout(() => {
+        glideFrom.current =
+          document.querySelector("[data-vis=focused]")?.getBoundingClientRect().top ?? null;
+        setSnap(true);
+        setFading(false);
+        setChosenMulti(false);
+        // Fade (320ms), then a clear pause with the verse alone and still, then the glide.
+      }, 720),
+    );
   };
+
+  // After the others have closed up, the verse that stayed put glides to the top.
+  useLayoutEffect(() => {
+    const from = glideFrom.current;
+    if (mode !== "single" || from === null) return;
+    glideFrom.current = null;
+    const region = document.querySelector<HTMLElement>("[data-testid=scripture]");
+    const verse = region?.querySelector<HTMLElement>("[data-vis=focused]");
+    if (!region || !verse) {
+      timers.current.push(setTimeout(() => setSnap(false), 0));
+      return;
+    }
+    region.style.removeProperty("padding-top");
+    region.style.removeProperty("padding-bottom");
+    region.scrollTop = 0;
+    const delta = from - verse.getBoundingClientRect().top;
+    if (Math.abs(delta) > 1) {
+      verse.style.transition = "none";
+      verse.style.transform = `translateY(${delta}px)`;
+      void verse.offsetHeight; // settle the starting point before animating
+      verse.style.transition = "transform 480ms cubic-bezier(.4,0,.2,1)";
+      verse.style.transform = "translateY(0)";
+    }
+    timers.current.push(
+      setTimeout(() => {
+        verse.style.removeProperty("transition");
+        verse.style.removeProperty("transform");
+        setSnap(false);
+      }, 520),
+    );
+  }, [mode]);
+
+  // Another verse takes the focus (or another step opens): drop any spacer left above the old one.
+  useEffect(() => {
+    document
+      .querySelector<HTMLElement>("[data-testid=scripture]")
+      ?.style.removeProperty("padding-top");
+  }, [focus, step]);
   const focusOn = (index: number) => {
     setFocus(index);
     setRevealed(false);
@@ -245,6 +313,14 @@ export function StepsView({
                       "--o": vis === "faded" ? 0.34 : 1,
                       animation: "cascade .8s backwards",
                       animationDelay: `${i * 120}ms`,
+                      // The others fade out in place; then they close up with no animation.
+                      ...(fading &&
+                        vis !== "focused" && {
+                          opacity: 0,
+                          transition: "opacity 320ms ease",
+                          transitionDelay: "0ms",
+                        }),
+                      ...(snap && vis === "gone" && { transition: "none" }),
                     } as CSSProperties
                   }
                   className={cn(

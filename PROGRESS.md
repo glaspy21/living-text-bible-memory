@@ -231,3 +231,5 @@
 - Steps: the help button, the Listen · Sing · Recall · Chain bar and the translation notice are pinned to the bottom of the scrolling area; long text scrolls away behind them (soft fade above). Checked at desktop and phone widths.
 - Steps: the black panel behind the steps bar is gone. The passage now scrolls in its own area above the steps and fades out toward them (and slightly at the top), so the steps are the focus.
 - Steps: going from one verse to several keeps the focused verse exactly where it was on screen; the verses after it appear below and the earlier ones are above, to scroll up to.
+- Steps, several → one verse: the other verses fade out while the chosen verse stays completely still; after a clear pause (~0.4s) they close up and the verse glides to the top beneath the toggle row. One → several keeps the verse still while the others open around it. Reduced motion swaps instantly.
+- Open: `admin-library.spec.ts` fails against the shared test database when recordings from earlier runs are left behind (Micah 1:1–3 appears twice); unrelated to the reader/steps work. Clean the `livingtext_test` recordings or let me add per-run cleanup.

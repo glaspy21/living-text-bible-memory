@@ -69,16 +69,13 @@ test.describe("memorization steps", () => {
     expect(await settledOpacity(page, 3)).toBe(1);
     expect(await size()).toBe(before); // text size never changes
     await toggle(page).click();
-    expect(await vis(page, 4)).toBe("gone");
+    await expect.poll(() => vis(page, 4)).toBe("gone"); // after the others have faded
   });
 
   test("in the single-verse view the focused verse sits at the top, with no scrolling and the steps in view", async ({
     page,
   }) => {
     await openSteps(page, "?p=john+1%3A1-18");
-    await toggle(page).click();
-    await row(page, 12).click();
-    await toggle(page).click();
     await page.waitForTimeout(1200);
     const geometry = await page.evaluate(() => {
       const main = document.querySelector("main")!;
@@ -94,12 +91,53 @@ test.describe("memorization steps", () => {
         number: document.querySelector("[data-vis=focused]")!.getAttribute("data-verse"),
       };
     });
-    expect(geometry.number).toBe("12");
+    expect(geometry.number).toBe("1");
     expect(geometry.scrolls).toBe(false);
     expect(geometry.stepsVisible).toBe(true);
     expect(geometry.gap).toBeLessThan(60); // right beneath the toggle row
     // The verses that are out of view take no room.
     expect(await row(page, 5).evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
+  });
+
+  test("to one verse: the others fade first with the verse still, then it glides to the top", async ({
+    page,
+  }) => {
+    await openSteps(page, "?p=john+1%3A1-18");
+    await toggle(page).click();
+    await page.waitForTimeout(1200);
+    await row(page, 5).click();
+    await page.waitForTimeout(300);
+    const topOf = () => row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
+    const before = await topOf();
+    expect(before).toBeGreaterThan(200); // verses 1–4 are above it
+    await toggle(page).click(); // to one verse
+    // First the others fade, while verse 5 does not move at all.
+    await page.waitForTimeout(60);
+    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+    expect(await row(page, 4).evaluate((el) => Number(getComputedStyle(el).opacity))).toBeLessThan(
+      0.34,
+    );
+    // The others have gone by now, and the verse waits alone for a moment before it moves.
+    await page.waitForTimeout(400);
+    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+    await page.waitForTimeout(150);
+    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+    // Then it glides up (it is somewhere in between), and ends right beneath the toggle row.
+    await page.waitForTimeout(370);
+    const middle = await topOf();
+    expect(middle).toBeLessThan(before - 5);
+    await page.waitForTimeout(900);
+    const end = await row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
+    const toggleBottom = await toggle(page).evaluate((el) => el.getBoundingClientRect().bottom);
+    expect(end - toggleBottom).toBeLessThan(60);
+    expect(await vis(page, 6)).toBe("gone");
+    // Opening to several again keeps it completely still.
+    const settled = await topOf();
+    await toggle(page).click();
+    for (const ms of [30, 100, 200, 400, 800, 1500]) {
+      await page.waitForTimeout(ms);
+      expect(Math.abs((await topOf()) - settled)).toBeLessThan(3);
+    }
   });
 
   test("the steps stay at the bottom of the screen while long text scrolls above them, fading out", async ({
@@ -156,6 +194,26 @@ test.describe("memorization steps", () => {
     expect(scrollTop).toBeGreaterThan(0);
     await page.getByTestId("scripture").evaluate((el) => el.scrollTo(0, 0));
     await expect(row(page, 1)).toBeInViewport();
+  });
+
+  test("going back to one verse does not move a verse that is already at the top", async ({
+    page,
+  }) => {
+    await openSteps(page, "?p=john+1%3A1-18");
+    await toggle(page).click();
+    await row(page, 12).click();
+    await toggle(page).click(); // one verse, 12, at the top
+    await page.waitForTimeout(1200);
+    const topOf = () => row(page, 12).evaluate((el) => el.getBoundingClientRect().top);
+    const before = await topOf();
+    await toggle(page).click(); // several
+    await page.waitForTimeout(1800);
+    await toggle(page).click(); // and back to one
+    for (const ms of [50, 150, 300, 600, 1200]) {
+      await page.waitForTimeout(ms);
+      // (A jump used to be 30px or more; a few pixels is frame timing under load.)
+      expect(Math.abs((await topOf()) - before)).toBeLessThan(6);
+    }
   });
 
   test("the toggle's icon shows the view: one dot and line for a verse, three for several", async ({
