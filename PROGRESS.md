@@ -239,3 +239,14 @@
 - Flashcards: the previous/next arrows are the filled triangles. Fix: after moving to another card the card could not be turned over (the slide-in animation kept a `transform` that overrode the flip); the slide-in no longer holds its end state. Regression e2e test added.
 - The solid "Memorize" buttons (reader panel, range picker) use EB Garamond 19px like the other buttons.
 - Open: the owner reported the card still not flipping after the fix; could not reproduce in Playwright (desktop and mobile). Dev server restarted; if it recurs we need the browser and whether music is playing.
+
+## 2026-10-21 — Passage card, range picker, Recall/Chain reveal buttons
+- Reader right panel: the shared Passage card (live reference + Edit range), then Memorize and Music. Edit range opens the range picker with `from=read|steps|flashcards`; its **Select range** button returns to that screen (Steps keeps its step).
+- Range picker: one scrolling list of chapters that runs on across books in Bible order (books load as you near either end); Start/End buttons, hint and verse count removed; big range text above the button. Select range stays pinned at the bottom.
+- Recall always shows one verse (toggle disabled). Recall and Chain share Reveal word / Reveal verse / Hide word / Hide verse that run through the whole passage in order; hidden words show as per-word dashes. See `docs/DECISIONS.md`.
+- Flashcards: the "Audio plays only when you press Play…" line is removed.
+- Open: scrolling the range list through a very long run of books keeps every loaded book in the page (no trimming yet). The owner reported flashcards not turning after the arrows; fixed the animation that blocked it, could not reproduce afterwards.
+- Sidebar: "Memorize" replaced by **Memorization Steps**; it and Flashcards open the range picker directly and Select range returns to the screen. The method-choice page now only follows the reader's Memorize button. Bare Steps/Flashcards URLs redirect to the picker. The player bar no longer shows on the picker (a hidden previous page was keeping it on). Reader → Edit range opens the picker on the selected range (test added).
+- Open: `admin-library.spec.ts` still fails when earlier runs left recordings in the shared test database (see above); unrelated.
+- Range picker → reader: Select range returns to `/read/<book>/<chapter>?p=…&v=<first verse>&jump=1`; the first verse of the range is at the top at once (no smooth scroll). The picker also restarts on a new passage (Next kept its old range when revisited).
+

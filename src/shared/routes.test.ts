@@ -5,13 +5,19 @@ describe("listenerScreen", () => {
   it.each([
     ["/", "home", "/"],
     ["/read/john/1", "read", "/read"],
-    ["/memorize", "choice", "/memorize"],
-    ["/memorize/steps", "steps", "/memorize"],
-    ["/memorize/range", "range", "/memorize"],
+    ["/memorize", "choice", "/read"],
+    ["/memorize/steps", "steps", "/memorize/steps"],
+    ["/memorize/range", "range", "/memorize/steps"],
     ["/memorize/flashcards", "cards", "/memorize/flashcards"],
     ["/nowhere", "other", null],
   ])("%s is the %s screen with %s highlighted", (path, id, nav) => {
     expect(listenerScreen(path)).toMatchObject({ id, nav });
+  });
+
+  it("highlights the screen the range page will return to", () => {
+    expect(listenerScreen("/memorize/range", "flashcards").nav).toBe("/memorize/flashcards");
+    expect(listenerScreen("/memorize/range", "read").nav).toBe("/read");
+    expect(listenerScreen("/memorize/range", "steps").nav).toBe("/memorize/steps");
   });
 
   it("ignores a trailing slash", () => {

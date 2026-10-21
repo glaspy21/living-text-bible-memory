@@ -8,7 +8,8 @@ async function Choice({ searchParams }: { searchParams: PageProps<"/memorize">["
   const { p } = await searchParams;
   const passage = parsePassageParam(Array.isArray(p) ? p[0] : p);
   // Without a passage, choosing a method first means choosing verses.
-  const to = (path: string) => (passage ? withPassage(path, passage) : "/memorize/range");
+  const to = (path: string, from: string) =>
+    passage ? withPassage(path, passage) : `/memorize/range?from=${from}`;
   return (
     <>
       <p className="mt-2 mb-[34px] text-center text-muted" data-testid="choice-passage">
@@ -16,13 +17,13 @@ async function Choice({ searchParams }: { searchParams: PageProps<"/memorize">["
       </p>
       <div className="flex flex-col gap-[18px]">
         <BarLink
-          href={to("/memorize/steps")}
+          href={to("/memorize/steps", "steps")}
           icon="list"
           title="Memorization Steps"
           subtitle="Listen, Sing, Recall, Chain"
         />
         <BarLink
-          href={to("/memorize/flashcards")}
+          href={to("/memorize/flashcards", "flashcards")}
           icon="cards"
           title="Flashcards"
           subtitle="Practice in random order"

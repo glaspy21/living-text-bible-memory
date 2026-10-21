@@ -3,7 +3,8 @@ import { RangePicker } from "@/client/components/range/range-picker";
 import { Main, PageTitle } from "@/client/components/shell/regions";
 import { booksWithMusic } from "@/server/library";
 import { bookVerseCounts } from "@/server/scripture";
-import { parsePassageParam } from "@/shared/scripture/passage-param";
+import { parseStep } from "@/shared/memorize/steps";
+import { formatPassageParam, parsePassageParam } from "@/shared/scripture/passage-param";
 import type { PassageRef } from "@/shared/scripture/types";
 
 /** Where the selector starts when it is opened without a passage. */
@@ -18,7 +19,8 @@ async function Range({
 }: {
   searchParams: PageProps<"/memorize/range">["searchParams"];
 }) {
-  const { p } = await searchParams;
+  const { p, from, step } = await searchParams;
+  const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
   const param = Array.isArray(p) ? p[0] : p;
   const parsed = parsePassageParam(param) ?? DEFAULT_PASSAGE;
   const endBook = parsed.endBook ?? parsed.book;
@@ -41,14 +43,34 @@ async function Range({
     ...(parsed.endBook && { endBook: parsed.endBook }),
   };
 
-  return <RangePicker initial={initial} initialCounts={counts} musicBooks={[...music]} />;
+  // Opened from the reader, Steps or Flashcards: "Select Range" goes back to that screen (and step).
+  const from_ = first(from);
+  const screen: "steps" | "flashcards" | "read" | undefined =
+    from_ === "steps" || from_ === "flashcards" || from_ === "read" ? from_ : undefined;
+  const returnTo = screen
+    ? { screen, ...(screen === "steps" && first(step) && { step: parseStep(first(step)) }) }
+    : undefined;
+
+  return (
+    <RangePicker
+      // A new passage (or screen to return to) starts the picker afresh: Next keeps a page's state
+      // when it is visited again with other parameters, which would show the previous range.
+      key={`${formatPassageParam(initial)}|${screen ?? ""}|${returnTo?.step ?? ""}`}
+      initial={initial}
+      initialCounts={counts}
+      musicBooks={[...music]}
+      returnTo={returnTo}
+    />
+  );
 }
 
 export default function VerseRangePage({ searchParams }: PageProps<"/memorize/range">) {
   return (
     <Main>
-      <div className="mx-auto w-full max-w-[720px]">
-        <PageTitle title="Choose verses" />
+      <div className="mx-auto flex h-full w-full max-w-[720px] flex-col">
+        <div className="shrink-0">
+          <PageTitle title="Choose verses" />
+        </div>
         <Suspense fallback={<p className="text-muted">Loading…</p>}>
           <Range searchParams={searchParams} />
         </Suspense>

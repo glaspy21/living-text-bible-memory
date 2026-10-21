@@ -213,9 +213,6 @@ export function FlashcardsView({
               </span>
             </button>
           </div>
-          <p className="mt-3.5 text-xs text-muted max-[520px]:hidden">
-            Audio plays only when you press Play — never on flip, next, shuffle or restart.
-          </p>
           <Attribution translation={translation} className="mt-4" />
         </div>
       </Main>

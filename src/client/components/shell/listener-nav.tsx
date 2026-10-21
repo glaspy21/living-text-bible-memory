@@ -13,7 +13,7 @@ export function ListenerNavLinks({ active }: { active: string | null }) {
   return (
     <nav aria-label="Main">
       {LISTENER_NAV.map((item) => (
-        <NavLink key={item.href} href={item.href} active={active === item.href}>
+        <NavLink key={item.href} href={item.go ?? item.href} active={active === item.href}>
           {item.label}
         </NavLink>
       ))}
@@ -23,7 +23,8 @@ export function ListenerNavLinks({ active }: { active: string | null }) {
 
 /** Sidebar nav with the current page highlighted. */
 export function ListenerNav() {
-  return <ListenerNavLinks active={listenerScreen(usePathname()).nav} />;
+  const from = useSearchParams().get("from");
+  return <ListenerNavLinks active={listenerScreen(usePathname(), from).nav} />;
 }
 
 /**

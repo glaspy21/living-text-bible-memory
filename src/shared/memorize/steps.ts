@@ -35,11 +35,12 @@ export const hidesText = (id: StepId): boolean => id === "recall" || id === "cha
 export type FocusMode = "single" | "multi" | "whole";
 
 /**
- * Listen and Recall start on one verse, Sing on several, until the listener toggles it.
- * Chain always shows the whole passage. `chosenMulti` is the listener's toggle (null = not chosen).
+ * Listen starts on one verse and Sing on several, until the listener toggles it. Recall always shows
+ * one verse at a time, and Chain always shows the whole passage. `chosenMulti` is the listener's toggle (null = not chosen).
  */
 export function focusModeFor(step: StepId, chosenMulti: boolean | null): FocusMode {
   if (step === "chain") return "whole";
+  if (step === "recall") return "single";
   return (chosenMulti ?? step === "sing") ? "multi" : "single";
 }
 
@@ -55,13 +56,36 @@ export function visibility(mode: FocusMode, index: number, focus: number): Visib
   return mode === "multi" ? "faded" : "gone";
 }
 
+/** The words of a verse, as Recall reveals them one at a time. */
+export const wordsOf = (text: string): string[] => text.split(/\s+/).filter(Boolean);
+
+export type RevealAction = "reveal-word" | "reveal-verse" | "hide-word" | "hide-verse";
+
 /**
- * Widths (percent) of the dashed placeholder lines standing in for a verse of `length`
- * characters: one line per ~70 characters, the last one shorter, so the shape hints at the length.
+ * Recall's four buttons work on the whole passage in order, never stopping at a verse's edge.
+ * `shown[i]` is how many words of verse `i` show and `totals[i]` its word count. Reveal goes on from
+ * the focused verse to the first one that is not fully showing (a word, or the rest of that verse);
+ * hide goes back from the focused verse to the last one with anything showing. Returns the new
+ * counts and the verse that now has the focus, or null when there is nothing left to do.
  */
-export function dashLines(length: number): number[] {
-  const lines = Math.max(1, Math.ceil(length / 70));
-  return Array.from({ length: lines }, (_, i) =>
-    i === lines - 1 && lines > 1 ? 55 + ((length * 7) % 35) : 100,
-  );
+export function revealStep(
+  action: RevealAction,
+  shown: Readonly<Record<number, number>>,
+  focus: number,
+  totals: readonly number[],
+): { shown: Record<number, number>; focus: number } | null {
+  const count = (i: number) => shown[i] ?? 0;
+  if (action === "reveal-word" || action === "reveal-verse") {
+    let at = focus;
+    while (at < totals.length && count(at) >= totals[at]) at++;
+    if (at >= totals.length) return null;
+    return {
+      shown: { ...shown, [at]: action === "reveal-word" ? count(at) + 1 : totals[at] },
+      focus: at,
+    };
+  }
+  let at = Math.min(focus, totals.length - 1);
+  while (at >= 0 && count(at) === 0) at--;
+  if (at < 0) return null;
+  return { shown: { ...shown, [at]: action === "hide-word" ? count(at) - 1 : 0 }, focus: at };
 }

@@ -29,13 +29,11 @@ async function settledOpacity(page: Page, n: number) {
 }
 
 test.describe("memorization steps", () => {
-  test("without a passage it asks you to choose verses first", async ({ page }) => {
+  test("without a passage it goes to choosing verses, which returns here", async ({ page }) => {
     await page.goto("/memorize/steps");
+    await expect(page).toHaveURL(/\/memorize\/range\?from=steps/);
     await streamed(page);
-    await expect(page.getByRole("link", { name: /Choose verses first/ })).toHaveAttribute(
-      "href",
-      "/memorize/range",
-    );
+    await expect(page.getByRole("main").getByTestId("range-picker")).toBeVisible();
   });
 
   test("has exactly four steps, starting on Listen", async ({ page }) => {
@@ -255,39 +253,126 @@ test.describe("memorization steps", () => {
     await expect(page).toHaveURL(/step=sing/);
   });
 
-  test("Recall hides the text behind dashes until revealed", async ({ page }) => {
+  test("Recall hides the text behind dashes and reveals it by word or by verse", async ({
+    page,
+  }) => {
     await openSteps(page);
     await stepButton(page, "Recall").click();
+    const button = (name: string) => page.getByRole("button", { name, exact: true });
     await expect(row(page, 3)).not.toContainText("All things");
-    await expect(row(page, 3).locator("div.border-dashed").first()).toBeVisible();
-    await reveal(page).click();
+    await expect(row(page, 3).locator("span.border-dashed").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Scripture/ })).toHaveCount(0);
+    await expect(button("Hide word")).toBeDisabled();
+    await expect(button("Hide verse")).toBeDisabled();
+
+    await button("Reveal word").click();
+    await expect(row(page, 3)).toContainText("All");
+    await expect(row(page, 3)).not.toContainText("All things");
+    await button("Reveal word").click();
+    await expect(row(page, 3)).toContainText("All things");
+    await expect(row(page, 3)).not.toContainText("were");
+    await button("Hide word").click();
+    await expect(row(page, 3)).not.toContainText("All things");
+
+    // Reveal verse shows the current verse; pressing it again goes on to the next, to the end.
+    await button("Reveal verse").click();
     await expect(row(page, 3)).toContainText("All things were made through him");
-    await expect(reveal(page)).toHaveAccessibleName("Hide Scripture");
-    await reveal(page).click();
-    await expect(row(page, 3)).not.toContainText("All things");
+    await button("Reveal verse").click();
+    await expect.poll(() => vis(page, 4)).toBe("focused");
+    await expect(row(page, 4)).toContainText("In him was life");
+    // Reveal word carries on word by word, even from the end of one verse into the next.
+    await button("Reveal verse").click();
+    await button("Reveal verse").click();
+    await expect.poll(() => vis(page, 6)).toBe("focused");
+    await expect(button("Reveal word")).toBeDisabled();
+    await expect(button("Reveal verse")).toBeDisabled();
+    // Hide verse goes back the same way.
+    await button("Hide verse").click();
+    await expect(row(page, 6)).not.toContainText("There came a man");
+    await button("Hide verse").click();
+    await expect.poll(() => vis(page, 5)).toBe("focused");
+    await expect(row(page, 5)).not.toContainText("The light shines");
   });
 
-  test("Chain always shows the whole passage, hidden until revealed", async ({ page }) => {
+  test("Reveal word runs on from the last word of a verse to the first of the next", async ({
+    page,
+  }) => {
+    await openSteps(page);
+    await stepButton(page, "Recall").click();
+    const button = (name: string) => page.getByRole("button", { name, exact: true });
+    await button("Reveal verse").click();
+    await button("Reveal word").click();
+    await expect.poll(() => vis(page, 4)).toBe("focused");
+    await expect(row(page, 4)).toContainText("In");
+    await expect(row(page, 4)).not.toContainText("In him");
+    await button("Hide word").click(); // hides "In" again
+    await expect(row(page, 4)).not.toContainText("In");
+    await button("Hide word").click(); // back into verse 3: its last word goes
+    await expect.poll(() => vis(page, 3)).toBe("focused");
+    await expect(row(page, 3)).toContainText("nothing was made that has been");
+    await expect(row(page, 3)).not.toContainText("has been made.");
+  });
+
+  test("Recall always shows one verse at a time, and the view toggle is disabled", async ({
+    page,
+  }) => {
+    await openSteps(page);
+    await toggle(page).click(); // several verses in Listen
+    expect(await vis(page, 4)).toBe("faded");
+    await stepButton(page, "Recall").click();
+    await expect.poll(() => vis(page, 4)).toBe("gone");
+    expect(await vis(page, 3)).toBe("focused");
+    await expect(toggle(page)).toBeDisabled();
+    await stepButton(page, "Listen").click();
+    await expect(toggle(page)).toBeEnabled();
+    await expect.poll(() => vis(page, 4)).toBe("faded"); // the choice made in Listen is kept
+  });
+
+  test("Chain always shows the whole passage, hidden until revealed with the same buttons", async ({
+    page,
+  }) => {
     await openSteps(page);
     await stepButton(page, "Chain").click();
     for (const n of [3, 4, 5, 6]) expect(await vis(page, n)).toBe("plain");
     await expect(next(page)).toBeDisabled();
     await expect(toggle(page)).toBeDisabled();
+    const button = (name: string) => page.getByRole("button", { name, exact: true });
     await expect(row(page, 6)).not.toContainText("There came a man");
-    await reveal(page).click();
+    await expect(button("Hide word")).toBeDisabled();
+
+    // Chain works through the passage from the first verse, however Recall left the focus.
+    await button("Reveal word").click();
+    await expect(row(page, 3)).toContainText("All");
+    await expect(row(page, 3)).not.toContainText("All things");
+    await button("Reveal verse").click();
+    await expect(row(page, 3)).toContainText("All things were made through him");
+    await expect(row(page, 4)).not.toContainText("In him");
+    await button("Reveal verse").click();
+    await expect(row(page, 4)).toContainText("In him was life");
+    await button("Reveal verse").click();
+    await button("Reveal verse").click();
     for (const [n, text] of [
-      [3, "All things were made"],
+      [5, "The light shines"],
       [6, "There came a man"],
     ] as const) {
       await expect(row(page, n)).toContainText(text);
     }
+    await expect(button("Reveal verse")).toBeDisabled();
+    // Hiding goes back from the end.
+    await button("Hide verse").click();
+    await expect(row(page, 6)).not.toContainText("There came a man");
+    await expect(row(page, 5)).toContainText("The light shines");
+    await button("Hide word").click();
+    await expect(row(page, 5)).not.toContainText("overcome it.");
   });
 
-  test("Listen and Sing never hide the text, and have no reveal button", async ({ page }) => {
+  test("Listen and Sing never hide the text, and have no reveal buttons", async ({ page }) => {
     await openSteps(page);
     await expect(reveal(page)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Reveal word" })).toHaveCount(0);
     await stepButton(page, "Sing").click();
     await expect(reveal(page)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Reveal word" })).toHaveCount(0);
   });
 
   test("the arrows move between steps and wrap around", async ({ page }) => {
@@ -361,7 +446,7 @@ test.describe("the side panel", () => {
     await expect(page.getByRole("complementary").getByText("No recording yet")).toBeVisible();
     await expect(page.getByRole("link", { name: "Edit range" })).toHaveAttribute(
       "href",
-      "/memorize/range?p=john+1%3A3-6",
+      "/memorize/range?p=john+1%3A3-6&from=steps&step=listen",
     );
   });
 });
@@ -371,20 +456,69 @@ test.describe("memorize choice and Continue", () => {
     await page.goto(`/memorize${PASSAGE}`);
     await streamed(page);
     await expect(page.getByRole("main").getByTestId("choice-passage")).toHaveText("John 1:3–6");
-    await expect(page.getByRole("link", { name: /Memorization Steps/ })).toHaveAttribute(
-      "href",
-      "/memorize/steps?p=john+1%3A3-6",
-    );
+    await expect(
+      page.getByRole("main").getByRole("link", { name: /Memorization Steps/ }),
+    ).toHaveAttribute("href", "/memorize/steps?p=john+1%3A3-6");
     await expect(page.getByRole("link", { name: /Flashcards/ }).first()).toBeVisible();
   });
 
   test("without a passage the choice page sends you to choose verses", async ({ page }) => {
     await page.goto("/memorize");
     await streamed(page);
-    await expect(page.getByRole("link", { name: /Memorization Steps/ })).toHaveAttribute(
-      "href",
-      "/memorize/range",
+    await expect(
+      page.getByRole("main").getByRole("link", { name: /Memorization Steps/ }),
+    ).toHaveAttribute("href", "/memorize/range?from=steps");
+  });
+
+  test("the sidebar's Memorization Steps goes straight to choosing verses, then to Steps", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the sidebar is a desktop layout");
+    await page.goto("/");
+    await streamed(page);
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await expect(nav.getByRole("link", { name: "Memorize", exact: true })).toHaveCount(0);
+    await nav.getByRole("link", { name: "Memorization Steps", exact: true }).click();
+    await expect(page).toHaveURL(/\/memorize\/range\?from=steps/);
+    await expect(page.getByRole("heading", { name: "Choose a Memorization Method" })).toHaveCount(
+      0,
     );
+    await expect(
+      nav.getByRole("link", { name: "Memorization Steps", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+      "href",
+      /^\/memorize\/steps\?p=/,
+    );
+  });
+
+  test("the sidebar's Flashcards goes straight to choosing verses, then to the cards", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the sidebar is a desktop layout");
+    await page.goto("/");
+    await streamed(page);
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await nav.getByRole("link", { name: "Flashcards", exact: true }).click();
+    await expect(page).toHaveURL(/\/memorize\/range\?from=flashcards/);
+    await expect(nav.getByRole("link", { name: "Flashcards", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+      "href",
+      /^\/memorize\/flashcards\?p=/,
+    );
+  });
+
+  test("Memorize in the reader is what leads to the method choice", async ({ page, isMobile }) => {
+    test.skip(isMobile, "the right panel is a desktop layout");
+    await page.goto("/read/john/1");
+    await streamed(page);
+    await page.getByRole("complementary").getByRole("link", { name: "Memorize" }).click();
+    await expect(page.getByRole("heading", { name: "Choose a Memorization Method" })).toBeVisible();
   });
 
   test("Continue on Home returns to the step you were on", async ({ page }) => {

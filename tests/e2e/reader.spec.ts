@@ -205,10 +205,90 @@ test.describe("side panel", () => {
     await expect(page.getByText("No recording for this chapter yet")).toBeVisible();
     await page.locator('[data-verse="4"]').click();
     await expect(page.getByTestId("selected-passage")).toContainText("Genesis 1:4");
-    await expect(page.getByRole("link", { name: "Edit verse range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Edit range" })).toHaveAttribute(
       "href",
-      "/memorize/range?p=genesis+1%3A4",
+      "/memorize/range?p=genesis+1%3A4&from=read",
     );
+  });
+
+  test("Edit range opens the range picker on the verses already chosen", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the right panel is hidden on phones");
+    await openReader(page, "/read/john/1");
+    await page.locator('[data-verse="3"]').click();
+    await page.locator('[data-verse="5"]').click();
+    await page.getByRole("link", { name: "Edit range" }).click();
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3–5");
+    await expect(page.getByTestId("range-picker")).toHaveAttribute("data-interactive", "true");
+    const verse = (n: number) =>
+      page.getByRole("group", { name: "John 1 verses" }).getByRole("button", {
+        name: `Verse ${n}`,
+        exact: true,
+      });
+    await expect(verse(3)).toHaveAttribute("data-mark", "endpoint");
+    await expect(verse(4)).toHaveAttribute("data-mark", "inside");
+    await expect(verse(5)).toHaveAttribute("data-mark", "endpoint");
+    await expect(verse(6)).toHaveAttribute("data-mark", "none");
+    // Select range goes back to the reader with the range still chosen.
+    await page.getByRole("link", { name: "Select range" }).click();
+    await expect(page).toHaveURL(/\/read\/john\/1\?p=john\+1%3A3-5&v=3&jump=1$/);
+  });
+
+  test("Edit range shows the range chosen this time, not one from an earlier visit", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the right panel is hidden on phones");
+    await openReader(page, "/read/john/1");
+    await page.locator('[data-verse="3"]').click();
+    await page.locator('[data-verse="12"]').click();
+    await page.getByRole("link", { name: "Edit range" }).click();
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3–12");
+    await page.getByRole("link", { name: "Select range" }).click();
+    await expect(page).toHaveURL(/\/read\/john\/1\?p=/);
+    await page.locator('[data-verse="20"]').click();
+    await page.locator('[data-verse="25"]').click();
+    await page.getByRole("link", { name: "Edit range" }).click();
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:20–25");
+  });
+
+  test("Select range brings the first verse of the range to the top of the reader", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the right panel is hidden on phones");
+    await openReader(page, "/read/john/1");
+    await page.locator('[data-verse="3"]').click();
+    await page.locator('[data-verse="12"]').click();
+    await page.getByRole("link", { name: "Edit range" }).click();
+    await expect(page.getByTestId("range-picker")).toHaveAttribute("data-interactive", "true");
+    // Change the range, then go back.
+    await page
+      .getByRole("group", { name: "John 1 verses" })
+      .getByRole("button", { name: "Verse 30", exact: true })
+      .click();
+    await page
+      .getByRole("group", { name: "John 1 verses" })
+      .getByRole("button", { name: "Verse 32", exact: true })
+      .click();
+    await page.getByRole("link", { name: "Select range" }).click();
+    await expect(page).toHaveURL(/\/read\/john\/1\?p=john\+1%3A30-32&v=30&jump=1$/);
+    // Immediately: no scrolling to get there (a smooth scroll this far takes longer than this).
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const row = document.querySelector("[data-verse='30']")!.getBoundingClientRect();
+            return (
+              Math.abs(row.top - document.querySelector("main")!.getBoundingClientRect().top) < 2
+            );
+          }),
+        { timeout: 400, intervals: [50] },
+      )
+      .toBe(true);
+    await expect(page.getByTestId("selected-passage")).toHaveText("John 1:30–32");
   });
 
   test("phones still get a Memorize button", async ({ page, isMobile }) => {

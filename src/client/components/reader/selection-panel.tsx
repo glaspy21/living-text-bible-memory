@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { formatReference } from "@/shared/scripture/refs";
 import { withPassage } from "@/shared/scripture/passage-param";
+import { PassageCard } from "@/client/components/ui/passage-card";
+import { cn } from "@/client/lib/cn";
 import { useReaderSelection } from "./reader-selection";
 
 const solid =
   "inline-flex w-full items-center justify-center rounded-[7px] border border-[#d8b872] bg-gradient-to-b from-[#e0c07a] to-[#a8843f] px-5 py-[7px] font-serif text-[19px] text-[#120d03] transition-transform duration-200 active:scale-[0.97]";
-const ghost =
-  "wipe mt-3.5 inline-flex w-full items-center justify-center rounded-[7px] border border-line px-5 py-[9px] text-muted transition-colors";
 
 /** Right panel of the reader: what is selected, and the way on to Memorize or Edit range. */
 export function SelectionPanel({
@@ -21,14 +21,18 @@ export function SelectionPanel({
   const available = (musicChapters[currentBook] ?? []).includes(currentChapter);
   return (
     <>
-      <h2 className="mb-1.5 font-serif text-[22px] font-medium text-heading">Memorize</h2>
-      <p className="mb-4 text-muted" data-testid="selected-passage">
-        Selected: {formatReference(passage)}
+      <PassageCard
+        reference={formatReference(passage)}
+        editHref={`${withPassage("/memorize/range", passage)}&from=read`}
+        testId="selected-passage"
+      >
         {isWholeChapter && (
-          <span className="block text-xs">Whole chapter · tap verses to choose</span>
+          <span className="mt-1 block text-xs text-muted">
+            Whole chapter · tap verses to choose
+          </span>
         )}
-      </p>
-      <Link href={withPassage("/memorize", passage)} className={solid}>
+      </PassageCard>
+      <Link href={withPassage("/memorize", passage)} className={cn(solid, "mt-3.5")}>
         Memorize
       </Link>
       <div className="mt-[22px] rounded-[10px] border border-line bg-[rgba(18,18,18,.7)] p-[18px]">
@@ -46,9 +50,6 @@ export function SelectionPanel({
           {available ? "Recording available" : "No recording for this chapter yet"}
         </p>
       </div>
-      <Link href={withPassage("/memorize/range", passage)} className={ghost}>
-        Edit verse range
-      </Link>
     </>
   );
 }

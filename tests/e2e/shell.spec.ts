@@ -31,7 +31,10 @@ test.describe("listener shell", () => {
   test("memorize choice links to both methods", async ({ page }) => {
     await page.goto("/memorize?p=john+1%3A1-3");
     await streamed(page);
-    await page.getByRole("link", { name: /Memorization Steps/ }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /Memorization Steps/ })
+      .click();
     await expect(page).toHaveURL(/\/memorize\/steps\?p=john\+1%3A1-3/);
   });
 });
@@ -43,10 +46,9 @@ test.describe("desktop", () => {
     await page.goto("/memorize/steps?p=john+1%3A1-3");
     await streamed(page);
     const nav = page.getByRole("navigation", { name: "Main" });
-    await expect(nav.getByRole("link", { name: "Memorize", exact: true })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(
+      nav.getByRole("link", { name: "Memorization Steps", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
     await expect(page.getByRole("complementary", { name: "Passage settings" })).toBeVisible();
   });
 

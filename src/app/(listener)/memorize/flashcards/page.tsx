@@ -1,28 +1,14 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { FlashcardsView } from "@/client/components/flashcards/flashcards-view";
-import { Main, PageTitle } from "@/client/components/shell/regions";
-import { BarLink } from "@/client/components/ui/bar";
+import { Main } from "@/client/components/shell/regions";
 import { getPreferredTranslation } from "@/server/scripture/preference";
 import { loadStudyPassage } from "@/server/scripture/reader";
 import { ScriptureUnavailableError } from "@/server/scripture/types";
 import { parsePassageParam } from "@/shared/scripture/passage-param";
 
-/** Shown when the page is opened without a (valid) passage. */
-function ChooseFirst() {
-  return (
-    <Main>
-      <div className="mx-auto w-full max-w-[720px]">
-        <PageTitle title="Flashcards" />
-        <BarLink
-          href="/memorize/range"
-          icon="book"
-          title="Choose verses first"
-          subtitle="Pick the passage you want to practice"
-        />
-      </div>
-    </Main>
-  );
-}
+/** Without a (valid) passage there is nothing to show: go and choose verses, then come back here. */
+const chooseVerses = () => redirect("/memorize/range?from=flashcards");
 
 async function Flashcards({
   searchParams,
@@ -32,13 +18,13 @@ async function Flashcards({
   const { p } = await searchParams;
   const param = Array.isArray(p) ? p[0] : p;
   const passage = parsePassageParam(param);
-  if (!passage) return <ChooseFirst />;
+  if (!passage) return chooseVerses();
 
   const loaded = await loadStudyPassage(passage, await getPreferredTranslation()).catch((error) => {
     if (error instanceof ScriptureUnavailableError && error.reason === "not-found") return null;
     throw error;
   });
-  if (!loaded) return <ChooseFirst />;
+  if (!loaded) return chooseVerses();
 
   return (
     <FlashcardsView

@@ -1,7 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useSyncExternalStore, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type KeyboardEvent,
+} from "react";
 import { cn } from "@/client/lib/cn";
 import { verseMarking } from "@/shared/scripture/selection";
 import type { Verse } from "@/shared/scripture/types";
@@ -15,12 +21,12 @@ let stopCurrent: (() => void) | undefined;
  * Scroll a verse to the top of the screen. Near the end of a chapter the page may be too short to
  * bring the verse up until the next chapter has loaded below it, so once the scrolling comes to
  * rest it tries again, until the verse is at the top, the reader scrolls for themselves, or a few
- * seconds have passed. Returns a function that gives up.
+ * seconds have passed. Returns a function that gives up. `smooth = false` jumps there at once.
  */
-function bringToTop(row: HTMLElement): () => void {
+function bringToTop(row: HTMLElement, smooth = true): () => void {
   stopCurrent?.();
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  row.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+  row.scrollIntoView({ block: "start", behavior: reduced || !smooth ? "auto" : "smooth" });
   const scroller = row.closest("main");
   let lastTop = scroller?.scrollTop;
   let ticks = 0;
@@ -73,13 +79,16 @@ export function ChapterText({
   );
 
   // Arriving with ?v=16 (from the header's verse menu) scrolls that verse to the top of the screen.
-  const goTo = useSearchParams().get("v");
+  // With `jump=1` (Select range on the range page) the verse is there at once, with no scrolling.
+  const params = useSearchParams();
+  const goTo = params.get("v");
+  const jump = params.get("jump") === "1";
   const container = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!arrive || !goTo || !/^\d+$/.test(goTo)) return;
     const row = container.current?.querySelector<HTMLElement>(`[data-verse="${goTo}"]`);
-    return row ? bringToTop(row) : undefined;
-  }, [arrive, goTo]);
+    return row ? bringToTop(row, !jump) : undefined;
+  }, [arrive, goTo, jump]);
 
   // Choosing the verse that is already in the address bar changes nothing there, so the menu also
   // says so directly.

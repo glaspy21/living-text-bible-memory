@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Attribution } from "@/client/components/scripture/attribution";
 import { Main, RightPanel } from "@/client/components/shell/regions";
+import { PassageCard } from "@/client/components/ui/passage-card";
 import { Icon } from "@/client/components/ui/icons";
 import { recordActivity } from "@/client/lib/activity-store";
 import { cn } from "@/client/lib/cn";
@@ -12,9 +13,11 @@ import { PlayerPassage } from "@/client/player/player-passage";
 import { usePlayer } from "@/client/player/player-provider";
 import {
   STEPS,
-  dashLines,
   focusModeFor,
   hidesText,
+  revealStep,
+  wordsOf,
+  type RevealAction,
   stepAfter,
   stepIndex,
   visibility,
@@ -33,18 +36,50 @@ const miniButton =
 const triangle =
   "inline-flex h-9 w-9 items-center justify-center rounded-md text-heading transition-colors hover:bg-[rgba(201,164,92,.08)] disabled:pointer-events-none disabled:opacity-30";
 
-/** One verse's dashed stand-in while the text is hidden. */
-function Dashes({ length }: { length: number }) {
+/** Recall: the words revealed so far, the rest as dashes the length of each word. */
+function RecallWords({ text, shown }: { text: string; shown: number }) {
   return (
     <>
-      {dashLines(length).map((width, i) => (
-        <div
-          key={i}
-          style={{ width: `${width}%` }}
-          className="mb-1 h-[26px] border-b-[1.5px] border-dashed border-[rgba(236,230,216,.42)] group-data-[vis=faded]:border-[rgba(236,230,216,.9)]"
-        />
+      {wordsOf(text).map((word, i) => (
+        <span key={i}>
+          {i > 0 && " "}
+          {i < shown ? (
+            word
+          ) : (
+            <span
+              aria-hidden="true"
+              style={{ width: `${Math.max(1.2, word.length * 0.5)}em` }}
+              className="mx-[3px] inline-block h-[1em] border-b-[1.5px] border-dashed border-[rgba(236,230,216,.42)] group-data-[vis=faded]:border-[rgba(236,230,216,.9)]"
+            />
+          )}
+        </span>
       ))}
     </>
+  );
+}
+
+/** One of Recall's reveal/hide buttons (gold wipe on hover). */
+function RecallButton({
+  label,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="wipe inline-flex items-center justify-center rounded-full border border-gold bg-[rgba(201,164,92,.07)] px-5 py-2.5 font-serif text-[17px] text-gold2 disabled:pointer-events-none disabled:opacity-40"
+    >
+      {label}
+      <span className="wipe-fill" aria-hidden="true">
+        {label}
+      </span>
+    </button>
   );
 }
 
@@ -69,7 +104,8 @@ export function StepsView({
   const player = usePlayer();
   const [step, setStep] = useState<StepId>(initialStep);
   const [chosenMulti, setChosenMulti] = useState<boolean | null>(null);
-  const [revealed, setRevealed] = useState(false);
+  // Recall: how many words of each verse (by position) are showing.
+  const [shownWords, setShownWords] = useState<Record<number, number>>({});
   const [help, setHelp] = useState(false);
   const [focus, setFocus] = useState(0);
   // Several verses to one: the others fade away first with the chosen verse staying put (`fading`),
@@ -104,12 +140,18 @@ export function StepsView({
   }, [param, step]);
 
   const mode = focusModeFor(step, chosenMulti);
+  // Recall always shows one verse and Chain the whole passage: the view cannot be changed there.
+  const viewLocked = step === "recall" || step === "chain";
+  const focusedVerse = verses[focus];
   const current = STEPS[stepIndex(step)];
   const hidden = hidesText(step);
 
+  const resetReveal = () => {
+    setShownWords({});
+  };
   const goToStep = (next: StepId) => {
     setStep(next);
-    setRevealed(false);
+    resetReveal();
     setHelp(false);
   };
   /**
@@ -151,9 +193,9 @@ export function StepsView({
     requestAnimationFrame(hold);
   };
   const toggleMulti = () => {
-    if (mode === "whole" || fading) return;
+    if (viewLocked || fading) return;
     setSwap(false);
-    setRevealed(false);
+    resetReveal();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (mode === "single") {
       holdFocusedVerse();
@@ -210,10 +252,10 @@ export function StepsView({
       .querySelector<HTMLElement>("[data-testid=scripture]")
       ?.style.removeProperty("padding-top");
   }, [focus, step]);
-  const focusOn = (index: number) => {
+  const focusOn = (index: number, keepReveal = false) => {
     setSwap(mode === "single");
     setFocus(index);
-    setRevealed(false);
+    if (!keepReveal) resetReveal();
     const wanted = verses[index];
     const at = player.verses.findIndex(
       (v) => v.book === wanted.book && v.chapter === wanted.chapter && v.verse === wanted.verse,
@@ -237,13 +279,15 @@ export function StepsView({
               className={miniButton}
               aria-label="Show several verses"
               aria-pressed={mode !== "single"}
-              disabled={mode === "whole"}
+              disabled={viewLocked}
               title={
                 mode === "whole"
                   ? "Chain always shows the whole passage"
-                  : mode === "multi"
-                    ? "Showing several verses — click to focus on one"
-                    : "Showing one verse — click to show the whole passage"
+                  : step === "recall"
+                    ? "Recall always shows one verse at a time"
+                    : mode === "multi"
+                      ? "Showing several verses — click to focus on one"
+                      : "Showing one verse — click to show the whole passage"
               }
               onClick={toggleMulti}
             >
@@ -304,7 +348,7 @@ export function StepsView({
             {verses.map((verse, i) => {
               const vis = visibility(mode, i, focus);
               const distance = Math.abs(i - focus);
-              const showText = !hidden || (revealed && (mode === "whole" || i === focus));
+              const showText = !hidden;
               return (
                 <div
                   key={`${verse.book}:${verse.chapter}:${verse.verse}`}
@@ -361,27 +405,53 @@ export function StepsView({
                   >
                     {verse.verse}
                   </span>
-                  <span>{showText ? verse.text : <Dashes length={verse.text.length} />}</span>
+                  <span>
+                    {showText ? (
+                      verse.text
+                    ) : (
+                      <RecallWords text={verse.text} shown={shownWords[i] ?? 0} />
+                    )}
+                  </span>
                 </div>
               );
             })}
           </div>
 
-          {hidden && (
-            <div className="my-3.5 text-center">
-              <button
-                type="button"
-                aria-pressed={revealed}
-                onClick={() => setRevealed((r) => !r)}
-                className="wipe inline-flex items-center gap-[9px] rounded-full border border-gold bg-[rgba(201,164,92,.07)] px-[34px] py-3 font-serif text-[19px] text-gold2"
-              >
-                <Icon name="eye" size={20} />
-                {revealed ? "Hide Scripture" : "Reveal Scripture"}
-                <span className="wipe-fill" aria-hidden="true">
-                  <Icon name="eye" size={20} />
-                  {revealed ? "Hide Scripture" : "Reveal Scripture"}
-                </span>
-              </button>
+          {hidden && focusedVerse && (
+            <div className="mx-auto my-3.5 grid w-fit grid-cols-2 gap-2.5">
+              {(
+                [
+                  ["Reveal word", "reveal-word"],
+                  ["Reveal verse", "reveal-verse"],
+                  ["Hide word", "hide-word"],
+                  ["Hide verse", "hide-verse"],
+                ] as [string, RevealAction][]
+              ).map(([label, action]) => {
+                // Chain shows the whole passage, so it works through it from the start (or, hiding,
+                // from the end); Recall works from the verse in focus.
+                const from =
+                  step !== "chain" ? focus : action.startsWith("reveal") ? 0 : verses.length - 1;
+                const move = () =>
+                  revealStep(
+                    action,
+                    shownWords,
+                    from,
+                    verses.map((v) => wordsOf(v.text).length),
+                  );
+                return (
+                  <RecallButton
+                    key={action}
+                    label={label}
+                    disabled={move() === null}
+                    onClick={() => {
+                      const next = move();
+                      if (!next) return;
+                      setShownWords(next.shown);
+                      if (step === "recall" && next.focus !== focus) focusOn(next.focus, true);
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -464,18 +534,11 @@ export function StepsView({
       <RightPanel label="Passage settings">
         <h2 className="font-serif text-[22px] font-medium text-heading">{current.label}</h2>
         <p className="mt-1.5 mb-[18px] text-muted">{current.help}</p>
-        <div className={card}>
-          <div className={cardLabel}>Passage</div>
-          <div className="mt-1 font-serif text-[22px] text-gold2" data-testid="panel-passage">
-            {formatReference(passage)}
-          </div>
-          <Link
-            href={withPassage("/memorize/range", passage)}
-            className="wipe mt-3 inline-flex items-center rounded-[7px] border border-line px-3 py-[5px] text-xs text-muted"
-          >
-            Edit range
-          </Link>
-        </div>
+        <PassageCard
+          reference={formatReference(passage)}
+          editHref={`${withPassage("/memorize/range", passage)}&from=steps&step=${step}`}
+          testId="panel-passage"
+        />
         <div className={cn(card, "mt-3.5")}>
           <div className={cardLabel}>When the verse ends</div>
           <div className="mt-2.5 flex items-center gap-3 text-gold">

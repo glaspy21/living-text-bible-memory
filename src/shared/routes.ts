@@ -5,13 +5,15 @@
 
 import { bookBySlug } from "./scripture/books";
 
-export type NavItem = { href: string; label: string };
+/** `href` names the item (and what it highlights for); `go` is where its link leads, when different. */
+export type NavItem = { href: string; label: string; go?: string };
 
 export const LISTENER_NAV: readonly NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/read", label: "Read Scripture" },
-  { href: "/memorize", label: "Memorize" },
-  { href: "/memorize/flashcards", label: "Flashcards" },
+  // The method is already chosen, so this goes straight to choosing verses (then back to Steps).
+  { href: "/memorize/steps", label: "Memorization Steps", go: "/memorize/range?from=steps" },
+  { href: "/memorize/flashcards", label: "Flashcards", go: "/memorize/range?from=flashcards" },
 ];
 
 export const ADMIN_NAV: readonly NavItem[] = [
@@ -42,14 +44,24 @@ export function readerTitle(pathname: string): string {
   return `${name} ${chapter}`;
 }
 
-export function listenerScreen(pathname: string): ListenerScreen {
+/** `from` is the `?from=` of the range page, which highlights the screen it will return to. */
+export function listenerScreen(pathname: string, from?: string | null): ListenerScreen {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/") return { id: "home", nav: "/" };
   if (path === "/read" || path.startsWith("/read/")) return { id: "read", nav: "/read" };
-  if (path === "/memorize") return { id: "choice", nav: "/memorize" };
-  if (path === "/memorize/steps") return { id: "steps", nav: "/memorize" };
+  // The method choice comes after selecting verses in the reader.
+  if (path === "/memorize") return { id: "choice", nav: "/read" };
+  if (path === "/memorize/steps") return { id: "steps", nav: "/memorize/steps" };
   if (path === "/memorize/flashcards") return { id: "cards", nav: "/memorize/flashcards" };
-  if (path === "/memorize/range") return { id: "range", nav: "/memorize" };
+  if (path === "/memorize/range") {
+    const nav =
+      from === "flashcards"
+        ? "/memorize/flashcards"
+        : from === "read"
+          ? "/read"
+          : "/memorize/steps";
+    return { id: "range", nav };
+  }
   return { id: "other", nav: null };
 }
 

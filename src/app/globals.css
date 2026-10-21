@@ -156,10 +156,10 @@ button {
     "side main"
     "player player";
 }
-.app:not(.admin):not(:has(> .shell-main[data-player])) {
+.app:not(.admin):not(:has(> .shell-main[data-player]:not([style*="display: none"]))) {
   grid-template-rows: 56px minmax(0, 1fr) 0;
 }
-.app:not(:has(> .shell-main[data-player])) > .shell-player {
+.app:not(:has(> .shell-main[data-player]:not([style*="display: none"]))) > .shell-player {
   display: none;
 }
 .app.admin {
@@ -254,7 +254,7 @@ button {
   .app {
     grid-template-rows: 54px minmax(0, 1fr) 128px;
   }
-  .app:not(.admin):not(:has(> .shell-main[data-player])) {
+  .app:not(.admin):not(:has(> .shell-main[data-player]:not([style*="display: none"]))) {
     grid-template-rows: 54px minmax(0, 1fr) 0;
   }
   .app .shell-header,

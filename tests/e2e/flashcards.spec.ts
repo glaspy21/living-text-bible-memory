@@ -29,13 +29,11 @@ const reference = (page: Page) =>
     .then((text) => /(\d+:\d+)/.exec(text)?.[1] ?? "");
 
 test.describe("flashcards", () => {
-  test("without a passage it asks you to choose verses first", async ({ page }) => {
+  test("without a passage it goes to choosing verses, which returns here", async ({ page }) => {
     await page.goto("/memorize/flashcards");
+    await expect(page).toHaveURL(/\/memorize\/range\?from=flashcards/);
     await streamed(page);
-    await expect(page.getByRole("link", { name: /Choose verses first/ })).toHaveAttribute(
-      "href",
-      "/memorize/range",
-    );
+    await expect(page.getByRole("main").getByTestId("range-picker")).toBeVisible();
   });
 
   test("the front shows the book, chapter and verse and invites a tap", async ({ page }) => {
