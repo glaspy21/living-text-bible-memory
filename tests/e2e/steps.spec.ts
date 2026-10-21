@@ -102,30 +102,60 @@ test.describe("memorization steps", () => {
     expect(await row(page, 5).evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
   });
 
-  test("the steps stay at the bottom of the screen while long text scrolls behind them", async ({
+  test("the steps stay at the bottom of the screen while long text scrolls above them, fading out", async ({
     page,
   }) => {
     await openSteps(page, "?p=john+1%3A1-18");
     await toggle(page).click();
     await page.waitForTimeout(1200);
-    const scrolled = await page.getByRole("main").evaluate((main) => {
-      main.scrollTo(0, 400);
-      return main.scrollTop > 0;
+    const scripture = page.getByTestId("scripture");
+    const moved = await scripture.evaluate((el) => {
+      el.scrollTo(0, 400);
+      return el.scrollTop > 0;
     });
-    expect(scrolled).toBe(true);
-    await page.waitForTimeout(300);
+    expect(moved).toBe(true);
     const edges = await page.evaluate(() => {
       const steps = document.querySelector("nav[aria-label='Memorization steps']")!;
+      const text = document.querySelector("[data-testid=scripture]")!;
       return {
-        mainBottom: document.querySelector("main")!.getBoundingClientRect().bottom,
-        // The block holding the steps reaches the very bottom of the scrolling area.
-        blockBottom: steps.parentElement!.getBoundingClientRect().bottom,
-        stepsBottom: steps.getBoundingClientRect().bottom,
+        pageScrolls:
+          document.querySelector("main")!.scrollHeight >
+          document.querySelector("main")!.clientHeight + 1,
+        textBottom: text.getBoundingClientRect().bottom,
+        stepsTop: steps.getBoundingClientRect().top,
+        mask: getComputedStyle(text).maskImage || getComputedStyle(text).webkitMaskImage,
+        // No dark panel behind the steps: the block around them is transparent.
+        backdrop: getComputedStyle(steps.parentElement!).backgroundColor,
       };
     });
-    expect(Math.abs(edges.blockBottom - edges.mainBottom)).toBeLessThan(1);
-    expect(edges.stepsBottom).toBeLessThanOrEqual(edges.mainBottom);
+    expect(edges.pageScrolls).toBe(false); // only the text scrolls
+    expect(edges.textBottom).toBeLessThanOrEqual(edges.stepsTop);
+    expect(edges.mask).toContain("linear-gradient"); // the text fades toward the steps
+    expect(edges.backdrop).toBe("rgba(0, 0, 0, 0)");
     await expect(stepButton(page, "Chain")).toBeInViewport();
+  });
+
+  test("going from one verse to several keeps the focused verse where it is, with the earlier ones above", async ({
+    page,
+  }) => {
+    await openSteps(page, "?p=john+1%3A1-18");
+    await toggle(page).click();
+    await row(page, 12).click();
+    await toggle(page).click(); // single view on verse 12
+    await page.waitForTimeout(1200);
+    const topOf = () => row(page, 12).evaluate((el) => el.getBoundingClientRect().top);
+    const before = await topOf();
+    await toggle(page).click(); // several again
+    for (const ms of [100, 300, 700, 1300]) {
+      await page.waitForTimeout(ms);
+      expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+    }
+    // The verses after it have appeared, and the earlier ones are there to scroll up to.
+    expect(await vis(page, 13)).toBe("faded");
+    const scrollTop = await page.getByTestId("scripture").evaluate((el) => el.scrollTop);
+    expect(scrollTop).toBeGreaterThan(0);
+    await page.getByTestId("scripture").evaluate((el) => el.scrollTo(0, 0));
+    await expect(row(page, 1)).toBeInViewport();
   });
 
   test("the toggle's icon shows the view: one dot and line for a verse, three for several", async ({

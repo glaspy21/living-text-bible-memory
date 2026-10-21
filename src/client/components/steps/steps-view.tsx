@@ -102,8 +102,39 @@ export function StepsView({
     setRevealed(false);
     setHelp(false);
   };
+  /**
+   * While the verses before the focused one open up again (single to several), keep the focused
+   * verse exactly where it is on screen; the earlier ones are above it, to scroll up to.
+   */
+  const holdFocusedVerse = () => {
+    const region = document.querySelector<HTMLElement>("[data-testid=scripture]");
+    const verse = region?.querySelector<HTMLElement>("[data-vis=focused]");
+    if (!region || !verse) return;
+    const offset = verse.getBoundingClientRect().top - region.getBoundingClientRect().top;
+    // Until the verses after it have opened too there is nothing below to scroll over, so lend
+    // the area some room; afterwards keep only as much as the position needs (verse 18 of 18
+    // has nothing after it, and simply stays where it is with space below).
+    const resting = parseFloat(getComputedStyle(region).paddingBottom);
+    region.style.paddingBottom = `${region.clientHeight}px`;
+    const until = performance.now() + 1500;
+    const hold = () => {
+      const drift = verse.getBoundingClientRect().top - region.getBoundingClientRect().top - offset;
+      if (drift !== 0) region.scrollTop += drift;
+      if (performance.now() < until) return requestAnimationFrame(hold);
+      const lent = parseFloat(region.style.paddingBottom);
+      const content = region.scrollHeight - lent;
+      const needed = region.scrollTop + region.clientHeight - content;
+      region.style.paddingBottom = `${Math.max(resting, Math.min(lent, needed))}px`;
+    };
+    requestAnimationFrame(hold);
+  };
   const toggleMulti = () => {
     if (mode === "whole") return;
+    if (mode === "single") holdFocusedVerse();
+    else
+      document
+        .querySelector<HTMLElement>("[data-testid=scripture]")
+        ?.style.removeProperty("padding-bottom");
     setChosenMulti(mode !== "multi");
     setRevealed(false);
   };
@@ -125,7 +156,7 @@ export function StepsView({
     <>
       <PlayerPassage passage={passage} context="practice" />
       <Main player>
-        <div className="mx-auto flex min-h-full w-full max-w-[760px] flex-col" data-step={step}>
+        <div className="mx-auto flex h-full w-full max-w-[760px] flex-col" data-step={step}>
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
@@ -179,9 +210,11 @@ export function StepsView({
             </p>
           )}
 
+          {/* The text scrolls in its own area above the steps, fading out toward them, so the
+              steps (always at the bottom of the screen) are what the eye rests on. */}
           <div
             key={step}
-            className="mt-[26px] flex-1 font-serif text-[22px] leading-[1.6] max-[520px]:text-[17.5px] max-[520px]:leading-[1.5]"
+            className="scripture-scroll mt-[14px] min-h-0 flex-1 overflow-y-auto pt-3 pb-16 font-serif text-[22px] leading-[1.6] max-[520px]:text-[17.5px] max-[520px]:leading-[1.5]"
             data-testid="scripture"
           >
             {verses.map((verse, i) => {
@@ -259,84 +292,80 @@ export function StepsView({
             </div>
           )}
 
-          {/* Always at the bottom of the screen: long text scrolls away behind it. The negative
-              margin and padding make it cover the page's own padding without moving anything. */}
-          <div className="sticky -bottom-[28px] z-10 -mb-[28px] bg-[var(--bg)] pb-[28px] before:pointer-events-none before:absolute before:inset-x-0 before:-top-6 before:h-6 before:bg-gradient-to-t before:from-[var(--bg)] before:to-transparent max-[520px]:-bottom-[16px] max-[520px]:-mb-[16px] max-[520px]:pb-[16px]">
-            <div className="mt-2 flex justify-end">
-              <button
-                type="button"
-                className={cn(miniButton, "rounded-full")}
-                aria-label="Help"
-                aria-expanded={help}
-                aria-controls="step-help"
-                onClick={() => setHelp((h) => !h)}
-              >
-                <Icon name="help" size={22} />
-              </button>
-            </div>
-            {help && (
-              <p
-                id="step-help"
-                className="mt-3 rounded-r-lg border-l-2 border-gold bg-[rgba(212,168,79,.07)] px-4 py-3 text-[13px] text-muted"
-              >
-                <b className="font-medium text-gold2">{current.label}.</b> {current.help}
-              </p>
-            )}
-
-            <nav
-              aria-label="Memorization steps"
-              className="mt-3 flex items-center gap-2.5 rounded-[14px] border border-line bg-[rgba(22,19,13,.85)] px-4 pt-4 pb-3 max-[520px]:gap-1 max-[520px]:px-2 max-[520px]:pt-3 max-[520px]:pb-2.5"
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              className={cn(miniButton, "rounded-full")}
+              aria-label="Help"
+              aria-expanded={help}
+              aria-controls="step-help"
+              onClick={() => setHelp((h) => !h)}
             >
-              <button
-                type="button"
-                aria-label="Previous step"
-                onClick={() => goToStep(stepAfter(step, -1))}
-                className="grid h-[30px] w-[30px] place-items-center text-gold hover:text-gold2"
-              >
-                <Icon name="triangleLeft" size={22} />
-              </button>
-              <div className="relative flex flex-1 justify-between px-[6%]">
-                <div
-                  className="absolute inset-x-[12%] top-[11px] h-px bg-gold-dim"
-                  aria-hidden="true"
-                />
-                {STEPS.map((s) => {
-                  const active = s.id === step;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      aria-current={active ? "step" : undefined}
-                      onClick={() => goToStep(s.id)}
-                      className={cn(
-                        "relative z-[1] flex flex-col items-center gap-[9px] font-serif text-[17px]",
-                        active ? "text-gold2" : "text-text",
-                      )}
-                    >
-                      <i
-                        className={cn(
-                          "block h-[22px] w-[22px] rounded-full border-[1.5px] transition-[background,box-shadow,border-color] duration-200",
-                          active
-                            ? "border-gold2 bg-[radial-gradient(circle_at_40%_35%,#fff4d2,#e8cb8a_50%,#a8843f)] shadow-[0_0_16px_rgba(232,203,138,.75)]"
-                            : "border-gold-dim bg-[#0b0b0b]",
-                        )}
-                      />
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                type="button"
-                aria-label="Next step"
-                onClick={() => goToStep(stepAfter(step, 1))}
-                className="grid h-[30px] w-[30px] place-items-center text-gold hover:text-gold2"
-              >
-                <Icon name="triangleRight" size={22} />
-              </button>
-            </nav>
-            <Attribution translation={translation} className="mt-4" />
+              <Icon name="help" size={22} />
+            </button>
           </div>
+          {help && (
+            <p
+              id="step-help"
+              className="mt-3 rounded-r-lg border-l-2 border-gold bg-[rgba(212,168,79,.07)] px-4 py-3 text-[13px] text-muted"
+            >
+              <b className="font-medium text-gold2">{current.label}.</b> {current.help}
+            </p>
+          )}
+
+          <nav
+            aria-label="Memorization steps"
+            className="mt-3 flex items-center gap-2.5 rounded-[14px] border border-line bg-[rgba(22,19,13,.85)] px-4 pt-4 pb-3 max-[520px]:gap-1 max-[520px]:px-2 max-[520px]:pt-3 max-[520px]:pb-2.5"
+          >
+            <button
+              type="button"
+              aria-label="Previous step"
+              onClick={() => goToStep(stepAfter(step, -1))}
+              className="grid h-[30px] w-[30px] place-items-center text-gold hover:text-gold2"
+            >
+              <Icon name="triangleLeft" size={22} />
+            </button>
+            <div className="relative flex flex-1 justify-between px-[6%]">
+              <div
+                className="absolute inset-x-[12%] top-[11px] h-px bg-gold-dim"
+                aria-hidden="true"
+              />
+              {STEPS.map((s) => {
+                const active = s.id === step;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    aria-current={active ? "step" : undefined}
+                    onClick={() => goToStep(s.id)}
+                    className={cn(
+                      "relative z-[1] flex flex-col items-center gap-[9px] font-serif text-[17px]",
+                      active ? "text-gold2" : "text-text",
+                    )}
+                  >
+                    <i
+                      className={cn(
+                        "block h-[22px] w-[22px] rounded-full border-[1.5px] transition-[background,box-shadow,border-color] duration-200",
+                        active
+                          ? "border-gold2 bg-[radial-gradient(circle_at_40%_35%,#fff4d2,#e8cb8a_50%,#a8843f)] shadow-[0_0_16px_rgba(232,203,138,.75)]"
+                          : "border-gold-dim bg-[#0b0b0b]",
+                      )}
+                    />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              aria-label="Next step"
+              onClick={() => goToStep(stepAfter(step, 1))}
+              className="grid h-[30px] w-[30px] place-items-center text-gold hover:text-gold2"
+            >
+              <Icon name="triangleRight" size={22} />
+            </button>
+          </nav>
+          <Attribution translation={translation} className="mt-4" />
         </div>
       </Main>
       <RightPanel label="Passage settings">
