@@ -116,3 +116,10 @@
 - Fixed: the header now sits above the page, so its menus are not covered by the right panel.
 - Open: Continue goes to the last chapter read; once Steps remember progress (M11) it can return to the exact step.
 
+
+## 2026-10-20 — M9 Verse-range selector (branch `m9-verse-range`)
+- `/memorize/range?p=…` lets you pick any run of verses in one book: tap a start verse, then an end verse; tap Start or End to move just that endpoint; no length limit; ranges can cross chapters (use the chapter arrows or the dropdown while you pick). Choosing another book starts a fresh selection there.
+- Matches the prototype: gold dropdown, verse grid (5 across on phones), bright endpoints with a tinted run between, Start/End chips, "Selected" line with the verse count. The passage is kept in the URL, so reload and links keep it; Memorize carries it on.
+- The book/chapter panel is now reusable (choose without leaving the page). The verse grid uses the WEB's numbering for every translation.
+- Tests: the selection rules (all tap sequences, endpoints dragging each other, cross-chapter, verse counts) plus browser tests of the whole screen.
+- Note for next steps: don't run `npm run build` while `npm run dev` is running; it overwrites the dev server's files.

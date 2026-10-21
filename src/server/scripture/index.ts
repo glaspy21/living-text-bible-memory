@@ -1,4 +1,5 @@
 import "server-only";
+import { bookBySlug } from "@/shared/scripture/books";
 import type { TranslationCode } from "@/shared/scripture/types";
 import { EsvProvider } from "./esv";
 import { ScriptureUnavailableError, type ScriptureProvider } from "./types";
@@ -43,3 +44,17 @@ export function getProvider(code: TranslationCode): ScriptureProvider {
 
 export { ScriptureUnavailableError } from "./types";
 export type { ScriptureProvider } from "./types";
+
+/**
+ * How many verses each chapter of a book has (chapter n is index n - 1), for the verse grid.
+ * Always the WEB's numbering: it is always available, and it differs from the ESV in only a
+ * handful of verses.
+ */
+export async function bookVerseCounts(bookSlug: string): Promise<number[]> {
+  const book = bookBySlug(bookSlug);
+  if (!book) throw new ScriptureUnavailableError(`There is no book ${bookSlug}.`, "not-found");
+  const web = getProvider("WEB");
+  return Promise.all(
+    Array.from({ length: book.chapterCount }, (_, i) => web.verseCount(book.slug, i + 1)),
+  );
+}

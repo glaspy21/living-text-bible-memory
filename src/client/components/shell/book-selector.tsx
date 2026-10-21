@@ -14,18 +14,23 @@ type Testament = "OLD" | "NEW";
 /** Where the panel sits: directly under the header, centred on the clicked control. */
 export type PanelAnchor = { top: number; left: number; width: number };
 
-/** Place the panel under the header, centred on the control, and inside the window. */
+/**
+ * Place the panel under a control, inside the window. `center` is for the header button (panel
+ * attached to the header, centred on the button); `left` lines up with a control's left edge.
+ */
 export function anchorBelow(
   control: DOMRect,
-  headerBottom: number,
+  below: number,
   viewportWidth: number,
+  align: "center" | "left" = "center",
 ): PanelAnchor {
-  const width = Math.min(560, viewportWidth - 32);
-  const left = Math.max(
-    16,
-    Math.min(viewportWidth - width - 16, control.left + control.width / 2 - width / 2),
-  );
-  return { top: Math.round(headerBottom), left: Math.round(left), width };
+  const width =
+    align === "left"
+      ? Math.min(Math.max(control.width, 480), viewportWidth - 32)
+      : Math.min(560, viewportWidth - 32);
+  const wanted = align === "left" ? control.left : control.left + control.width / 2 - width / 2;
+  const left = Math.max(16, Math.min(viewportWidth - width - 16, wanted));
+  return { top: Math.round(below), left: Math.round(left), width };
 }
 
 function BookRow({
@@ -36,6 +41,7 @@ function BookRow({
   hasMusic,
   onToggle,
   onChoose,
+  onSelect,
 }: {
   book: BookInfo;
   expanded: boolean;
@@ -44,6 +50,7 @@ function BookRow({
   hasMusic: boolean;
   onToggle: () => void;
   onChoose: () => void;
+  onSelect?: (book: BookInfo, chapter: number) => void;
 }) {
   return (
     <div>
@@ -71,23 +78,37 @@ function BookRow({
           role="group"
           aria-label={`${book.name} chapters`}
         >
-          {Array.from({ length: book.chapterCount }, (_, i) => i + 1).map((chapter) => (
-            <Link
-              key={chapter}
-              href={`/read/${book.slug}/${chapter}`}
-              prefetch={false}
-              onClick={onChoose}
-              aria-current={current && currentChapter === chapter ? "page" : undefined}
-              className={cn(
-                "grid h-10 place-items-center rounded-[7px] border font-serif text-[18px]",
-                current && currentChapter === chapter
-                  ? "border-[#e8cb8a] bg-gradient-to-b from-[#e8c97e] to-[#c99c44] text-[#17110a]"
-                  : "border-line bg-[#101010] hover:border-gold",
-              )}
-            >
-              {chapter}
-            </Link>
-          ))}
+          {Array.from({ length: book.chapterCount }, (_, i) => i + 1).map((chapter) => {
+            const isCurrent = current && currentChapter === chapter;
+            const cell = cn(
+              "grid h-10 place-items-center rounded-[7px] border font-serif text-[18px]",
+              isCurrent
+                ? "border-[#e8cb8a] bg-gradient-to-b from-[#e8c97e] to-[#c99c44] text-[#17110a]"
+                : "border-line bg-[#101010] hover:border-gold",
+            );
+            return onSelect ? (
+              <button
+                key={chapter}
+                type="button"
+                onClick={() => onSelect(book, chapter)}
+                aria-current={isCurrent ? "true" : undefined}
+                className={cell}
+              >
+                {chapter}
+              </button>
+            ) : (
+              <Link
+                key={chapter}
+                href={`/read/${book.slug}/${chapter}`}
+                prefetch={false}
+                onClick={onChoose}
+                aria-current={isCurrent ? "page" : undefined}
+                className={cell}
+              >
+                {chapter}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -104,12 +125,18 @@ export function BookSelectorPanel({
   currentChapter,
   musicBooks,
   onClose,
+  onSelect,
+  attached = true,
 }: {
   anchor: PanelAnchor;
   currentBook: string | null;
   currentChapter: number | null;
   musicBooks: ReadonlySet<string>;
   onClose: () => void;
+  /** Pick a chapter without leaving the page (otherwise chapters are links to the reader). */
+  onSelect?: (book: BookInfo, chapter: number) => void;
+  /** Joined to the header above it (square top) rather than floating under a control. */
+  attached?: boolean;
 }) {
   const currentTestament: Testament = NEW.some((b) => b.slug === currentBook) ? "NEW" : "OLD";
   const [tab, setTab] = useState<Testament>(currentTestament);
@@ -160,6 +187,13 @@ export function BookSelectorPanel({
         hasMusic={musicBooks.has(book.slug)}
         onToggle={() => setExpanded((open) => (open === book.slug ? null : book.slug))}
         onChoose={onClose}
+        onSelect={
+          onSelect &&
+          ((b, c) => {
+            onSelect(b, c);
+            onClose();
+          })
+        }
       />
     ));
 
@@ -177,7 +211,10 @@ export function BookSelectorPanel({
         aria-label="Choose a book and chapter"
         tabIndex={-1}
         onKeyDown={(event) => event.key === "Escape" && onClose()}
-        className="popin fixed z-50 flex flex-col rounded-b-xl border border-t-0 border-line2 bg-[#0a0a0a] shadow-[0_30px_60px_rgba(0,0,0,.8)] outline-none"
+        className={cn(
+          "popin fixed z-50 flex flex-col border border-line2 bg-[#0a0a0a] shadow-[0_30px_60px_rgba(0,0,0,.8)] outline-none",
+          attached ? "rounded-b-xl border-t-0" : "rounded-xl",
+        )}
         style={{
           top: anchor.top,
           left: anchor.left,
