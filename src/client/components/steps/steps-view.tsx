@@ -215,10 +215,13 @@ export function StepsView({
                     } as CSSProperties
                   }
                   className={cn(
-                    "group mb-0.5 grid cursor-pointer grid-cols-[46px_1fr] rounded-lg border border-transparent py-1.5 pr-3 max-[520px]:grid-cols-[34px_1fr] max-[520px]:py-[5px] max-[520px]:pr-1.5",
-                    "transition-[opacity,background-color,border-color,box-shadow]",
-                    vis === "gone" &&
-                      "pointer-events-none opacity-0 duration-200 [transition-delay:calc((var(--max)-var(--d))*25ms)]",
+                    "group grid cursor-pointer grid-cols-[46px_1fr] rounded-lg max-[520px]:grid-cols-[34px_1fr]",
+                    "transition-[opacity,max-height,margin,padding,background-color,border-color,box-shadow]",
+                    // A verse that is out of view fades and then gives up its space, so the one
+                    // in focus moves to the top and the page needs no scrolling.
+                    vis === "gone"
+                      ? "pointer-events-none max-h-0 overflow-hidden opacity-0 duration-200 [transition-delay:calc((var(--max)-var(--d))*25ms)]"
+                      : "mb-0.5 max-h-[80rem] border border-transparent py-1.5 pr-3 max-[520px]:py-[5px] max-[520px]:pr-1.5",
                     vis === "faded" &&
                       "opacity-[.34] duration-[450ms] [transition-delay:calc(var(--d)*70ms)] hover:opacity-60",
                     vis === "focused" &&

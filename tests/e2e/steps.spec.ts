@@ -72,6 +72,36 @@ test.describe("memorization steps", () => {
     expect(await vis(page, 4)).toBe("gone");
   });
 
+  test("in the single-verse view the focused verse sits at the top, with no scrolling and the steps in view", async ({
+    page,
+  }) => {
+    await openSteps(page, "?p=john+1%3A1-18");
+    await toggle(page).click();
+    await row(page, 12).click();
+    await toggle(page).click();
+    await page.waitForTimeout(1200);
+    const geometry = await page.evaluate(() => {
+      const main = document.querySelector("main")!;
+      const verse = document.querySelector("[data-vis=focused]")!.getBoundingClientRect();
+      const toggleButton = document.querySelector("[aria-label='Show several verses']")!;
+      const steps = document
+        .querySelector("nav[aria-label='Memorization steps']")!
+        .getBoundingClientRect();
+      return {
+        scrolls: main.scrollHeight > main.clientHeight + 1,
+        gap: verse.top - toggleButton.getBoundingClientRect().bottom,
+        stepsVisible: steps.bottom <= window.innerHeight,
+        number: document.querySelector("[data-vis=focused]")!.getAttribute("data-verse"),
+      };
+    });
+    expect(geometry.number).toBe("12");
+    expect(geometry.scrolls).toBe(false);
+    expect(geometry.stepsVisible).toBe(true);
+    expect(geometry.gap).toBeLessThan(60); // right beneath the toggle row
+    // The verses that are out of view take no room.
+    expect(await row(page, 5).evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
+  });
+
   test("the toggle's icon shows the view: one dot and line for a verse, three for several", async ({
     page,
   }) => {
