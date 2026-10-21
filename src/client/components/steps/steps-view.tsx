@@ -329,7 +329,7 @@ export function StepsView({
                     // A verse that is out of view fades and then gives up its space, so the one
                     // in focus moves to the top and the page needs no scrolling.
                     vis === "gone"
-                      ? "pointer-events-none max-h-0 overflow-hidden opacity-0 duration-200 [transition-delay:calc((var(--max)-var(--d))*25ms)]"
+                      ? "pointer-events-none max-h-0 overflow-hidden border-0 border-transparent opacity-0 duration-200 [transition-delay:calc((var(--max)-var(--d))*25ms)]"
                       : "mb-0.5 max-h-[80rem] border border-transparent py-1.5 pr-3 max-[520px]:py-[5px] max-[520px]:pr-1.5",
                     vis === "faded" &&
                       "opacity-[.34] duration-[450ms] [transition-delay:calc(var(--d)*70ms)] hover:opacity-60",
