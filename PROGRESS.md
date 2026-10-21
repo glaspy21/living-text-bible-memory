@@ -139,3 +139,10 @@
 - A passage is always in one translation: if the ESV can't supply all of it, the whole passage is the WEB with a note.
 - Tests: the step rules (four steps exactly, defaults, wrap, focus modes, dashes) plus browser tests of every behavior above, including playing real audio through the steps.
 
+## 2026-10-20 — M12 Flashcards (branch `m12-flashcards`)
+- `/memorize/flashcards?p=…`: one card per verse. The front shows BOOK, chapter:verse and "Tap to reveal"; tapping (or Enter/Space) turns the card over in 3D to the verse; back/next arrows (and the left/right arrow keys) move through the deck and wrap around; Shuffle makes a new random order and always changes it; "Switch to Steps" carries the passage; "CARD n OF m" counter; phone layout with a shorter card.
+- Audio plays only on Play: flip, next, back and shuffle never start the music (browser test with real audio). If the music is already playing it follows you to the next card's verse. Keyboard focus stays on the card as you move.
+- Home's Continue returns to the flashcards ("John 1:3–6 · Flashcards").
+- **Open (owner decision, [A]):** the flip gesture is a tap on the card; confirm or tell me a different gesture.
+- Tests: deck rules (wrap, shuffle contents, forced change) and browser tests of every behavior above.
+
