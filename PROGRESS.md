@@ -273,3 +273,6 @@
 - Tests: arrangement rules (unit), browser tests of the menu (versions only when there is more than one, coverage notes, choosing, genre switch keeps the verse, no autoplay, switching while playing, the Steps panel, a passage with no music). Specs that create recordings through the app now sign in as a second e2e admin so other specs' cleanup can't delete their rows.
 - Open: the version choice is per passage and session; it is not remembered (say if it should be).
 - Next: **Phase 4 testing and polish** (see IMPLEMENTATION_PLAN.md), then the owner's review. Nothing is deployed.
+
+## 2026-10-21 — Phase 4: admin authorization sweep (branch `m18-integration-testing`, off `m17-music-selection`)
+- `tests/e2e/admin-sweep.spec.ts` finds every admin API route and page on disk and checks each one: signed out → 401 (API) or sign-in (page); signed in but not on the allowlist → 403 or sign-in. A route added later is covered automatically, and a check guards the discovery itself. 30 checks pass.
