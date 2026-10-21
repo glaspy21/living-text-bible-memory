@@ -135,7 +135,6 @@ export function ChapterText({
             role="button"
             tabIndex={0}
             aria-pressed={inRange}
-            aria-label={`Verse ${verse.verse}`}
             data-verse={verse.verse}
             data-edge={edge || undefined}
             data-playing={sounding || undefined}
@@ -150,10 +149,7 @@ export function ChapterText({
                 "border-gold bg-gradient-to-b from-[rgba(212,168,79,.16)] to-[rgba(212,168,79,.07)] shadow-[0_0_24px_rgba(212,168,79,.12)]",
             )}
           >
-            <span
-              className="pl-2.5 text-[21px] leading-[1.5] text-gold max-[520px]:pl-1.5 max-[520px]:text-[17px]"
-              aria-hidden="true"
-            >
+            <span className="pl-2.5 text-[21px] leading-[1.5] text-gold max-[520px]:pl-1.5 max-[520px]:text-[17px]">
               {verse.verse}
             </span>
             <span>{verse.text}</span>

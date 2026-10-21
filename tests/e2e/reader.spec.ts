@@ -127,7 +127,7 @@ test.describe("choosing verses", () => {
     // Memorize shows all seven verses, in order.
     await page.goto("/memorize/steps?p=luke+24%3A50-john+1%3A3");
     await streamed(page);
-    await expect(page.locator("[aria-label^='Verse ']")).toHaveCount(7);
+    await expect(page.getByRole("main").locator("[data-verse]")).toHaveCount(7);
   });
 
   test("the header names only the book and chapter on the Memorize screens, never the verses", async ({

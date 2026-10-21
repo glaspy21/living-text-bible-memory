@@ -187,8 +187,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const runEffect = useCallback(
     (effect: Effect) => {
       const element = audio();
-      const fail = () =>
+      // A play() request is rejected with an AbortError when our own pause() or load() cuts it
+      // short (switching genre or verse right after pressing play). That is not a failure, and
+      // reporting it would pause the player while the audio that replaced it plays on.
+      const fail = (error?: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         dispatchRef.current({ type: "ERROR", message: "This recording couldn't be played." });
+      };
       switch (effect.type) {
         case "load": {
           const token = ++loadToken.current;

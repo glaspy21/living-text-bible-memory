@@ -355,7 +355,8 @@ export function StepsView({
                   key={`${verse.book}:${verse.chapter}:${verse.verse}`}
                   role="button"
                   tabIndex={vis === "gone" ? -1 : 0}
-                  aria-label={`Verse ${verse.verse}`}
+                  // Its name is its text; while the text is hidden behind dashes, name it by number.
+                  aria-label={showText ? undefined : `Verse ${verse.verse}`}
                   aria-current={vis === "focused" ? "true" : undefined}
                   aria-hidden={vis === "gone" ? true : undefined}
                   data-verse={verse.verse}

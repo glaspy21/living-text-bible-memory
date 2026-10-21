@@ -150,7 +150,7 @@ export function FlashcardsView({
                 }}
                 role="button"
                 tabIndex={0}
-                aria-label={`Card for ${bookName} ${verse.chapter}:${verse.verse}. ${flipped ? "Showing the verse" : "Tap to reveal"}`}
+                aria-pressed={flipped}
                 onClick={() => setFlipped((f) => !f)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {

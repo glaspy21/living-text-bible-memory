@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { streamed } from "./helpers";
 
-const badge = (page: Page) => page.getByRole("button", { name: /^Translation:/ });
+const badge = (page: Page) => page.getByRole("button", { name: /^(WEB|ESV)/ });
 
 async function chooseTranslation(page: Page, label: "WEB" | "ESV") {
   // Retry until the page has hydrated and the menu opens.
@@ -16,7 +16,7 @@ test.describe("translation switch", () => {
   test("starts on the WEB and lists both translations", async ({ page }) => {
     await page.goto("/read/genesis/1");
     await streamed(page);
-    await expect(badge(page)).toHaveAccessibleName("Translation: World English Bible");
+    await expect(badge(page)).toHaveAccessibleName("WEB (World English Bible). Change translation");
     await expect(badge(page)).toContainText("WEB");
     await expect(page.getByTestId("scripture-attribution")).toHaveAttribute(
       "data-translation",

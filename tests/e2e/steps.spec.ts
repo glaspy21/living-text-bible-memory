@@ -97,45 +97,52 @@ test.describe("memorization steps", () => {
     expect(await row(page, 5).evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
   });
 
-  test("to one verse: the others fade first with the verse still, then it glides to the top", async ({
-    page,
-  }) => {
-    await openSteps(page, "?p=john+1%3A1-18");
-    await toggle(page).click();
-    await page.waitForTimeout(1200);
-    await row(page, 5).click();
-    await page.waitForTimeout(300);
-    const topOf = () => row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
-    const before = await topOf();
-    expect(before).toBeGreaterThan(200); // verses 1–4 are above it
-    await toggle(page).click(); // to one verse
-    // First the others fade, while verse 5 does not move at all.
-    await page.waitForTimeout(60);
-    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
-    expect(await row(page, 4).evaluate((el) => Number(getComputedStyle(el).opacity))).toBeLessThan(
-      0.34,
-    );
-    // The others have gone by now, and the verse waits alone for a moment before it moves.
-    await page.waitForTimeout(400);
-    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
-    await page.waitForTimeout(150);
-    expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
-    // Then it glides up (it is somewhere in between), and ends right beneath the toggle row.
-    await page.waitForTimeout(370);
-    const middle = await topOf();
-    expect(middle).toBeLessThan(before - 5);
-    await page.waitForTimeout(900);
-    const end = await row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
-    const toggleBottom = await toggle(page).evaluate((el) => el.getBoundingClientRect().bottom);
-    expect(end - toggleBottom).toBeLessThan(60);
-    expect(await vis(page, 6)).toBe("gone");
-    // Opening to several again keeps it completely still.
-    const settled = await topOf();
-    await toggle(page).click();
-    for (const ms of [30, 100, 200, 400, 800, 1500]) {
-      await page.waitForTimeout(ms);
-      expect(Math.abs((await topOf()) - settled)).toBeLessThan(3);
-    }
+  test.describe("timing-sensitive animation", () => {
+    test.describe.configure({ retries: 2 });
+    test("to one verse: the others fade first with the verse still, then it glides to the top", async ({
+      page,
+    }, testInfo) => {
+      // This samples positions at fixed moments of a ~1 s animation, so a machine busy with other
+      // tests can miss a window. It passes alone every time; allow two retries instead of loosening
+      // what it checks.
+      testInfo.annotations.push({ type: "timing-sensitive", description: "retried under load" });
+      await openSteps(page, "?p=john+1%3A1-18");
+      await toggle(page).click();
+      await page.waitForTimeout(1200);
+      await row(page, 5).click();
+      await page.waitForTimeout(300);
+      const topOf = () => row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
+      const before = await topOf();
+      expect(before).toBeGreaterThan(200); // verses 1–4 are above it
+      await toggle(page).click(); // to one verse
+      // First the others fade, while verse 5 does not move at all.
+      await page.waitForTimeout(60);
+      expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+      expect(
+        await row(page, 4).evaluate((el) => Number(getComputedStyle(el).opacity)),
+      ).toBeLessThan(0.34);
+      // The others have gone by now, and the verse waits alone for a moment before it moves.
+      await page.waitForTimeout(400);
+      expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+      await page.waitForTimeout(150);
+      expect(Math.abs((await topOf()) - before)).toBeLessThan(2);
+      // Then it glides up (it is somewhere in between), and ends right beneath the toggle row.
+      await page.waitForTimeout(370);
+      const middle = await topOf();
+      expect(middle).toBeLessThan(before - 5);
+      await page.waitForTimeout(900);
+      const end = await row(page, 5).evaluate((el) => el.getBoundingClientRect().top);
+      const toggleBottom = await toggle(page).evaluate((el) => el.getBoundingClientRect().bottom);
+      expect(end - toggleBottom).toBeLessThan(60);
+      expect(await vis(page, 6)).toBe("gone");
+      // Opening to several again keeps it completely still.
+      const settled = await topOf();
+      await toggle(page).click();
+      for (const ms of [30, 100, 200, 400, 800, 1500]) {
+        await page.waitForTimeout(ms);
+        expect(Math.abs((await topOf()) - settled)).toBeLessThan(3);
+      }
+    });
   });
 
   test("the steps stay at the bottom of the screen while long text scrolls above them, fading out", async ({

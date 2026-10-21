@@ -26,8 +26,9 @@ export function TranslationMenu({
 
   if (available.length < 2) {
     return (
-      <span className={label} aria-label={`Translation: ${TRANSLATIONS[current].name}`}>
+      <span className={label}>
         {TRANSLATIONS[current].label}
+        <span className="sr-only"> ({TRANSLATIONS[current].name})</span>
       </span>
     );
   }
@@ -50,11 +51,14 @@ export function TranslationMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Translation: ${TRANSLATIONS[current].name}`}
         onClick={() => setOpen((o) => !o)}
         className={cn(label, "flex items-center gap-1", pending && "opacity-60")}
       >
-        {TRANSLATIONS[current].label} <small className="text-[10px] text-gold">▾</small>
+        {TRANSLATIONS[current].label}
+        <span className="sr-only"> ({TRANSLATIONS[current].name}). Change translation</span>{" "}
+        <small className="text-[10px] text-gold" aria-hidden="true">
+          ▾
+        </small>
       </button>
       {open && (
         <div
