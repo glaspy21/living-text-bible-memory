@@ -119,14 +119,15 @@ test.describe("moving between chapters", () => {
 test.describe("side panel", () => {
   test("desktop shows the selection and the music note", async ({ page, isMobile }) => {
     test.skip(isMobile, "the right panel is hidden on phones");
-    await openReader(page, "/read/john/1");
-    await expect(page.getByTestId("selected-passage")).toContainText("John 1:1–51");
+    // Genesis 1: no other test adds music here, so the note is stable.
+    await openReader(page, "/read/genesis/1");
+    await expect(page.getByTestId("selected-passage")).toContainText("Genesis 1:1–31");
     await expect(page.getByText("No recording for this chapter yet")).toBeVisible();
     await page.locator('[data-verse="4"]').click();
-    await expect(page.getByTestId("selected-passage")).toContainText("John 1:4");
+    await expect(page.getByTestId("selected-passage")).toContainText("Genesis 1:4");
     await expect(page.getByRole("link", { name: "Edit verse range" })).toHaveAttribute(
       "href",
-      "/memorize/range?p=john+1%3A4",
+      "/memorize/range?p=genesis+1%3A4",
     );
   });
 

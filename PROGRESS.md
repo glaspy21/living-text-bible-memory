@@ -110,3 +110,4 @@
 - Music availability reads published recordings from the database; if the database is unreachable the reader still works and shows no music.
 - Phones: the chapter title row is hidden (the header already names it, as in the mockups) but Prev/Next stay, and a full-width Memorize button replaces the hidden right panel. These two are my additions.
 - Header badge still says "ESV" (to be made truthful in the translation switch step).
+- Book and chapter selector: the header reference button opens one continuous Old → New Testament list directly beneath it. The tab underline follows the scroll and slides; clicking a tab scrolls to that testament; it opens at the current book's testament; a book expands to its chapter grid in place and the current chapter is marked. A dot marks books with published music. Escape, the backdrop or choosing a chapter closes it.

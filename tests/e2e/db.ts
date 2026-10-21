@@ -14,8 +14,20 @@ export class TestDb {
     return (this.pool ??= new Pool({ connectionString: TEST_DATABASE_URL }));
   }
 
-  /** A recording of John 1:1–18 whose original audio is the file stored under `storageKey`. */
-  async addRecording(storageKey: string, bytes: number, status: "DRAFT" | "PUBLISHED") {
+  /**
+   * A recording whose original audio is the file stored under `storageKey`. Covers John 1:1–18
+   * unless `passage` says otherwise (`bookId` is the canonical 1–66 number).
+   */
+  async addRecording(
+    storageKey: string,
+    bytes: number,
+    status: "DRAFT" | "PUBLISHED",
+    passage: { bookId: number; chapter: number; verseEnd: number } = {
+      bookId: 43,
+      chapter: 1,
+      verseEnd: 18,
+    },
+  ) {
     const q = (text: string, values: unknown[] = []) => this.connection.query(text, values);
     const one = async (text: string, values: unknown[] = []) => (await q(text, values)).rows[0].id;
 
@@ -35,8 +47,18 @@ export class TestDb {
       `INSERT INTO "Recording"
          (id, "translationId", "bookId", chapter, "verseStart", "endChapter", "verseEnd", "genreId",
           "arrangementNo", status, "originalAssetId", "createdById", "updatedAt")
-       VALUES ($1, $2, 43, 1, 1, 1, 18, $3, 1, $4::"RecordingStatus", $5, $6, now())`,
-      [randomUUID(), translationId, genreId, status, assetId, userId],
+       VALUES ($1, $2, $7, $8, 1, $8, $9, $3, 1, $4::"RecordingStatus", $5, $6, now())`,
+      [
+        randomUUID(),
+        translationId,
+        genreId,
+        status,
+        assetId,
+        userId,
+        passage.bookId,
+        passage.chapter,
+        passage.verseEnd,
+      ],
     );
     return assetId as string;
   }

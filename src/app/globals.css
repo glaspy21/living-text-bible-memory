@@ -291,6 +291,21 @@ button {
   }
 }
 
+/* Selector panel entrance: a short fade and drop. */
+@keyframes popin {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.popin {
+  animation: popin 0.16s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

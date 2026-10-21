@@ -12,15 +12,24 @@ import { SideHeading } from "./side-nav";
  * sun animation and, later, audio never restart). Pages render <Main> + optional <RightPanel>;
  * the grid adapts to them in CSS. Only the URL-dependent bits stream in under Suspense.
  */
-export function ListenerShell({ children }: { children: ReactNode }) {
+export function ListenerShell({
+  children,
+  reference,
+}: {
+  children: ReactNode;
+  /** The header's reference button; the layout passes it with the music data it needs. */
+  reference?: ReactNode;
+}) {
   return (
     <div className="app">
       <Sun />
       <header className="shell-header">
         <Brand />
-        <Suspense fallback={<span />}>
-          <HeaderReference />
-        </Suspense>
+        {reference ?? (
+          <Suspense fallback={<span />}>
+            <HeaderReference />
+          </Suspense>
+        )}
         <div className="flex items-center gap-[14px] justify-self-end px-[18px] max-[520px]:gap-[10px] max-[520px]:px-[14px]">
           <button
             type="button"
