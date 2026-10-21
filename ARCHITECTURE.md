@@ -39,13 +39,13 @@ Recording     id, translationId, bookId, chapter, verseStart, endChapter, verseE
               description?, status (DRAFT|READY|PUBLISHED),
               originalAssetId, publishedTimingId?, createdAt, updatedAt, createdBy
 AudioAsset    id, storageKey, mime, bytes, durationMs, sha256, peaksKey?, derivativeKey?, uploadedAt   -- original is immutable
-TimingSet     id, recordingId, version, state (DRAFT|PUBLISHED|ARCHIVED), createdAt, createdBy, basedOnId?
+TimingSet     id, recordingId, version, state (DRAFT|PUBLISHED|ARCHIVED), createdAt, createdBy, basedOnId?, audioAssetId?   -- audio this timing was made for (null = recording's original asset)
 VerseTiming   id, timingSetId, chapter, verse, startMs?, endMs?, ackGap bool, ackOverlap bool, note?
 EditSession   id, recordingId, timingSetId, savedAt, snapshot(JSON)       -- "return to previous sessions"
 User          id, email, name, role (ADMIN|LISTENER), createdAt
 MemProgress   (post-MVP) userId, passage ref, step, lastStudiedAt
 ```
-Rules: unique (recording, timingSet.version); **no uniqueness on passage+genre** (multiple recordings allowed); original `AudioAsset` is never mutated — replacing audio creates a new asset and a new TimingSet draft seeded from the old one. Times stored as integer **milliseconds**. Schema lives in `prisma/schema.prisma`; the generated client is in `src/server/db/generated` (git-ignored, rebuilt on `npm install`).
+Rules: unique (recording, timingSet.version); **no uniqueness on passage+genre** (multiple recordings allowed); original `AudioAsset` is never mutated — replacing audio creates a new asset and a new TimingSet draft seeded from the old one (old sheets are pinned to their own audio via `audioAssetId`; a published recording keeps serving its published timing's audio until the new draft is published). Times stored as integer **milliseconds**. Schema lives in `prisma/schema.prisma`; the generated client is in `src/server/db/generated` (git-ignored, rebuilt on `npm install`).
 
 `title` and arrangement label are not shown in the admin form yet; they exist for future custom/user-uploaded tracks. Arrangement number is assigned server-side in a transaction (max+1 per translation+passage+genre) so concurrent uploads can't collide.
 

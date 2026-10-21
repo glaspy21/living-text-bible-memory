@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/server/db/client";
+import { createAdminLibrary } from "./admin-library";
 import { createAvailability } from "./availability";
 import { getStorage } from "@/server/storage";
 import { bookVerseCounts } from "@/server/scripture";
@@ -8,6 +9,11 @@ import { createRecordings } from "./recordings";
 
 const availability = createAvailability(db);
 const playback = createPlayback(db);
+const adminLibrary = createAdminLibrary(db);
+
+export type { LibraryRow, DashboardSummary } from "./admin-library";
+export const listLibrary = adminLibrary.list;
+export const adminDashboard = adminLibrary.dashboard;
 
 export const playableFor = playback.playableFor;
 
@@ -36,3 +42,13 @@ export const createDraftRecording: ReturnType<typeof createRecordings>["createDr
   createRecordings({ client: db, storage: getStorage(), verseCounts: bookVerseCounts }).createDraft(
     ...args,
   );
+
+/** Put new audio on an existing recording (admin routes only); see `replaceAudio`. */
+export const replaceRecordingAudio: ReturnType<typeof createRecordings>["replaceAudio"] = (
+  ...args
+) =>
+  createRecordings({
+    client: db,
+    storage: getStorage(),
+    verseCounts: bookVerseCounts,
+  }).replaceAudio(...args);

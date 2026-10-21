@@ -160,6 +160,26 @@ export class TestDb {
     return result.rows[0].id;
   }
 
+  /** The ids of the recordings this run created, keyed by canonical book number. */
+  async findRecordingIds(bookIds: number[]): Promise<Record<number, string>> {
+    const result = await this.connection.query(
+      `SELECT id, "bookId" FROM "Recording"
+       WHERE "bookId" = ANY($1::int[])
+         AND "createdById" IN (SELECT id FROM "User" WHERE email = $2)`,
+      [bookIds, this.email],
+    );
+    return Object.fromEntries(result.rows.map((r) => [r.bookId, r.id as string]));
+  }
+
+  /** The audio asset a recording currently points at (its newest upload). */
+  async currentAssetId(recordingId: string): Promise<string> {
+    const result = await this.connection.query(
+      `SELECT "originalAssetId" AS id FROM "Recording" WHERE id = $1`,
+      [recordingId],
+    );
+    return result.rows[0].id;
+  }
+
   /** Remove everything this run created, then close the connection. Safe to call repeatedly. */
   async cleanup() {
     const pool = this.pool;
@@ -170,17 +190,25 @@ export class TestDb {
        WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`,
       [this.email],
     );
-    await pool.query(
-      `DELETE FROM "TimingSet" WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`,
+    // Timing sheets may have been added by another account (replacing audio), and may pin audio
+    // that is no longer a recording's current file; remove those assets too.
+    const mine = `SELECT id FROM "Recording"
+                  WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`;
+    const sheets = await pool.query(
+      `DELETE FROM "TimingSet" WHERE "recordingId" IN (${mine}) OR "createdById" IN
+         (SELECT id FROM "User" WHERE email = $1) RETURNING "audioAssetId"`,
       [this.email],
     );
-    await pool.query(
-      `WITH u AS (SELECT id FROM "User" WHERE email = $1),
-            r AS (DELETE FROM "Recording" WHERE "createdById" IN (SELECT id FROM u)
-                  RETURNING "originalAssetId")
-       DELETE FROM "AudioAsset" WHERE id IN (SELECT "originalAssetId" FROM r)`,
+    const recordings = await pool.query(
+      `DELETE FROM "Recording" WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)
+       RETURNING "originalAssetId"`,
       [this.email],
     );
+    const assets = [
+      ...sheets.rows.map((r) => r.audioAssetId),
+      ...recordings.rows.map((r) => r.originalAssetId),
+    ].filter(Boolean);
+    await pool.query(`DELETE FROM "AudioAsset" WHERE id = ANY($1::text[])`, [assets]);
     await pool.query(`DELETE FROM "User" WHERE email = $1`, [this.email]);
     await pool.end();
   }

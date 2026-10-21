@@ -38,20 +38,26 @@ export function createPlayback(client: Pick<PrismaClient, "recording">) {
           originalAsset: { select: { id: true, durationMs: true } },
           publishedTiming: {
             select: {
+              // The audio the published timing was made for (null: the recording's own audio).
+              audioAsset: { select: { id: true, durationMs: true } },
               verses: { select: { chapter: true, verse: true, startMs: true, endMs: true } },
             },
           },
         },
       });
 
-      const recordings: PlayableRecording[] = rows.map((r) => ({
-        id: r.id,
-        assetId: r.originalAsset.id,
-        genreSlug: r.genre.slug,
-        arrangementNo: r.arrangementNo,
-        durationMs: r.originalAsset.durationMs,
-        verses: r.publishedTiming?.verses ?? [],
-      }));
+      const recordings: PlayableRecording[] = rows.map((r) => {
+        // Audio replaced after publishing must not change what listeners hear until republished.
+        const audio = r.publishedTiming?.audioAsset ?? r.originalAsset;
+        return {
+          id: r.id,
+          assetId: audio.id,
+          genreSlug: r.genre.slug,
+          arrangementNo: r.arrangementNo,
+          durationMs: audio.durationMs,
+          verses: r.publishedTiming?.verses ?? [],
+        };
+      });
 
       const genres = new Map<string, PlayableGenre>();
       for (const r of rows) genres.set(r.genre.slug, r.genre);

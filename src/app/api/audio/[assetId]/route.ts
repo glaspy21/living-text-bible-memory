@@ -11,11 +11,27 @@ export async function GET(request: Request, context: RouteContext<"/api/audio/[a
   const { assetId } = await context.params;
   const asset = await db.audioAsset.findUnique({
     where: { id: assetId },
-    select: { storageKey: true, mime: true, recording: { select: { status: true } } },
+    select: {
+      storageKey: true,
+      mime: true,
+      // Listeners get the audio of a published timing: its own asset, or (when it names none) the
+      // recording's. Audio uploaded to replace it stays private until that is published.
+      recording: {
+        select: { status: true, publishedTiming: { select: { audioAssetId: true } } },
+      },
+      timingSets: {
+        where: { publishedFor: { is: { status: "PUBLISHED" } } },
+        select: { id: true },
+        take: 1,
+      },
+    },
   });
   if (!asset) return new Response("Not found", { status: 404 });
 
-  const published = asset.recording?.status === "PUBLISHED";
+  const published =
+    asset.timingSets.length > 0 ||
+    (asset.recording?.status === "PUBLISHED" &&
+      (!asset.recording.publishedTiming || asset.recording.publishedTiming.audioAssetId === null));
   if (!published && !(await getAdminEmail())) return new Response("Not found", { status: 404 });
 
   return serveAudio(

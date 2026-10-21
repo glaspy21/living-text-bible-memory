@@ -89,13 +89,13 @@ model Recording {
   updatedAt   DateTime @updatedAt
   createdById String
 
-  translation     Translation    @relation(fields: [translationId], references: [id])
-  book            Book           @relation(fields: [bookId], references: [id])
-  genre           Genre          @relation(fields: [genreId], references: [id])
-  originalAsset   AudioAsset     @relation(fields: [originalAssetId], references: [id])
-  publishedTiming TimingSet?     @relation("PublishedTiming", fields: [publishedTimingId], references: [id])
-  createdBy       User           @relation(fields: [createdById], references: [id])
-  timingSets      TimingSet[]    @relation("RecordingTimingSets")
+  translation     Translation   @relation(fields: [translationId], references: [id])
+  book            Book          @relation(fields: [bookId], references: [id])
+  genre           Genre         @relation(fields: [genreId], references: [id])
+  originalAsset   AudioAsset    @relation(fields: [originalAssetId], references: [id])
+  publishedTiming TimingSet?    @relation("PublishedTiming", fields: [publishedTimingId], references: [id])
+  createdBy       User          @relation(fields: [createdById], references: [id])
+  timingSets      TimingSet[]   @relation("RecordingTimingSets")
   editSessions    EditSession[]
 
   @@index([translationId, bookId, chapter, verseStart])
@@ -115,26 +115,31 @@ model AudioAsset {
   derivativeKey String?
   uploadedAt    DateTime @default(now())
 
-  recording Recording?
+  recording  Recording?
+  timingSets TimingSet[] @relation("TimingAudio")
 }
 
 /// A versioned set of verse boundaries for one recording.
 model TimingSet {
-  id          String      @id @default(cuid())
-  recordingId String
-  version     Int
-  state       TimingState @default(DRAFT)
-  createdAt   DateTime    @default(now())
-  createdById String
-  basedOnId   String?
+  id           String      @id @default(cuid())
+  recordingId  String
+  version      Int
+  state        TimingState @default(DRAFT)
+  createdAt    DateTime    @default(now())
+  createdById  String
+  basedOnId    String?
+  /// The audio this timing was made for. Null means the recording's original asset; replacing
+  /// audio sets it, so a published timing keeps pointing at the audio listeners already hear.
+  audioAssetId String?
 
-  recording     Recording     @relation("RecordingTimingSets", fields: [recordingId], references: [id])
-  createdBy     User          @relation(fields: [createdById], references: [id])
-  basedOn       TimingSet?    @relation("TimingLineage", fields: [basedOnId], references: [id])
-  derived       TimingSet[]   @relation("TimingLineage")
-  publishedFor  Recording?    @relation("PublishedTiming")
-  verses        VerseTiming[]
-  editSessions  EditSession[]
+  recording    Recording     @relation("RecordingTimingSets", fields: [recordingId], references: [id])
+  audioAsset   AudioAsset?   @relation("TimingAudio", fields: [audioAssetId], references: [id], onDelete: Restrict)
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  basedOn      TimingSet?    @relation("TimingLineage", fields: [basedOnId], references: [id])
+  derived      TimingSet[]   @relation("TimingLineage")
+  publishedFor Recording?    @relation("PublishedTiming")
+  verses       VerseTiming[]
+  editSessions EditSession[]
 
   @@unique([recordingId, version])
 }

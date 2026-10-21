@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import Link from "next/link";
+import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
 import { cn } from "@/client/lib/cn";
 
 type Variant = "outline" | "solid" | "ghost";
@@ -49,5 +50,26 @@ export function Button({
       {children}
       {wipes && <WipeFill>{children}</WipeFill>}
     </button>
+  );
+}
+
+/** A link that looks like a Button (same wipe and variants), for navigation. */
+export function ButtonLink({
+  variant = "outline",
+  size = "md",
+  className,
+  children,
+  ...rest
+}: Omit<ComponentProps<typeof Link>, "children"> & {
+  variant?: Variant;
+  size?: Size;
+  children: ReactNode;
+}) {
+  const wipes = variant !== "solid";
+  return (
+    <Link className={cn(base, variants[variant], sizes[size], className)} {...rest}>
+      {children}
+      {wipes && <WipeFill>{children}</WipeFill>}
+    </Link>
   );
 }

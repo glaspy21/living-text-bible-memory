@@ -51,6 +51,55 @@ export function createRecordings(deps: {
     return hash.digest("hex");
   }
 
+  type Inspected =
+    | { ok: true; size: number; kind: "mp3" | "wav"; durationMs: number; sha256: string }
+    | { ok: false; status: 400 | 404 | 422; errors: string[] };
+
+  /** Check that an uploaded file is really MP3/WAV audio, then read its length and fingerprint. */
+  async function inspectUpload(key: string): Promise<Inspected> {
+    if (!isOriginalAudioKey(key)) {
+      return { ok: false, status: 400, errors: ["Unknown upload."] };
+    }
+    const size = await storage.size(key);
+    if (size === null) {
+      return { ok: false, status: 404, errors: ["The file has not arrived yet."] };
+    }
+    const head = await storage.readBytes(key, { start: 0, end: SNIFF_BYTES - 1 });
+    const kind = sniffAudioKind(head);
+    if (!kind) return { ok: false, status: 422, errors: ["That file is not a real MP3 or WAV."] };
+
+    const read: ReadBytes = async (start, length) =>
+      length <= 0 || start >= size
+        ? new Uint8Array()
+        : storage.readBytes(key, { start, end: Math.min(start + length, size) - 1 });
+    const durationMs =
+      kind === "wav" ? await wavDurationMs(read, size) : await mp3DurationMs(read, size);
+    if (!durationMs || durationMs <= 0) {
+      return {
+        ok: false,
+        status: 422,
+        errors: ["We couldn't read the length of this recording. Try exporting it again."],
+      };
+    }
+    return { ok: true, size, kind, durationMs, sha256: await fingerprint(key, size) };
+  }
+
+  /** Store the waveform. A convenience: a failure to store it must not lose the recording. */
+  async function savePeaks(key: string, peaks: number[] | undefined) {
+    if (!peaks || !isValidPeaks(peaks)) return;
+    try {
+      const peaksKey = peaksKeyFor(key);
+      await storage.put(
+        peaksKey,
+        new TextEncoder().encode(JSON.stringify(peaks)),
+        "application/json",
+      );
+      await client.audioAsset.update({ where: { storageKey: key }, data: { peaksKey } });
+    } catch (error) {
+      console.warn("Waveform peaks could not be stored:", error);
+    }
+  }
+
   return {
     async createDraft(
       input: RecordingInput,
@@ -63,31 +112,9 @@ export function createRecordings(deps: {
       if (!checked.ok) return { ok: false, status: 400, errors: checked.errors };
       const value = checked.value;
 
-      if (!isOriginalAudioKey(value.key)) {
-        return { ok: false, status: 400, errors: ["Unknown upload."] };
-      }
-      const size = await storage.size(value.key);
-      if (size === null) {
-        return { ok: false, status: 404, errors: ["The file has not arrived yet."] };
-      }
-      const head = await storage.readBytes(value.key, { start: 0, end: SNIFF_BYTES - 1 });
-      const kind = sniffAudioKind(head);
-      if (!kind) return { ok: false, status: 422, errors: ["That file is not a real MP3 or WAV."] };
-
-      const read: ReadBytes = async (start, length) =>
-        length <= 0 || start >= size
-          ? new Uint8Array()
-          : storage.readBytes(value.key, { start, end: Math.min(start + length, size) - 1 });
-      const durationMs =
-        kind === "wav" ? await wavDurationMs(read, size) : await mp3DurationMs(read, size);
-      if (!durationMs || durationMs <= 0) {
-        return {
-          ok: false,
-          status: 422,
-          errors: ["We couldn't read the length of this recording. Try exporting it again."],
-        };
-      }
-      const sha256 = await fingerprint(value.key, size);
+      const inspected = await inspectUpload(value.key);
+      if (!inspected.ok) return inspected;
+      const { size, kind, durationMs, sha256 } = inspected;
 
       const book_ = book!;
       const verses = expandPassage(
@@ -175,23 +202,7 @@ export function createRecordings(deps: {
           return recording.id;
         });
 
-        if (peaks && isValidPeaks(peaks)) {
-          // The waveform is a convenience: a failure to store it must not lose the recording.
-          try {
-            const peaksKey = peaksKeyFor(value.key);
-            await storage.put(
-              peaksKey,
-              new TextEncoder().encode(JSON.stringify(peaks)),
-              "application/json",
-            );
-            await client.audioAsset.update({
-              where: { storageKey: value.key },
-              data: { peaksKey },
-            });
-          } catch (error) {
-            console.warn("Waveform peaks could not be stored:", error);
-          }
-        }
+        await savePeaks(value.key, peaks);
         return { ok: true, id: recordingId };
       } catch (error) {
         if ((error as { code?: string }).code === "P2002") {
@@ -203,6 +214,103 @@ export function createRecordings(deps: {
         }
         throw error;
       }
+    },
+    /**
+     * Put new audio on an existing recording without losing anything. The old audio file is left
+     * untouched; every timing sheet is first pinned to the audio it was made for, then a new draft
+     * timing sheet is seeded from the latest one (same boundaries, acknowledgements cleared) for the
+     * new audio. A published recording keeps playing its published timing and audio until the new
+     * draft is published; a draft or ready one goes back to draft, as its timing needs another look.
+     */
+    async replaceAudio(
+      recordingId: string,
+      key: string,
+      adminEmail: string,
+      peaks?: number[],
+    ): Promise<CreateResult> {
+      const exists = await client.recording.findUnique({
+        where: { id: recordingId },
+        select: { id: true },
+      });
+      if (!exists) return { ok: false, status: 404, errors: ["That recording was not found."] };
+
+      const inspected = await inspectUpload(key);
+      if (!inspected.ok) return inspected;
+      const { size, kind, durationMs, sha256 } = inspected;
+
+      try {
+        await client.$transaction(async (tx) => {
+          const user = await tx.user.upsert({
+            where: { email: adminEmail },
+            update: {},
+            create: { email: adminEmail, role: "ADMIN" },
+          });
+          const recording = await tx.recording.findUniqueOrThrow({
+            where: { id: recordingId },
+            include: {
+              timingSets: {
+                orderBy: { version: "desc" },
+                include: { verses: true },
+              },
+            },
+          });
+
+          // Pin every sheet to the audio it was made for, so nothing is ambiguous afterwards.
+          await tx.timingSet.updateMany({
+            where: { recordingId, audioAssetId: null },
+            data: { audioAssetId: recording.originalAssetId },
+          });
+          // An unpublished draft sheet is superseded (kept as history, never deleted).
+          await tx.timingSet.updateMany({
+            where: { recordingId, state: "DRAFT" },
+            data: { state: "ARCHIVED" },
+          });
+
+          const asset = await tx.audioAsset.create({
+            data: { storageKey: key, mime: canonicalMime(kind), bytes: size, durationMs, sha256 },
+          });
+          const latest = recording.timingSets[0];
+          await tx.timingSet.create({
+            data: {
+              recordingId,
+              version: (latest?.version ?? 0) + 1,
+              state: "DRAFT",
+              createdById: user.id,
+              basedOnId: latest?.id,
+              audioAssetId: asset.id,
+              verses: {
+                create: (latest?.verses ?? [])
+                  .sort((a, b) => a.chapter - b.chapter || a.verse - b.verse)
+                  .map((v) => ({
+                    chapter: v.chapter,
+                    verse: v.verse,
+                    startMs: v.startMs,
+                    endMs: v.endMs,
+                    note: v.note,
+                  })),
+              },
+            },
+          });
+          await tx.recording.update({
+            where: { id: recordingId },
+            data: {
+              originalAssetId: asset.id,
+              status: recording.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+            },
+          });
+        });
+      } catch (error) {
+        if ((error as { code?: string }).code === "P2002") {
+          return {
+            ok: false,
+            status: 409,
+            errors: ["This upload is already attached to a recording."],
+          };
+        }
+        throw error;
+      }
+      await savePeaks(key, peaks);
+      return { ok: true, id: recordingId };
     },
   };
 }
