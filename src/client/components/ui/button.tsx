@@ -12,7 +12,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const base =
-  "inline-flex items-center justify-center gap-[9px] rounded-[7px] border transition-[background,box-shadow,border-color,color,transform] duration-200 active:scale-[0.97] [&_svg]:h-5 [&_svg]:w-5";
+  "inline-flex items-center justify-center gap-[9px] rounded-[7px] border transition-[background,box-shadow,border-color,color,transform] duration-200 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 [&_svg]:h-5 [&_svg]:w-5";
 
 const variants: Record<Variant, string> = {
   outline:

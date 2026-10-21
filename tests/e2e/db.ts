@@ -167,6 +167,13 @@ export class TestDb {
     for (const row of result.rows) await this.removeRecording(row.id);
   }
 
+  async recordingStatus(recordingId: string): Promise<string> {
+    const result = await this.connection.query(`SELECT status FROM "Recording" WHERE id = $1`, [
+      recordingId,
+    ]);
+    return result.rows[0].status;
+  }
+
   /** The timing rows of a recording's newest sheet, by verse. */
   async timingRows(recordingId: string) {
     const result = await this.connection.query(

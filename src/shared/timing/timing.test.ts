@@ -72,16 +72,29 @@ describe("setBoundary", () => {
     const rows = setBoundary([row(1, 5000, 6000)], 0, "end", 1000, 10000);
     expect(rows[0]).toMatchObject({ startMs: 5000, endMs: 1000 });
   });
-  it("clears acknowledgements next to a moved boundary only", () => {
+  it("clears the acknowledgement of the gap a moved boundary touches, and no other", () => {
     const rows = [row(1, 0, 100), row(2, 200, 300), row(3, 400, 500)].map((r) => ({
       ...r,
       ackGap: true,
       ackOverlap: true,
     }));
-    const moved = setBoundary(rows, 1, "start", 250, 1000);
-    expect(moved.map((r) => r.ackGap)).toEqual([false, false, true]);
-    const movedEnd = setBoundary(rows, 1, "end", 350, 1000);
-    expect(movedEnd.map((r) => r.ackGap)).toEqual([true, false, false]);
+    // verse 2's start borders the gap after verse 1
+    expect(setBoundary(rows, 1, "start", 250, 1000).map((r) => r.ackGap)).toEqual([
+      false,
+      true,
+      true,
+    ]);
+    // verse 2's end borders the gap after verse 2
+    expect(setBoundary(rows, 1, "end", 350, 1000).map((r) => r.ackGap)).toEqual([
+      true,
+      false,
+      true,
+    ]);
+    expect(setBoundary(rows, 1, "end", 350, 1000).map((r) => r.ackOverlap)).toEqual([
+      true,
+      false,
+      true,
+    ]);
   });
   it("leaves acknowledgements alone when nothing changed", () => {
     const rows = [{ ...row(1, 100, 200), ackGap: true }];

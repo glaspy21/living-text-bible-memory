@@ -45,7 +45,8 @@ export function clampMs(ms: number, durationMs: number): number {
 /**
  * Sets one boundary of one verse. The new value is kept inside the recording but is otherwise
  * taken as given: a start after an end, a gap or an overlap are shown by validation, never fixed
- * here. Acknowledgements for the gap/overlap next to the verse are cleared when a boundary moves.
+ * here. An acknowledgement on a verse covers the gap or overlap between it and the next verse, so
+ * moving a verse's end clears its own, and moving its start clears the one before.
  */
 export function setBoundary(
   rows: readonly TimingRow[],
@@ -59,20 +60,10 @@ export function setBoundary(
   const value = ms === null ? null : clampMs(ms, durationMs);
   const current = which === "start" ? row.startMs : row.endMs;
   if (value === current) return [...rows];
+  const cleared = which === "start" ? index - 1 : index;
   return rows.map((r, i) => {
-    if (i === index) {
-      return {
-        ...r,
-        [which === "start" ? "startMs" : "endMs"]: value,
-        ackGap: false,
-        ackOverlap: false,
-      };
-    }
-    // The verse before is affected by this verse's start; the one after by this verse's end.
-    if ((which === "start" && i === index - 1) || (which === "end" && i === index + 1)) {
-      return { ...r, ackGap: false, ackOverlap: false };
-    }
-    return r;
+    const next = i === index ? { ...r, [which === "start" ? "startMs" : "endMs"]: value } : r;
+    return i === cleared ? { ...next, ackGap: false, ackOverlap: false } : next;
   });
 }
 

@@ -165,6 +165,23 @@ describe("timing editor: save", () => {
     expect(after[0]).toMatchObject({ endMs: 2000, ackGap: false });
     expect(after[1].ackGap).toBe(true); // untouched verse keeps its acknowledgement
   });
+  it("clears the acknowledgement of the gap before a verse whose start moved", async () => {
+    const { id, setId } = await timedDraft();
+    const rows = await rowsOf(setId);
+    rows[1].startMs = 3100; // the gap after verse 1 changes
+    await editor.save(id, setId, rows);
+    const after = await rowsOf(setId);
+    expect(after.map((r) => r.ackGap)).toEqual([false, true, true]);
+  });
+  it("keeps an acknowledgement the editor set in the same save as a move", async () => {
+    const { id, setId } = await timedDraft();
+    await prisma.verseTiming.updateMany({ where: { timingSetId: setId }, data: { ackGap: false } });
+    const rows = await rowsOf(setId);
+    rows[1].startMs = 3100;
+    rows[0].ackGap = true;
+    await editor.save(id, setId, rows);
+    expect((await rowsOf(setId))[0].ackGap).toBe(true);
+  });
   it("lets the editor set an acknowledgement without moving anything", async () => {
     const { id, setId } = await timedDraft();
     const rows = await rowsOf(setId);

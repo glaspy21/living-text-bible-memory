@@ -211,26 +211,29 @@ export function createTimingEditor(client: PrismaClient) {
       }
 
       const savedAt = new Date();
+      const ordered = [...rows].sort((x, y) => x.chapter - y.chapter || x.verse - y.verse);
+      const oldOf = (r: TimingRow) => existing.get(`${r.chapter}:${r.verse}`)!;
+      const startMoved = ordered.map((r) => oldOf(r).startMs !== r.startMs);
+      const endMoved = ordered.map((r) => oldOf(r).endMs !== r.endMs);
       await client.$transaction(async (tx) => {
-        for (const r of rows) {
-          const old = existing.get(`${r.chapter}:${r.verse}`)!;
-          const moved = old.startMs !== r.startMs || old.endMs !== r.endMs;
+        for (const [k, r] of ordered.entries()) {
+          const old = oldOf(r);
+          // An acknowledgement on a verse covers the gap or overlap between it and the next one,
+          // so it is invalidated when this verse's end or the next verse's start moved (unless
+          // the editor changed that very acknowledgement in this save).
+          const affected = endMoved[k] || startMoved[k + 1];
+          const ackGap = affected && r.ackGap === old.ackGap ? false : r.ackGap;
+          const ackOverlap = affected && r.ackOverlap === old.ackOverlap ? false : r.ackOverlap;
           const same =
-            !moved &&
-            old.ackGap === r.ackGap &&
-            old.ackOverlap === r.ackOverlap &&
+            !startMoved[k] &&
+            !endMoved[k] &&
+            old.ackGap === ackGap &&
+            old.ackOverlap === ackOverlap &&
             (old.note ?? null) === (r.note ?? null);
           if (same) continue;
           await tx.verseTiming.update({
             where: { id: old.id },
-            data: {
-              startMs: r.startMs,
-              endMs: r.endMs,
-              // A boundary that moved invalidates the admin's earlier "this is intended".
-              ackGap: moved ? false : r.ackGap,
-              ackOverlap: moved ? false : r.ackOverlap,
-              note: r.note ?? null,
-            },
+            data: { startMs: r.startMs, endMs: r.endMs, ackGap, ackOverlap, note: r.note ?? null },
           });
         }
         if (set.recording.status === "READY") {

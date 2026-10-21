@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/client/components/ui/button";
+import { Button, ButtonLink } from "@/client/components/ui/button";
 import { cn } from "@/client/lib/cn";
 import {
   formatTimeMs,
@@ -18,7 +18,9 @@ import {
   type TimingRow,
   type View,
 } from "@/shared/timing/timing";
+import { acknowledgeAll } from "@/shared/timing/validation";
 import { TimingWaveform } from "./timing-waveform";
+import { ValidationPanel } from "./validation-panel";
 
 export type EditorProps = {
   recordingId: string;
@@ -537,6 +539,33 @@ export function TimingEditor(props: EditorProps) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-6">
+        <ValidationPanel
+          rows={rows}
+          durationMs={durationMs}
+          labels={labels}
+          onSelect={showVerse}
+          onAcknowledge={
+            editable
+              ? (index, kind, value) =>
+                  setRows((rs) =>
+                    rs.map((r, i) =>
+                      i === index ? { ...r, [kind === "gap" ? "ackGap" : "ackOverlap"]: value } : r,
+                    ),
+                  )
+              : undefined
+          }
+          onAcknowledgeAll={
+            editable ? (kind) => setRows((rs) => acknowledgeAll(rs, durationMs, kind)) : undefined
+          }
+        />
+        <div className="mt-3 flex justify-end">
+          <ButtonLink href={`/admin/publish?recording=${recordingId}`} data-testid="to-publish">
+            Continue to Preview &amp; publish
+          </ButtonLink>
+        </div>
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
