@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  arrangementLabel,
+  arrangementsFor,
   chooseGenre,
   genreCoverage,
   nearestCovered,
@@ -155,5 +157,62 @@ describe("chooseGenre", () => {
     const less = { genreSlug: "rnb", covered: 1, total: 3, complete: false };
     expect(chooseGenre([partial, less], "rnb")).toBe("rnb");
     expect(chooseGenre([partial, less], "pop")).toBe("rock");
+  });
+});
+
+describe("arrangements (versions) of a genre", () => {
+  const full = (id: string, n: number, genre = "pop") =>
+    recording(id, genre, [timing(1, 0, 1000), timing(2, 1000, 2000), timing(3, 2000, 3000)], n);
+  const partial = recording("p2", "pop", [timing(1, 5000, 6000)], 2);
+
+  it("labels them Default, Default 2, Default 3", () => {
+    expect([1, 2, 3].map(arrangementLabel)).toEqual(["Default", "Default 2", "Default 3"]);
+  });
+
+  it("lists each arrangement once, in order, with its own coverage", () => {
+    const list = arrangementsFor(
+      verses,
+      [partial, full("a", 1), full("b", 3), full("x", 1, "rock")],
+      "pop",
+    );
+    expect(list).toEqual([
+      { arrangementNo: 1, covered: 3, total: 3, complete: true },
+      { arrangementNo: 2, covered: 1, total: 3, complete: false },
+      { arrangementNo: 3, covered: 3, total: 3, complete: true },
+    ]);
+  });
+
+  it("a single arrangement lists as one entry (nothing to choose)", () => {
+    expect(arrangementsFor(verses, [full("a", 1)], "pop")).toHaveLength(1);
+  });
+
+  it("ignores other genres and arrangements that don't touch the passage", () => {
+    const elsewhere = recording("e", "pop", [timing(9, 0, 1000)], 2);
+    expect(arrangementsFor(verses, [full("a", 1), elsewhere], "pop")).toHaveLength(1);
+    expect(arrangementsFor(verses, [full("a", 1)], "rock")).toEqual([]);
+  });
+
+  it("prefers the chosen arrangement for the verses it covers, and the earliest for the rest", () => {
+    const rs = [full("a", 1), partial];
+    const segs = resolveSegments(verses, rs, "pop", 2);
+    expect(segs.map((s) => s?.recordingId)).toEqual(["p2", "a", "a"]);
+    // without a choice, the earliest arrangement wins everywhere
+    expect(resolveSegments(verses, rs, "pop").map((s) => s?.recordingId)).toEqual(["a", "a", "a"]);
+  });
+
+  it("a number prefers an arrangement; a string still prefers one recording", () => {
+    const rs = [full("a", 1), full("b", 2)];
+    expect(resolveSegments(verses, rs, "pop", 2).every((s) => s?.recordingId === "b")).toBe(true);
+    expect(resolveSegments(verses, rs, "pop", "b").every((s) => s?.recordingId === "b")).toBe(true);
+    expect(resolveSegments(verses, rs, "pop", 7).every((s) => s?.recordingId === "a")).toBe(true);
+  });
+
+  it("never fills a verse from another genre", () => {
+    const rs = [partial, full("x", 1, "rock")];
+    expect(resolveSegments(verses, rs, "pop", 2).map((s) => s?.recordingId ?? null)).toEqual([
+      "p2",
+      null,
+      null,
+    ]);
   });
 });

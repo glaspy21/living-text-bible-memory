@@ -1,5 +1,5 @@
 import type { Browser } from "@playwright/test";
-import { E2E_ADMIN_EMAIL } from "../../playwright.config";
+import { E2E_ADMIN_EMAIL, E2E_EDITOR_EMAIL } from "../../playwright.config";
 import type { TestDb } from "./db";
 import { signInAs } from "./session";
 
@@ -40,7 +40,14 @@ export async function addToneRecording(
   browser: Browser,
   baseURL: string | undefined,
   db: TestDb,
-  where: { bookId: number; chapter: number; genre?: string },
+  where: {
+    bookId: number;
+    chapter: number;
+    genre?: string;
+    arrangementNo?: number;
+    /** Verse boundaries; by default verses 1–3 of two seconds each. */
+    verses?: { verse: number; startMs: number; endMs: number }[];
+  },
 ) {
   const context = await browser.newContext({ baseURL });
   await signInAs(context, E2E_ADMIN_EMAIL);
@@ -60,7 +67,8 @@ export async function addToneRecording(
     bookId: where.bookId,
     chapter: where.chapter,
     genre: where.genre,
-    verses: [
+    arrangementNo: where.arrangementNo,
+    verses: where.verses ?? [
       { verse: 1, startMs: 0, endMs: 2000 },
       { verse: 2, startMs: 2000, endMs: 4000 },
       { verse: 3, startMs: 4000, endMs: 6000 },
@@ -79,7 +87,7 @@ export async function addToneDraft(
   book: string,
 ): Promise<string> {
   const context = await browser.newContext({ baseURL });
-  await signInAs(context, E2E_ADMIN_EMAIL);
+  await signInAs(context, E2E_EDITOR_EMAIL);
   const api = context.request;
   const wav = toneWav();
   const requested = await api.post("/api/admin/uploads", {

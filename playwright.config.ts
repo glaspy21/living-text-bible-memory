@@ -7,6 +7,8 @@ const TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/livingtext_test";
 export const E2E_AUTH_SECRET = "e2e-only-secret-not-used-anywhere-else-0123456789";
 export const E2E_ADMIN_EMAIL = "admin@example.test";
+/** A second admin, for specs whose recordings must not be swept up by other specs' cleanup of E2E_ADMIN_EMAIL's. */
+export const E2E_EDITOR_EMAIL = "editor@example.test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -25,7 +27,7 @@ export default defineConfig({
       AUTH_GOOGLE_ID: "e2e",
       AUTH_GOOGLE_SECRET: "e2e",
       AUTH_URL: `http://localhost:${PORT}`,
-      ADMIN_EMAILS: E2E_ADMIN_EMAIL,
+      ADMIN_EMAILS: `${E2E_ADMIN_EMAIL},${E2E_EDITOR_EMAIL}`,
       DATABASE_URL: TEST_DATABASE_URL,
       // On so the translation menu can be tested; the key is a placeholder and tests never request
       // ESV text from Crossway (only chapters outside the ESV scope are used).

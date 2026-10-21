@@ -47,11 +47,21 @@ function timingFor(recording: PlayableRecording, ref: BookVerseRef): [number, nu
   return [row.startMs, row.endMs];
 }
 
-/** Earliest arrangement first; the chosen recording ahead of the others. */
-function ordered(recordings: readonly PlayableRecording[], preferredId?: string) {
+/**
+ * What a listener prefers: a recording by id, or an arrangement by number ("Default 2" is 2).
+ * Either only puts those recordings first; a verse they don't cover is still played from another
+ * recording of the same genre, never from another genre.
+ */
+export type Preferred = string | number | undefined;
+
+const isPreferred = (r: PlayableRecording, preferred: Preferred) =>
+  typeof preferred === "number" ? r.arrangementNo === preferred : r.id === preferred;
+
+/** Earliest arrangement first; the preferred recording or arrangement ahead of the others. */
+function ordered(recordings: readonly PlayableRecording[], preferred?: Preferred) {
   return [...recordings].sort(
     (a, b) =>
-      Number(b.id === preferredId) - Number(a.id === preferredId) ||
+      Number(isPreferred(b, preferred)) - Number(isPreferred(a, preferred)) ||
       a.arrangementNo - b.arrangementNo ||
       a.id.localeCompare(b.id),
   );
@@ -62,11 +72,11 @@ export function resolveSegments(
   verses: readonly BookVerseRef[],
   recordings: readonly PlayableRecording[],
   genreSlug: string,
-  preferredRecordingId?: string,
+  preferred?: Preferred,
 ): (Segment | null)[] {
   const candidates = ordered(
     recordings.filter((r) => r.genreSlug === genreSlug),
-    preferredRecordingId,
+    preferred,
   );
   return verses.map((ref) => {
     for (const recording of candidates) {
@@ -113,6 +123,41 @@ export function genreCoverage(
         b.covered - a.covered ||
         a.genreSlug.localeCompare(b.genreSlug),
     );
+}
+
+export type ArrangementCoverage = {
+  arrangementNo: number;
+  covered: number;
+  total: number;
+  complete: boolean;
+};
+
+/** "Default", "Default 2", "Default 3": the label a listener sees for an arrangement. */
+export function arrangementLabel(arrangementNo: number): string {
+  return arrangementNo <= 1 ? "Default" : `Default ${arrangementNo}`;
+}
+
+/**
+ * The arrangements (versions) a genre has for the passage, in order, with how much of the passage
+ * each one covers on its own. Listeners are only asked to choose when there is more than one.
+ */
+export function arrangementsFor(
+  verses: readonly BookVerseRef[],
+  recordings: readonly PlayableRecording[],
+  genreSlug: string,
+): ArrangementCoverage[] {
+  const inGenre = recordings.filter((r) => r.genreSlug === genreSlug);
+  const numbers = [...new Set(inGenre.map((r) => r.arrangementNo))].sort((a, b) => a - b);
+  return numbers
+    .map((arrangementNo) => {
+      const covered = resolveSegments(
+        verses,
+        inGenre.filter((r) => r.arrangementNo === arrangementNo),
+        genreSlug,
+      ).filter(Boolean).length;
+      return { arrangementNo, covered, total: verses.length, complete: covered === verses.length };
+    })
+    .filter((a) => a.covered > 0);
 }
 
 /** Index of the nearest covered verse at or after `from` (step 1) or at or before it (step -1). */

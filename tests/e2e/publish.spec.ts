@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { E2E_ADMIN_EMAIL } from "../../playwright.config";
+import { E2E_EDITOR_EMAIL } from "../../playwright.config";
 import { addToneDraft } from "./audio-fixture";
 import { TestDb } from "./db";
 import { streamed } from "./helpers";
@@ -56,7 +56,7 @@ test.describe("validation, preview and publish", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await openPublish(page);
     await expect(page.getByTestId("publish-recording")).toContainText("Draft");
     await expect(page.getByTestId("validation-errors")).toContainText("Verse 1 has no start time.");
@@ -69,7 +69,7 @@ test.describe("validation, preview and publish", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await setTiming(context.request, [
       [0, 3000],
       [3500, 6500], // gap of 0.50 s after verse 1
@@ -105,7 +105,7 @@ test.describe("validation, preview and publish", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await setTiming(context.request, [
       [0, 3000],
       [5000, 4000],
@@ -130,7 +130,7 @@ test.describe("validation, preview and publish", () => {
     baseURL,
     playwright,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await setTiming(context.request, [
       [0, 3000],
       [3000, 6000],
@@ -165,7 +165,7 @@ test.describe("validation, preview and publish", () => {
   });
 
   test("Preview plays one verse and stops at its end", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await openPublish(page);
     const row = page.getByTestId("preview-row").nth(0);
     await row.getByRole("button", { name: "Play verse 1" }).click();
@@ -174,7 +174,7 @@ test.describe("validation, preview and publish", () => {
   });
 
   test("Play all goes through the verses in order and then stops", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await openPublish(page);
     await page.getByTestId("preview-all").click();
     await expect(page.getByTestId("preview-row").nth(1)).toHaveAttribute("data-playing", "true", {
@@ -187,7 +187,7 @@ test.describe("validation, preview and publish", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await openPublish(page);
     await expect(page.getByTestId("publish-help")).toContainText("This timing is live");
     await expect(page.getByTestId("publish")).toHaveCount(0);
@@ -221,7 +221,7 @@ test.describe("validation, preview and publish", () => {
   });
 
   test("the library and the pick list reflect the status", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await page.goto("/admin/library?status=published");
     await streamed(page);
     await expect(page.getByTestId("library-row").filter({ hasText: "Jonah 1:1–3" })).toContainText(
@@ -248,7 +248,7 @@ test.describe("validation, preview and publish", () => {
         })
       ).status(),
     ).toBe(403);
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     expect(
       (
         await context.request.post(`/api/admin/recordings/${id}/status`, {

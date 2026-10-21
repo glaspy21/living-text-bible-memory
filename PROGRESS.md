@@ -265,3 +265,11 @@
 - Tests: validation rules (unit, 16), publisher and acknowledgement rules (database, 66 total), browser tests of the whole flow (blank → errors, gaps/overlaps and acknowledging, server refusal, Ready → Draft → Ready → Publish with listeners then receiving the recording from `/api/playback`, preview, new draft version replacing the live timing, access).
 - Open: no **unpublish** yet (ask if wanted). The browser suite has two timing-sensitive tests that sometimes fail only when the whole suite runs in parallel (`steps` single-verse glide; occasional `streamed()` timeouts on admin pages); each passes on its own, repeatedly.
 - Next: **M17 Listener music selection**.
+
+## 2026-10-21 — M17 Listener music selection (branch `m17-music-selection`, off `m16-validation-publish`)
+- The player's genre menu now has a **Version** section ("Default", "Default 2", …) when the chosen genre has more than one version for the passage, with a note when a version covers only part of it. A choice plays that version's recordings for the verses they cover and the earliest version for the rest (never another genre). The Steps panel shows the genre and, when there is a choice, the version ("Pop · Default 2"); with no music it says "No recording yet" and Play and the genre menu stay off, while reading works as before.
+- **Bug fixed:** switching genre while playing used to stop the music (a "new passage" reset ran after the switch). A switch by the listener now keeps the verse and keeps playing.
+- Playback has always come only from published recordings with published timing (`/api/playback`); drafts and unpublished new versions never reach listeners (covered end to end in M16's tests).
+- Tests: arrangement rules (unit), browser tests of the menu (versions only when there is more than one, coverage notes, choosing, genre switch keeps the verse, no autoplay, switching while playing, the Steps panel, a passage with no music). Specs that create recordings through the app now sign in as a second e2e admin so other specs' cleanup can't delete their rows.
+- Open: the version choice is per passage and session; it is not remembered (say if it should be).
+- Next: **Phase 4 testing and polish** (see IMPLEMENTATION_PLAN.md), then the owner's review. Nothing is deployed.

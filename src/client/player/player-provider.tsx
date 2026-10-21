@@ -14,10 +14,12 @@ import {
 import { readPref, useStoredPref, writePref } from "@/client/lib/prefs";
 import {
   genreCoverage,
+  arrangementsFor,
   chooseGenre,
   nearestCovered,
   resolveSegments,
   type GenreCoverage,
+  type ArrangementCoverage,
   type PlayableRecording,
   type Segment,
 } from "@/shared/audio/playlist";
@@ -59,6 +61,10 @@ export type PlayerApi = {
   genres: { slug: string; name: string }[];
   coverage: readonly GenreCoverage[];
   genre: string | null;
+  /** The versions ("Default", "Default 2") the chosen genre has for the passage. */
+  arrangements: readonly ArrangementCoverage[];
+  /** The version being played (the earliest one unless the listener chose another). */
+  arrangement: number | null;
   endMode: EndMode;
   /** The current verse's segment, if it has music. */
   segment: Segment | null;
@@ -69,6 +75,7 @@ export type PlayerApi = {
   seekVerse(index: number): void;
   setEndMode(mode: EndMode): void;
   setGenre(slug: string): void;
+  setArrangement(arrangementNo: number): void;
   register(registration: Registration | null): void;
 };
 
@@ -82,10 +89,18 @@ const isString = (v: unknown): v is string => typeof v === "string";
 const isEndModes = (v: unknown): v is Partial<Record<PlayerContextKind, EndMode>> =>
   typeof v === "object" && v !== null;
 
+/** A comparable fingerprint of a resolved passage: which recording and verse each slot plays. */
+function segmentSignature(segments: Segments): string {
+  return segments
+    .map((s) => (s ? `${s.recordingId}:${s.chapter}:${s.verse}:${s.startMs}` : "-"))
+    .join("|");
+}
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [registration, setRegistration] = useState<Registration | null>(null);
   const [data, setData] = useState<{ key: string; value: PlaybackData } | null>(null);
   const [genreChoice, setGenreChoice] = useState<string | null>(null);
+  const [arrangementChoice, setArrangementChoice] = useState<number | null>(null);
   const [savedModes, saveModes] = useStoredPref(ENDMODE_KEY, {}, isEndModes);
   const endModes: Record<PlayerContextKind, EndMode> = {
     reader: isEndMode(savedModes.reader) ? savedModes.reader : DEFAULT_END_MODES.reader,
@@ -99,6 +114,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const preloadRef = useRef<HTMLAudioElement | null>(null);
   const loadToken = useRef(0);
+  /** The segments of the genre or version the listener just chose (see the reset effect). */
+  const switchedTo = useRef<string | null>(null);
   const dispatchRef = useRef<(event: PlayerEvent) => void>(() => {});
 
   const key = registration
@@ -138,9 +155,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return chooseGenre(coverage, readPref(GENRE_KEY, null, isString));
   }, [coverage, genreChoice]);
 
-  const segments = useMemo<Segments>(
-    () => (genre ? resolveSegments(verses, recordings, genre) : verses.map(() => null)),
+  const arrangements = useMemo(
+    () => (genre ? arrangementsFor(verses, recordings, genre) : []),
     [verses, recordings, genre],
+  );
+  const arrangement =
+    arrangementChoice !== null && arrangements.some((a) => a.arrangementNo === arrangementChoice)
+      ? arrangementChoice
+      : (arrangements[0]?.arrangementNo ?? null);
+  const preferred =
+    arrangementChoice !== null && arrangement === arrangementChoice ? arrangement : undefined;
+
+  const segments = useMemo<Segments>(
+    () => (genre ? resolveSegments(verses, recordings, genre, preferred) : verses.map(() => null)),
+    [verses, recordings, genre, preferred],
   );
   useLayoutEffect(() => {
     segmentsRef.current = segments;
@@ -262,8 +290,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     };
   }, [machine.status, audio]);
 
-  // A new passage or genre: start again at its first verse with music, without playing.
+  // A new passage (or music that has just arrived): start again at its first verse with music,
+  // without playing. A switch of genre or version made by the listener is not that: it has already
+  // told the machine what to do (keep the verse, keep playing), so its own segments are skipped.
   useEffect(() => {
+    const sig = segmentSignature(segments);
+    if (switchedTo.current !== null) {
+      const mine = switchedTo.current === sig;
+      switchedTo.current = null;
+      if (mine) return;
+    }
     const first = nearestCovered(segmentsRef.current, 0, 1) ?? 0;
     dispatchRef.current({ type: "RESET", index: first });
   }, [segments]);
@@ -275,7 +311,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // ---- actions ----------------------------------------------------------------------------
   const register = useCallback((next: Registration | null) => {
     setRegistration(next);
+    switchedTo.current = null;
     setGenreChoice(null);
+    setArrangementChoice(null);
     if (!next) {
       setData(null);
       dispatchRef.current({ type: "RESET" });
@@ -290,20 +328,38 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [registration, savedModes, saveModes],
   );
 
-  const setGenre = useCallback(
-    (slug: string) => {
+  /** Switch to another genre or version, keeping the verse (and playing, if it was). */
+  const switchTo = useCallback(
+    (slug: string, arrangementNo: number | null) => {
       const wasPlaying =
         machineRef.current.status === "playing" || machineRef.current.status === "loading";
       const index = machineRef.current.index;
-      const next = resolveSegments(verses, recordings, slug);
+      const next = resolveSegments(verses, recordings, slug, arrangementNo ?? undefined);
       segmentsRef.current = next; // the machine must see the new segments before it is told what to do
+      switchedTo.current = segmentSignature(next);
       setGenreChoice(slug);
-      writePref(GENRE_KEY, slug);
+      setArrangementChoice(arrangementNo);
       dispatch({ type: "RESET", index });
       // Keep the verse if the new genre covers it; otherwise the nearest one that has music.
       if (wasPlaying) dispatch({ type: "PLAY" });
     },
     [verses, recordings, dispatch],
+  );
+
+  const setGenre = useCallback(
+    (slug: string) => {
+      writePref(GENRE_KEY, slug);
+      // A different genre starts on its earliest version; the same one keeps the listener's pick.
+      switchTo(slug, slug === genre ? arrangementChoice : null);
+    },
+    [switchTo, genre, arrangementChoice],
+  );
+
+  const setArrangement = useCallback(
+    (arrangementNo: number) => {
+      if (genre) switchTo(genre, arrangementNo);
+    },
+    [switchTo, genre],
   );
 
   const segment = segments[machine.index] ?? null;
@@ -320,6 +376,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       genres: current?.genres ?? [],
       coverage,
       genre,
+      arrangements,
+      arrangement,
       endMode: machine.endMode,
       segment,
       segments,
@@ -329,6 +387,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       seekVerse: (index) => dispatch({ type: "SEEK_VERSE", index }),
       setEndMode,
       setGenre,
+      setArrangement,
       register,
     }),
     [
@@ -339,10 +398,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       segments,
       coverage,
       genre,
+      arrangements,
+      arrangement,
       segment,
       dispatch,
       setEndMode,
       setGenre,
+      setArrangement,
       register,
     ],
   );

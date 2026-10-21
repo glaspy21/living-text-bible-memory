@@ -6,6 +6,7 @@ import { cn } from "@/client/lib/cn";
 import { END_MODES } from "@/client/player/end-modes";
 import { usePlayer, useVersePosition } from "@/client/player/player-provider";
 import { formatTime } from "@/shared/audio/format-time";
+import { arrangementLabel } from "@/shared/audio/playlist";
 
 function TransportButton({
   icon,
@@ -215,6 +216,44 @@ export function PlayerBar() {
                     </button>
                   );
                 })}
+                {player.arrangements.length > 1 && (
+                  <>
+                    <div
+                      role="presentation"
+                      className="mt-1 border-t border-line px-3 pt-2 pb-1 text-[11px] tracking-[.14em] text-gold-dim uppercase"
+                    >
+                      Version
+                    </div>
+                    {player.arrangements.map((entry) => (
+                      <button
+                        key={entry.arrangementNo}
+                        type="button"
+                        role="menuitemradio"
+                        data-testid="arrangement-option"
+                        aria-checked={entry.arrangementNo === player.arrangement}
+                        onClick={() => {
+                          player.setArrangement(entry.arrangementNo);
+                          close();
+                        }}
+                        className={menuItem}
+                      >
+                        <span>
+                          {arrangementLabel(entry.arrangementNo)}
+                          {!entry.complete && (
+                            <small className="block text-[11px] text-muted">
+                              Music for {entry.covered} of {entry.total} verses
+                            </small>
+                          )}
+                        </span>
+                        {entry.arrangementNo === player.arrangement && (
+                          <span className="ml-auto text-base text-gold" aria-hidden="true">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </>
+                )}
               </>
             )}
           </MenuButton>

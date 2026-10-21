@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { E2E_ADMIN_EMAIL } from "../../playwright.config";
+import { E2E_EDITOR_EMAIL } from "../../playwright.config";
 import { addToneDraft, addToneRecording } from "./audio-fixture";
 import { TestDb } from "./db";
 import { streamed } from "./helpers";
@@ -53,7 +53,7 @@ test.describe("timing editor", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await expect(page.getByTestId("timing-row")).toHaveCount(3);
     await expect(page.getByTestId("timing-progress")).toHaveText("0 of 3 verses timed");
@@ -67,7 +67,7 @@ test.describe("timing editor", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await commit(page, "1 start", "0:01.250");
     await commit(page, "1 end", "3.5");
@@ -92,7 +92,7 @@ test.describe("timing editor", () => {
   });
 
   test("the arrow keys nudge a time by 10 ms (100 ms with Shift)", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     const input = field(page, "1 start");
     await input.focus();
@@ -106,7 +106,7 @@ test.describe("timing editor", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await commit(page, "1 start", "");
     await commit(page, "1 end", "");
@@ -127,7 +127,7 @@ test.describe("timing editor", () => {
   });
 
   test("dragging a handle moves that boundary", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await commit(page, "3 start", "0:08");
     await commit(page, "3 end", "0:10");
@@ -148,7 +148,7 @@ test.describe("timing editor", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     const scroll = page.getByTestId("timing-scroll");
     await expect(scroll).toBeDisabled();
@@ -161,7 +161,7 @@ test.describe("timing editor", () => {
   });
 
   test("Preview plays a verse and stops where it ends", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await commit(page, "1 start", "0:00.500");
     await commit(page, "1 end", "0:01.500");
@@ -177,7 +177,7 @@ test.describe("timing editor", () => {
   });
 
   test("earlier sessions can be returned to", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, draftId);
     await page.getByTestId("sessions-open").click();
     await expect(page.getByTestId("sessions-list").getByRole("listitem").first()).toBeVisible();
@@ -196,7 +196,7 @@ test.describe("timing editor", () => {
     page,
     context,
   }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await open(page, publishedId);
     await expect(page.getByTestId("published-notice")).toBeVisible();
     await expect(field(page, "1 start")).toBeDisabled();
@@ -230,7 +230,7 @@ test.describe("timing editor", () => {
   });
 
   test("the timing page without a recording points to the library", async ({ page, context }) => {
-    await signInAs(context, E2E_ADMIN_EMAIL);
+    await signInAs(context, E2E_EDITOR_EMAIL);
     await page.goto("/admin/timing");
     await streamed(page);
     await expect(page.getByTestId("timing-pick")).toContainText("track library");

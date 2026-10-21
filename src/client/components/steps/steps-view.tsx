@@ -11,6 +11,7 @@ import { cn } from "@/client/lib/cn";
 import { END_MODES } from "@/client/player/end-modes";
 import { PlayerPassage } from "@/client/player/player-passage";
 import { usePlayer } from "@/client/player/player-provider";
+import { arrangementLabel } from "@/shared/audio/playlist";
 import {
   STEPS,
   focusModeFor,
@@ -550,7 +551,13 @@ export function StepsView({
           <div className={cardLabel}>Genre</div>
           <div className="mt-2.5 flex items-center gap-3 text-gold">
             <Icon name="note" size={22} />
-            <span className="text-text">{genreName ?? "No recording yet"}</span>
+            <span className="text-text" data-testid="panel-genre">
+              {genreName
+                ? player.arrangements.length > 1 && player.arrangement !== null
+                  ? `${genreName} · ${arrangementLabel(player.arrangement)}`
+                  : genreName
+                : "No recording yet"}
+            </span>
           </div>
         </div>
       </RightPanel>
