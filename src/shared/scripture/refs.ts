@@ -32,3 +32,20 @@ export function formatReference(ref: PassageRef): string {
   if (start.chapter === end.chapter) return `${name} ${from}–${end.verse}`;
   return `${name} ${from}–${end.chapter}:${end.verse}`;
 }
+
+/**
+ * Every verse in a passage, in order, given each chapter's verse count (chapter n is
+ * `counts[n - 1]`). Chapters or verses beyond the counts are left out.
+ */
+export function expandPassage(ref: PassageRef, counts: readonly number[]): VerseRef[] {
+  const verses: VerseRef[] = [];
+  for (let chapter = ref.start.chapter; chapter <= ref.end.chapter; chapter++) {
+    const first = chapter === ref.start.chapter ? ref.start.verse : 1;
+    const last = Math.min(
+      chapter === ref.end.chapter ? ref.end.verse : Number.POSITIVE_INFINITY,
+      counts[chapter - 1] ?? 0,
+    );
+    for (let verse = first; verse <= last; verse++) verses.push({ chapter, verse });
+  }
+  return verses;
+}

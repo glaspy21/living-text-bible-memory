@@ -123,3 +123,7 @@
 - The book/chapter panel is now reusable (choose without leaving the page). The verse grid uses the WEB's numbering for every translation.
 - Tests: the selection rules (all tap sequences, endpoints dragging each other, cross-chapter, verse counts) plus browser tests of the whole screen.
 - Note for next steps: don't run `npm run build` while `npm run dev` is running; it overwrites the dev server's files.
+
+## 2026-10-20 — M10 Audio engine (branch `m10-audio-engine`)
+- Step 1 (logic, no UI yet): the segment resolver turns a passage plus published recordings into one segment per verse (earliest arrangement or the chosen one; a verse nothing covers stays uncovered and is never filled from another genre; works across chapters and across recordings), and reports which genres cover the whole passage.
+- The playback state machine is a pure function with 40+ tests: idle/loading/playing/paused/verse-ended; Loop Verse, Stop After Verse and Next Verse (skips gaps, honors overlaps, last verse always stops, uncovered verses skipped); skip and seek while playing or looping; preload of the next recording; errors and retry; audio never starts without Play.

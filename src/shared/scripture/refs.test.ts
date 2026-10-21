@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { chapterPassage, isWithinEsvScope } from "./esv-scope";
-import { compareRefs, formatReference, isValidPassage, versesInPassage } from "./refs";
+import {
+  compareRefs,
+  expandPassage,
+  formatReference,
+  isValidPassage,
+  versesInPassage,
+} from "./refs";
 import type { PassageRef, Verse } from "./types";
 
 const ref = (book: string, sc: number, sv: number, ec: number, ev: number): PassageRef => ({
@@ -69,5 +75,26 @@ describe("ESV scope", () => {
     expect(isWithinEsvScope(ref("john", 2, 20, 3, 2))).toBe(false);
     expect(isWithinEsvScope(chapterPassage("genesis", 1))).toBe(false);
     expect(isWithinEsvScope(chapterPassage("1-john", 1))).toBe(false);
+  });
+});
+
+describe("expandPassage", () => {
+  const counts = [51, 25, 36];
+  it("lists the verses of a range in order", () => {
+    expect(expandPassage(ref("john", 1, 3, 1, 5), counts)).toEqual([
+      { chapter: 1, verse: 3 },
+      { chapter: 1, verse: 4 },
+      { chapter: 1, verse: 5 },
+    ]);
+  });
+
+  it("runs across chapter breaks", () => {
+    const verses = expandPassage(ref("john", 1, 50, 2, 2), counts);
+    expect(verses.map((v) => `${v.chapter}:${v.verse}`)).toEqual(["1:50", "1:51", "2:1", "2:2"]);
+  });
+
+  it("covers whole chapters in between and stops at the chapter's last verse", () => {
+    expect(expandPassage(ref("john", 1, 51, 3, 999), counts)).toHaveLength(1 + 25 + 36);
+    expect(expandPassage(ref("john", 2, 20, 2, 99), counts)).toHaveLength(6);
   });
 });
