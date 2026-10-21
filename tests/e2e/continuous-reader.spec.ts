@@ -19,13 +19,15 @@ const verse = (page: Page, chapter: number, n: number) =>
 /** Scroll the reader to its very end, which should bring the next chapter in. */
 const scrollToEnd = (page: Page) => main(page).evaluate((el) => el.scrollTo(0, el.scrollHeight));
 
-/** Put a chapter's heading (or the section's top) where the reader is "looking": about a third down. */
-async function scrollChapterIntoReading(page: Page, chapter: number) {
-  await page.locator(`[data-chapter="${chapter}"]`).evaluate((section) => {
-    const scroller = section.closest("main")!;
-    const top = section.getBoundingClientRect().top;
-    scroller.scrollTo(0, scroller.scrollTop + top - window.innerHeight * 0.38);
-  });
+/** Scroll so the chapter's first verse is the first one whole at the top of the screen. */
+async function scrollChapterIntoReading(page: Page, chapter: number, book?: string) {
+  await page
+    .locator(`${book ? `[data-book="${book}"]` : ""}[data-chapter="${chapter}"] [data-verse="1"]`)
+    .evaluate((row) => {
+      const scroller = row.closest("main")!;
+      const top = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      scroller.scrollTo(0, scroller.scrollTop + top);
+    });
 }
 
 test.describe("continuous scrolling", () => {
@@ -132,13 +134,7 @@ test.describe("continuous scrolling", () => {
     await scrollToEnd(page);
     await expect(page.getByTestId("chapter-heading").filter({ hasText: "Jonah 1" })).toBeAttached();
     await expect(page.locator('[data-book="jonah"][data-chapter="1"]')).toBeAttached();
-    await page.locator('[data-book="jonah"]').evaluate((section) => {
-      const scroller = section.closest("main")!;
-      scroller.scrollTo(
-        0,
-        scroller.scrollTop + section.getBoundingClientRect().top - window.innerHeight * 0.38,
-      );
-    });
+    await scrollChapterIntoReading(page, 1, "jonah");
     await expect(page).toHaveURL(/\/read\/jonah\/1$/);
     await expect(headerRef(page)).toContainText("Jonah 1");
   });
@@ -275,5 +271,34 @@ test.describe("the chapter route", () => {
     ]) {
       expect((await request.get(`/api/scripture/chapter?${query}`)).status()).toBe(400);
     }
+  });
+
+  test("the header changes as soon as a verse of the earlier chapter is the first one whole at the top", async ({
+    page,
+  }) => {
+    await openReader(page, "/read/john/2");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -200);
+    await expect(page.locator('[data-book="john"][data-chapter="1"]')).toBeAttached();
+    // Put John 1's last verse at the very top: its chapter is now the one in the header.
+    await page.locator('[data-chapter="1"] [data-verse="51"]').evaluate((row) => {
+      const scroller = row.closest("main")!;
+      const top = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      scroller.scrollTo(0, scroller.scrollTop + top);
+    });
+    await expect(headerRef(page)).toContainText("John 1");
+    // Partly scrolled off the top, verse 51 is still the top verse, so the header holds.
+    await page.locator('[data-chapter="1"] [data-verse="51"]').evaluate((row) => {
+      row.closest("main")!.scrollBy(0, 10);
+    });
+    await page.waitForTimeout(300);
+    await expect(headerRef(page)).toContainText("John 1");
+    // One verse of John 2 back in as the top verse, and it changes straight back.
+    await page.locator('[data-chapter="2"] [data-verse="1"]').evaluate((row) => {
+      const scroller = row.closest("main")!;
+      const top = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      scroller.scrollTo(0, scroller.scrollTop + top);
+    });
+    await expect(headerRef(page)).toContainText("John 2");
   });
 });

@@ -64,7 +64,7 @@ function BookRow({
 }) {
   const chapterHref = `/read/${book.slug}/${pickedChapter}`; // verse links add ?v=
   return (
-    <div>
+    <div data-book={book.slug}>
       <button
         type="button"
         aria-expanded={expanded}
@@ -213,7 +213,9 @@ export function BookSelectorPanel({
 }) {
   const currentTestament: Testament = NEW.some((b) => b.slug === currentBook) ? "NEW" : "OLD";
   const [tab, setTab] = useState<Testament>(currentTestament);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  // From the header the selector opens on the current book's chapters, the current one marked, so
+  // another chapter of the same book is one click away.
+  const [expanded, setExpanded] = useState<string | null>(withVerses ? currentBook : null);
   const listRef = useRef<HTMLDivElement>(null);
   const newStartRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -228,7 +230,14 @@ export function BookSelectorPanel({
 
   // Open at the current book's testament, and put keyboard focus in the panel.
   useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = sectionTop(currentTestament);
+    const list = listRef.current;
+    if (list) {
+      const open =
+        withVerses && currentBook
+          ? list.querySelector<HTMLElement>(`[data-book="${currentBook}"]`)
+          : null;
+      list.scrollTop = open ? Math.max(0, open.offsetTop - 4) : sectionTop(currentTestament);
+    }
     dialogRef.current?.focus();
     return () => clearTimeout(unlock.current);
     // Runs once, on open.

@@ -29,8 +29,6 @@ type Place = { book: string; chapter: number };
 
 const keyOf = (c: Place) => `${c.book}/${c.chapter}`;
 const lastVerseOf = (c: LoadedChapter) => c.verses[c.verses.length - 1]?.verse ?? 1;
-/** Position in the Bible, in the order of a modern Bible (Genesis 1 first, Revelation 22 last). */
-const orderOf = (c: Place) => (bookBySlug(c.book)?.id ?? 0) * 1000 + c.chapter;
 const neighbour = (c: Place, step: 1 | -1): Place | null => {
   const next = adjacentChapter(c.book, c.chapter, step);
   return next && { book: next.book.slug, chapter: next.chapter };
@@ -156,32 +154,34 @@ export function ContinuousChapters({
     return () => observer.disconnect();
   }, [afterKey, failed, loadNext, chapters.length]);
 
-  // The chapter crossing a thin band near the top of the screen is the one being read. It only
-  // counts once the reader has scrolled, so a short chapter followed by the next one on screen
-  // doesn't move the address bar before anyone has moved.
-  const crossing = useRef(new Map<string, Place>());
+  // The chapter of the verse at the top of the screen is the one being read: the first verse with
+  // any part still in view. The heading holds until that verse has scrolled completely out, and
+  // changes the moment a verse of the earlier chapter appears above it. It only counts once the reader has scrolled, so a short chapter followed by
+  // the next one on screen doesn't move the address bar before anyone has moved.
   const scrolled = useRef(false);
   useEffect(() => {
     const update = () => {
-      if (!scrolled.current || crossing.current.size === 0) return;
-      const latest = [...crossing.current.values()].reduce((a, b) =>
-        orderOf(b) > orderOf(a) ? b : a,
-      );
-      setInView((now) => (keyOf(now) === keyOf(latest) ? now : latest));
+      if (!scrolled.current) return;
+      const scroller = [...sections.current.values()][0]?.closest("main");
+      if (!scroller) return;
+      const edge = scroller.getBoundingClientRect().top;
+      // In page order: chapters added above are kept after the others in the map.
+      for (const section of scroller.querySelectorAll<HTMLElement>("section[data-chapter]")) {
+        if (section.getBoundingClientRect().bottom <= edge) continue;
+        const first = [...section.querySelectorAll<HTMLElement>("[data-verse]")].find(
+          (row) => row.getBoundingClientRect().bottom > edge,
+        );
+        if (!first) continue;
+        const place = { book: section.dataset.book!, chapter: Number(section.dataset.chapter) };
+        setInView((now) => (keyOf(now) === keyOf(place) ? now : place));
+        return;
+      }
     };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const { book, chapter } = (entry.target as HTMLElement).dataset;
-          const place = { book: book!, chapter: Number(chapter) };
-          if (entry.isIntersecting) crossing.current.set(keyOf(place), place);
-          else crossing.current.delete(keyOf(place));
-        }
-        update();
-      },
-      { rootMargin: "-35% 0px -60% 0px" },
-    );
-    sections.current.forEach((element) => observer.observe(element));
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
     // Scroll events don't bubble, so listen in the capture phase for the page's own scroller.
     let lastTop = 0;
     const onScroll = (event: Event) => {
@@ -190,12 +190,12 @@ export function ContinuousChapters({
       lastTop = top;
       if (ownScroll.current) {
         ownScroll.current = false;
+        schedule();
         return;
       }
       if (wentUp) setWantsUp(true);
-      if (scrolled.current) return;
       scrolled.current = true;
-      update();
+      schedule();
     };
     // Trying to go up from the very top produces no scroll, so these count as going up too.
     const onWheel = (event: WheelEvent) => event.deltaY < 0 && setWantsUp(true);
@@ -207,7 +207,7 @@ export function ContinuousChapters({
     document.addEventListener("touchmove", onTouch, { passive: true });
     document.addEventListener("keydown", onKey);
     return () => {
-      observer.disconnect();
+      cancelAnimationFrame(frame);
       document.removeEventListener("scroll", onScroll, { capture: true });
       document.removeEventListener("wheel", onWheel);
       document.removeEventListener("touchmove", onTouch);

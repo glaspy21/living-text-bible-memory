@@ -211,3 +211,9 @@
 - New: `chaptersWithMusicByBook` (music note for any book). Tests: browser tests for up-scroll without a jump, address following up, Genesis 1 / Revelation 22 ends, book-to-book both ways, selection across books; a database test. Unit 291, database 37, browser 267 pass; lint, typecheck, format clean.
 - Open: Memorize screens still start from a passage, not from continuous reading. Very long scrolls keep every chapter in memory (fine for now).
 
+
+## 2026-10-21 — Reader heading follows the top verse; selector opens on the chapter view
+- Header chapter now follows the verse at the top of the screen (first verse with any part in view): it changes the instant an earlier chapter's verse appears above, and holds until the top verse has scrolled completely out.
+- Choosing a verse in the selector scrolls it to the top of the screen (nothing of the previous verse showing).
+- The header selector opens already on the current book's chapters with the current chapter marked (header only; the range picker is unchanged).
+- Tests updated/added in `continuous-reader.spec.ts` and `book-selector.spec.ts`.

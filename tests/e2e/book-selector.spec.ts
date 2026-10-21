@@ -32,7 +32,7 @@ test.describe("book and chapter selector", () => {
       "aria-pressed",
       "true",
     );
-    await expect(dialog.getByRole("button", { name: /^(?!.*Testament)/ })).toHaveCount(66);
+    await expect(dialog.getByRole("button", { name: /^(?!.*Testament)(?!\d+$)/ })).toHaveCount(66);
   });
 
   test("opens at the current book's testament", async ({ page }) => {
@@ -92,6 +92,16 @@ test.describe("book and chapter selector", () => {
     await expect(page.getByRole("heading", { name: "John 3", level: 1 })).toBeAttached();
     const verse16 = page.getByRole("main").locator("[data-verse='16']");
     await expect(verse16).toBeInViewport();
+    // It sits at the top of the screen, with nothing of verse 15 showing above it.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const row = document.querySelector("[data-verse='16']")!.getBoundingClientRect();
+          const edge = document.querySelector("main")!.getBoundingClientRect().top;
+          return Math.abs(row.top - edge) < 2;
+        }),
+      )
+      .toBe(true);
     await expect(verse16).toHaveAttribute("data-arrived", "");
     await expect(headerButton(page)).toContainText("John 3");
   });
@@ -136,7 +146,8 @@ test.describe("book and chapter selector", () => {
 
   test("the current chapter is marked", async ({ page }) => {
     const dialog = await openSelector(page, "/read/john/3");
-    await book(dialog, "John").click();
+    // It opens on the current book's chapters, with the current one marked.
+    await expect(dialog.getByRole("group", { name: "John chapters" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "3", exact: true })).toHaveAttribute(
       "aria-current",
       "true",

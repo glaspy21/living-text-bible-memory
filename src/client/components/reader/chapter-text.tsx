@@ -32,7 +32,7 @@ export function ChapterText({
     () => false,
   );
 
-  // Arriving with ?v=16 (from the header's verse menu) scrolls to that verse and marks it briefly.
+  // Arriving with ?v=16 (from the header's verse menu) scrolls that verse to the top of the screen and marks it briefly.
   const goTo = useSearchParams().get("v");
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -40,7 +40,7 @@ export function ChapterText({
     const row = container.current?.querySelector<HTMLElement>(`[data-verse="${goTo}"]`);
     if (!row) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    row.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+    row.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     row.setAttribute("data-arrived", "");
     const timer = setTimeout(() => row.removeAttribute("data-arrived"), 2600);
     return () => {
