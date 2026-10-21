@@ -318,3 +318,15 @@ button {
     transition: none !important;
   }
 }
+
+/* Memorization steps: verses ease in one after another when a step opens. */
+@keyframes cascade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: var(--o, 1);
+    transform: none;
+  }
+}

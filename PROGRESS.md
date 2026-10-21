@@ -131,3 +131,11 @@
 - Added `GET /api/playback` (published recordings with published timing only) and DB tests for it.
 - Open: a hidden tab can catch verse ends up to about a second late (browsers slow timers); if it matters on phones the fix is Web Audio. Nothing can be published yet (the timing editor and publish are M15–M16), so for now music only appears in tests.
 
+## 2026-10-20 — M11 Memorization Steps (branch `m11-steps`)
+- `/memorize/steps?p=…&step=…`: Listen · Sing · Recall · Chain with the glowing-dot stepper (◀ ▶ wrap around), the single/several-verse toggle at the top left (others fade in place, text size never changes, staggered ripple), Chain always showing the whole passage, dashed placeholders with Reveal/Hide Scripture in Recall and Chain, the one-line help, Switch to Flashcards, and a right panel with the passage (Edit range), the end mode and the genre.
+- Listen and Recall start on one verse, Sing on several, until you use the toggle. The practice end mode starts as Loop Verse (the assumption in PROJECT.md #10).
+- Music and text move together: choosing a verse moves the music to it; skipping or the next verse playing moves the focus. Audio never starts by itself.
+- The step is kept in the link, and Home's Continue now returns to it ("John 1:3–6 · last: Recall"). The Memorize choice page carries the passage to both methods.
+- A passage is always in one translation: if the ESV can't supply all of it, the whole passage is the WEB with a note.
+- Tests: the step rules (four steps exactly, defaults, wrap, focus modes, dashes) plus browser tests of every behavior above, including playing real audio through the steps.
+

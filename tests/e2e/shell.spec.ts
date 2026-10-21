@@ -25,9 +25,9 @@ test.describe("listener shell", () => {
   });
 
   test("memorize choice links to both methods", async ({ page }) => {
-    await page.goto("/memorize");
+    await page.goto("/memorize?p=john+1%3A1-3");
     await page.getByRole("link", { name: /Memorization Steps/ }).click();
-    await expect(page).toHaveURL(/\/memorize\/steps$/);
+    await expect(page).toHaveURL(/\/memorize\/steps\?p=john\+1%3A1-3/);
   });
 });
 

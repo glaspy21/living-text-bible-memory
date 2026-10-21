@@ -1,6 +1,6 @@
 import "server-only";
 import { TRANSLATIONS } from "@/shared/scripture/translations";
-import type { TranslationCode, Verse } from "@/shared/scripture/types";
+import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
 import { getProvider } from "./index";
 import { ScriptureUnavailableError, type ScriptureProvider } from "./types";
 
@@ -15,35 +15,52 @@ export type ReaderChapter = {
 type ProviderFor = (code: TranslationCode) => ScriptureProvider;
 
 /**
- * A chapter for the reader in the preferred translation. When that translation can't supply it
- * (outside the ESV scope, or its service is down) the WEB is shown with a plain explanation, so
- * the reader is never blank. An unknown book or chapter still throws.
+ * Text in the preferred translation. When that translation can't supply it (outside the ESV
+ * scope, or its service is down) the WEB is shown with a plain explanation, so a screen is never
+ * blank. An unknown book, chapter or passage still throws.
  */
-export async function loadReaderChapter(
+async function withFallback(
+  preferred: TranslationCode,
+  providerFor: ProviderFor,
+  read: (provider: ScriptureProvider) => Promise<Verse[]>,
+  what: string,
+): Promise<ReaderChapter> {
+  if (preferred !== "WEB") {
+    try {
+      return { translation: preferred, verses: await read(providerFor(preferred)), note: null };
+    } catch (error) {
+      if (!(error instanceof ScriptureUnavailableError) || error.reason === "not-found")
+        throw error;
+      const name = TRANSLATIONS[preferred].name;
+      const web = TRANSLATIONS.WEB.name;
+      const note =
+        error.reason === "out-of-scope"
+          ? `The ${name} isn't available for this ${what} yet, so the ${web} is shown.`
+          : `The ${name} can't be reached right now, so the ${web} is shown.`;
+      return { translation: "WEB", verses: await read(providerFor("WEB")), note };
+    }
+  }
+  return { translation: "WEB", verses: await read(providerFor("WEB")), note: null };
+}
+
+/** A chapter for the reader. */
+export function loadReaderChapter(
   book: string,
   chapter: number,
   preferred: TranslationCode,
   providerFor: ProviderFor = getProvider,
 ): Promise<ReaderChapter> {
-  if (preferred !== "WEB") {
-    try {
-      const verses = await providerFor(preferred).getChapter(book, chapter);
-      return { translation: preferred, verses, note: null };
-    } catch (error) {
-      if (!(error instanceof ScriptureUnavailableError) || error.reason === "not-found")
-        throw error;
-      const name = TRANSLATIONS[preferred].name;
-      const note =
-        error.reason === "out-of-scope"
-          ? `The ${name} isn't available for this chapter yet, so the ${TRANSLATIONS.WEB.name} is shown.`
-          : `The ${name} can't be reached right now, so the ${TRANSLATIONS.WEB.name} is shown.`;
-      const verses = await providerFor("WEB").getChapter(book, chapter);
-      return { translation: "WEB", verses, note };
-    }
-  }
-  return {
-    translation: "WEB",
-    verses: await providerFor("WEB").getChapter(book, chapter),
-    note: null,
-  };
+  return withFallback(preferred, providerFor, (p) => p.getChapter(book, chapter), "chapter");
+}
+
+/**
+ * A passage (possibly across chapters) for memorization. All of it comes from one translation:
+ * if the preferred one can't supply every verse, the whole passage is the WEB, never a mixture.
+ */
+export function loadStudyPassage(
+  ref: PassageRef,
+  preferred: TranslationCode,
+  providerFor: ProviderFor = getProvider,
+): Promise<ReaderChapter> {
+  return withFallback(preferred, providerFor, (p) => p.getPassage(ref), "passage");
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadReaderChapter } from "./reader";
+import { loadReaderChapter, loadStudyPassage } from "./reader";
 import { ScriptureUnavailableError, type ScriptureProvider } from "./types";
 
 const verses = (text: string) => [{ chapter: 1, verse: 1, text }];
@@ -68,5 +68,38 @@ describe("loadReaderChapter", () => {
         providers(new ScriptureUnavailableError("nope", "not-found")),
       ),
     ).rejects.toMatchObject({ reason: "not-found" });
+  });
+});
+
+describe("loadStudyPassage", () => {
+  const ref = { book: "john", start: { chapter: 1, verse: 1 }, end: { chapter: 1, verse: 1 } };
+
+  it("keeps the whole passage in one translation, falling back for all of it", async () => {
+    const provider = (code: "WEB" | "ESV"): ScriptureProvider => ({
+      translation: code,
+      getChapter: async () => [],
+      getPassage: async () => {
+        if (code === "ESV") throw new ScriptureUnavailableError("scope", "out-of-scope");
+        return verses("web passage");
+      },
+      verseCount: async () => 1,
+    });
+    const got = await loadStudyPassage(ref, "ESV", provider);
+    expect(got.translation).toBe("WEB");
+    expect(got.note).toContain("isn't available for this passage yet");
+    expect(got.verses[0].text).toBe("web passage");
+  });
+
+  it("returns the preferred translation when it can supply the passage", async () => {
+    const provider = (code: "WEB" | "ESV"): ScriptureProvider => ({
+      translation: code,
+      getChapter: async () => [],
+      getPassage: async () => verses(`${code} passage`),
+      verseCount: async () => 1,
+    });
+    expect(await loadStudyPassage(ref, "ESV", provider)).toMatchObject({
+      translation: "ESV",
+      note: null,
+    });
   });
 });

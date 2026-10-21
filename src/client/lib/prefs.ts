@@ -4,6 +4,8 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 /** Small per-browser preferences. Storage can be missing or blocked, so every call tolerates failure. */
 
+const PREF_CHANGE = "lt:pref-change";
+
 export function readPref<T>(key: string, fallback: T, isValid: (value: unknown) => value is T): T {
   try {
     const raw = window.localStorage.getItem(key);
@@ -21,9 +23,9 @@ export function writePref(key: string, value: unknown): void {
   } catch {
     // Not saved; the choice still applies for this visit.
   }
+  // Tell everything showing this preference (even if it could not be saved).
+  window.dispatchEvent(new Event(PREF_CHANGE));
 }
-
-const PREF_CHANGE = "lt:pref-change";
 
 /**
  * A stored preference as a React value. The server and the first client render use `fallback`;
@@ -68,7 +70,6 @@ export function useStoredPref<T>(
   const set = useCallback(
     (next: T) => {
       writePref(key, next);
-      window.dispatchEvent(new Event(PREF_CHANGE));
     },
     [key],
   );
