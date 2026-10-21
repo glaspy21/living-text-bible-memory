@@ -1,8 +1,8 @@
-import { compareRefs } from "./refs";
-import type { VerseRef } from "./types";
+import { compareBookRefs as compareRefs } from "./refs";
+import type { BookVerseRef as VerseRef } from "./types";
 
 /**
- * Tap-to-select on the reader: the first tap picks one verse and waits for a second tap, which
+ * Tap-to-select on the reader (a range may run from one book into a later one): the first tap picks one verse and waits for a second tap, which
  * completes the range (in either direction). A third tap starts over. Tapping the one verse that
  * is selected switches it off again (nothing selected, so Memorize uses the whole chapter).
  */

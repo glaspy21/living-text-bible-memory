@@ -220,3 +220,8 @@
 - Verse arrival no longer highlights the verse (it is already at the top of the screen).
 - Tapping the one selected verse again switches it off (the `?p=` selection is dropped and Memorize uses the whole chapter). Ranges still start over on a tap.
 - Fix: a verse chosen in the selector now reaches the top even near the chapter's end (it retries once the next chapter has loaded below), after tapping a verse, and when the same verse is chosen twice (the selector tells the reader directly).
+
+## 2026-10-21 — Cross-book ranges and chapter triangles
+- A passage can now run across books (`?p=luke 24:50-john 1:3`): reader taps, the range picker, Memorize text (Steps, Flashcards) and the player (per-verse segments from each book's own recording; a new song at the book boundary). See `docs/DECISIONS.md`.
+- Previous/Next chapter buttons are now left/right triangles in the chapter title colour on the title line, also on every chapter scrolled on to.
+- Open: a cross-book range in the ESV (only John 1–2 is licensed) falls back to the WEB as a whole, as for any out-of-scope passage. Not tested with real multi-book recordings (the test library has none): the per-book matching is unit-tested only.

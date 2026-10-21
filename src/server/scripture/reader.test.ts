@@ -80,7 +80,7 @@ describe("loadStudyPassage", () => {
       getChapter: async () => [],
       getPassage: async () => {
         if (code === "ESV") throw new ScriptureUnavailableError("scope", "out-of-scope");
-        return verses("web passage");
+        return verses("web passage").map((v) => ({ book: "john", ...v }));
       },
       verseCount: async () => 1,
     });
@@ -94,7 +94,7 @@ describe("loadStudyPassage", () => {
     const provider = (code: "WEB" | "ESV"): ScriptureProvider => ({
       translation: code,
       getChapter: async () => [],
-      getPassage: async () => verses(`${code} passage`),
+      getPassage: async () => verses(`${code} passage`).map((v) => ({ book: "john", ...v })),
       verseCount: async () => 1,
     });
     expect(await loadStudyPassage(ref, "ESV", provider)).toMatchObject({

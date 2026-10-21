@@ -4,7 +4,7 @@
  * genre (preferring the chosen recording, then the earliest arrangement); a verse nothing covers
  * is marked uncovered, never filled from another genre.
  */
-import type { VerseRef } from "../scripture/types";
+import type { BookVerseRef } from "../scripture/types";
 
 /** One verse's boundaries inside a recording. Either may be unset in an unfinished timing. */
 export type VerseTimingRow = {
@@ -17,6 +17,8 @@ export type VerseTimingRow = {
 /** A published recording with its published timing. */
 export type PlayableRecording = {
   id: string;
+  /** The book (slug) the recording is of; its verse rows are chapter and verse within it. */
+  book: string;
   assetId: string;
   genreSlug: string;
   /** 1 = "Default", 2 = "Default 2", … */
@@ -29,6 +31,7 @@ export type PlayableRecording = {
 export type Segment = {
   recordingId: string;
   assetId: string;
+  book: string;
   chapter: number;
   verse: number;
   startMs: number;
@@ -36,7 +39,8 @@ export type Segment = {
 };
 
 /** A verse's usable timing in a recording, or null if it has none (missing or not a forward span). */
-function timingFor(recording: PlayableRecording, ref: VerseRef): [number, number] | null {
+function timingFor(recording: PlayableRecording, ref: BookVerseRef): [number, number] | null {
+  if (recording.book !== ref.book) return null;
   const row = recording.verses.find((v) => v.chapter === ref.chapter && v.verse === ref.verse);
   if (!row || row.startMs === null || row.endMs === null) return null;
   if (row.startMs < 0 || row.endMs <= row.startMs || row.endMs > recording.durationMs) return null;
@@ -55,7 +59,7 @@ function ordered(recordings: readonly PlayableRecording[], preferredId?: string)
 
 /** One entry per verse of the passage, in order: its segment, or null when no recording covers it. */
 export function resolveSegments(
-  verses: readonly VerseRef[],
+  verses: readonly BookVerseRef[],
   recordings: readonly PlayableRecording[],
   genreSlug: string,
   preferredRecordingId?: string,
@@ -71,6 +75,7 @@ export function resolveSegments(
         return {
           recordingId: recording.id,
           assetId: recording.assetId,
+          book: ref.book,
           chapter: ref.chapter,
           verse: ref.verse,
           startMs: span[0],
@@ -92,7 +97,7 @@ export type GenreCoverage = {
 
 /** For each genre that has any music for the passage, how much of it is covered. Complete genres first. */
 export function genreCoverage(
-  verses: readonly VerseRef[],
+  verses: readonly BookVerseRef[],
   recordings: readonly PlayableRecording[],
 ): GenreCoverage[] {
   const genres = [...new Set(recordings.map((r) => r.genreSlug))];

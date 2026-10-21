@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { tapVerse, verseMarking, type Selection } from "./selection";
 
-const v = (chapter: number, verse: number) => ({ chapter, verse });
+const v = (chapter: number, verse: number) => ({ book: "john", chapter, verse });
 
 describe("verseMarking", () => {
   it("marks nothing without a selection", () => {

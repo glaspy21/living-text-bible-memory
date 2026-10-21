@@ -14,6 +14,7 @@ import { recordRecent } from "@/client/lib/recent-store";
 import { adjacentChapter, bookBySlug } from "@/shared/scripture/books";
 import { CHAPTER_VIEW_EVENT } from "@/client/lib/chapter-view";
 import type { TranslationCode, Verse } from "@/shared/scripture/types";
+import { ChapterNav } from "./chapter-nav";
 import { ChapterText } from "./chapter-text";
 import { useReaderSelection } from "./reader-selection";
 
@@ -276,12 +277,15 @@ export function ContinuousChapters({
             {key === keyOf(initial) ? (
               <Fragment key="title">{header}</Fragment>
             ) : (
-              <h2
-                className="mt-10 font-serif text-[30px] font-medium tracking-[.02em] text-heading max-[520px]:text-2xl"
-                data-testid="chapter-heading"
-              >
-                {bookBySlug(loaded.book)?.name} {loaded.chapter}
-              </h2>
+              <div className="mt-10 mb-2 flex items-center justify-between gap-4">
+                <h2
+                  className="font-serif text-[30px] font-medium tracking-[.02em] text-heading max-[520px]:text-2xl"
+                  data-testid="chapter-heading"
+                >
+                  {bookBySlug(loaded.book)?.name} {loaded.chapter}
+                </h2>
+                <ChapterNav book={loaded.book} chapter={loaded.chapter} />
+              </div>
             )}
             {loaded.note && (
               <p className="mt-2 font-serif text-[15px] text-muted italic" role="note">

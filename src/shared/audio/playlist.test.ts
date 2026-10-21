@@ -8,7 +8,7 @@ import {
   type VerseTimingRow,
 } from "./playlist";
 
-const v = (verse: number, chapter = 1) => ({ chapter, verse });
+const v = (verse: number, chapter = 1, book = "john") => ({ book, chapter, verse });
 const verses = [v(1), v(2), v(3)];
 
 const timing = (
@@ -31,6 +31,7 @@ const recording = (
   durationMs = 60_000,
 ): PlayableRecording => ({
   id,
+  book: "john",
   assetId: `asset-${id}`,
   genreSlug,
   arrangementNo,

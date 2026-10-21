@@ -12,7 +12,7 @@ import { usePlayer } from "@/client/player/player-provider";
 import { inOrder, moveCard, shuffledFrom } from "@/shared/memorize/flashcards";
 import { bookBySlug } from "@/shared/scripture/books";
 import { formatPassageParam, withPassage } from "@/shared/scripture/passage-param";
-import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, TranslationCode } from "@/shared/scripture/types";
 
 const arrow =
   "grid h-10 w-10 flex-none place-items-center rounded-full text-gold transition-[color,box-shadow] hover:text-gold2 hover:shadow-[0_0_14px_rgba(212,168,79,.25)]";
@@ -30,7 +30,7 @@ export function FlashcardsView({
   note,
 }: {
   passage: PassageRef;
-  verses: Verse[];
+  verses: PassageVerse[];
   translation: TranslationCode;
   note: string | null;
 }) {
@@ -50,11 +50,14 @@ export function FlashcardsView({
   useEffect(() => recordActivity({ kind: "flashcards", p: param }), [param]);
 
   const verse = verses[order[position]];
-  const bookName = (bookBySlug(passage.book)?.name ?? passage.book).toUpperCase();
+  const nameOf = (slug: string) => (bookBySlug(slug)?.name ?? slug).toUpperCase();
+  const bookName = verse ? nameOf(verse.book) : "";
 
   /** Point the music at the verse on the card (this alone never starts it). */
-  const follow = (v: Verse) => {
-    const at = player.verses.findIndex((p) => p.chapter === v.chapter && p.verse === v.verse);
+  const follow = (v: PassageVerse) => {
+    const at = player.verses.findIndex(
+      (p) => p.book === v.book && p.chapter === v.chapter && p.verse === v.verse,
+    );
     if (at >= 0) player.seekVerse(at);
   };
 

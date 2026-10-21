@@ -47,7 +47,7 @@ async function Reader({ params }: { params: Params }) {
           <ContinuousChapters
             initial={{ book: book.slug, chapter, ...loaded }}
             header={
-              <header className="mb-2 flex items-start justify-between gap-4">
+              <header className="mb-2 flex items-center justify-between gap-4">
                 <h1 className="font-serif text-[34px] font-medium tracking-[.02em] text-heading max-[520px]:sr-only">
                   {book.name} {chapter}
                 </h1>

@@ -3,7 +3,6 @@ import { RangePicker } from "@/client/components/range/range-picker";
 import { Main, PageTitle } from "@/client/components/shell/regions";
 import { booksWithMusic } from "@/server/library";
 import { bookVerseCounts } from "@/server/scripture";
-import { bookBySlug } from "@/shared/scripture/books";
 import { parsePassageParam } from "@/shared/scripture/passage-param";
 import type { PassageRef } from "@/shared/scripture/types";
 
@@ -22,29 +21,27 @@ async function Range({
   const { p } = await searchParams;
   const param = Array.isArray(p) ? p[0] : p;
   const parsed = parsePassageParam(param) ?? DEFAULT_PASSAGE;
-  const book = bookBySlug(parsed.book)!;
-  const [counts, music] = await Promise.all([bookVerseCounts(book.slug), booksWithMusic()]);
+  const endBook = parsed.endBook ?? parsed.book;
+  const slugs = [...new Set([parsed.book, endBook])];
+  const [countList, music] = await Promise.all([
+    Promise.all(slugs.map((slug) => bookVerseCounts(slug))),
+    booksWithMusic(),
+  ]);
+  const counts = Object.fromEntries(slugs.map((slug, i) => [slug, countList[i]]));
 
-  // A reference to a verse that doesn't exist in this book (e.g. John 1:99) is clamped to the chapter's end.
-  const clamp = (c: number, v: number) => ({
+  // A reference to a verse that doesn't exist (e.g. John 1:99) is clamped to the chapter's end.
+  const clamp = (slug: string, c: number, v: number) => ({
     chapter: c,
-    verse: Math.max(1, Math.min(v, counts[c - 1] ?? 1)),
+    verse: Math.max(1, Math.min(v, counts[slug][c - 1] ?? 1)),
   });
   const initial: PassageRef = {
-    book: book.slug,
-    start: clamp(parsed.start.chapter, parsed.start.verse),
-    end: clamp(parsed.end.chapter, parsed.end.verse),
+    book: parsed.book,
+    start: clamp(parsed.book, parsed.start.chapter, parsed.start.verse),
+    end: clamp(endBook, parsed.end.chapter, parsed.end.verse),
+    ...(parsed.endBook && { endBook: parsed.endBook }),
   };
 
-  return (
-    <RangePicker
-      key={book.slug}
-      book={{ slug: book.slug, name: book.name, chapterCount: book.chapterCount }}
-      counts={counts}
-      initial={initial}
-      musicBooks={[...music]}
-    />
-  );
+  return <RangePicker initial={initial} initialCounts={counts} musicBooks={[...music]} />;
 }
 
 export default function VerseRangePage({ searchParams }: PageProps<"/memorize/range">) {

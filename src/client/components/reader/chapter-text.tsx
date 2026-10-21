@@ -63,7 +63,7 @@ export function ChapterText({
   /** Whether `?v=` (a verse chosen in the header menu) points into this chapter. */
   arrive?: boolean;
 }) {
-  const { selection, selectionBook, tap } = useReaderSelection();
+  const { selection, tap } = useReaderSelection();
   const player = usePlayer();
   // False on the server and during hydration, true once taps will work (tests wait for this).
   const interactive = useSyncExternalStore(
@@ -108,10 +108,11 @@ export function ChapterText({
       data-interactive={interactive}
     >
       {verses.map((verse) => {
-        const { inRange, edge } = verseMarking(selectionBook === book ? selection : null, verse);
+        const { inRange, edge } = verseMarking(selection, { book, ...verse });
         const sounding =
           player.status === "playing" &&
-          player.currentVerse?.chapter === verse.chapter &&
+          player.currentVerse?.book === book &&
+          player.currentVerse.chapter === verse.chapter &&
           player.currentVerse.verse === verse.verse;
         const onKeyDown = (event: KeyboardEvent) => {
           if (event.key === "Enter" || event.key === " ") {

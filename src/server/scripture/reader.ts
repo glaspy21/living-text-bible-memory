@@ -1,13 +1,13 @@
 import "server-only";
 import { TRANSLATIONS } from "@/shared/scripture/translations";
-import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, TranslationCode, Verse } from "@/shared/scripture/types";
 import { getProvider } from "./index";
 import { ScriptureUnavailableError, type ScriptureProvider } from "./types";
 
-export type ReaderChapter = {
+export type ReaderChapter<V extends Verse = Verse> = {
   /** The translation the verses are actually in (may differ from the one asked for). */
   translation: TranslationCode;
-  verses: Verse[];
+  verses: V[];
   /** Why the text is not in the translation the reader asked for, if so. */
   note: string | null;
 };
@@ -19,12 +19,12 @@ type ProviderFor = (code: TranslationCode) => ScriptureProvider;
  * scope, or its service is down) the WEB is shown with a plain explanation, so a screen is never
  * blank. An unknown book, chapter or passage still throws.
  */
-async function withFallback(
+async function withFallback<V extends Verse>(
   preferred: TranslationCode,
   providerFor: ProviderFor,
-  read: (provider: ScriptureProvider) => Promise<Verse[]>,
+  read: (provider: ScriptureProvider) => Promise<V[]>,
   what: string,
-): Promise<ReaderChapter> {
+): Promise<ReaderChapter<V>> {
   if (preferred !== "WEB") {
     try {
       return { translation: preferred, verses: await read(providerFor(preferred)), note: null };
@@ -61,6 +61,6 @@ export function loadStudyPassage(
   ref: PassageRef,
   preferred: TranslationCode,
   providerFor: ProviderFor = getProvider,
-): Promise<ReaderChapter> {
+): Promise<ReaderChapter<PassageVerse>> {
   return withFallback(preferred, providerFor, (p) => p.getPassage(ref), "passage");
 }

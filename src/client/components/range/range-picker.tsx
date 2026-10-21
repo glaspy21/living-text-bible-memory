@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   BookSelectorPanel,
   anchorBelow,
@@ -18,8 +17,9 @@ import {
   tapRangeVerse,
   type RangeState,
 } from "@/shared/scripture/range-selection";
-import { formatReference } from "@/shared/scripture/refs";
-import type { PassageRef } from "@/shared/scripture/types";
+import { adjacentChapter, bookBySlug } from "@/shared/scripture/books";
+import { formatReference, splitByBook } from "@/shared/scripture/refs";
+import type { BookVerseRef, PassageRef } from "@/shared/scripture/types";
 
 const HINTS = {
   first: "Now tap the closing verse.",
@@ -28,28 +28,48 @@ const HINTS = {
   none: "Tap a start verse, then an end verse. Tap Start or End below to change either one.",
 } as const;
 
+/** "3:16", or with the book's name when the range runs across books. */
+const endpointLabel = (at: BookVerseRef, sameBook: boolean) =>
+  `${sameBook ? "" : `${bookBySlug(at.book)?.name ?? at.book} `}${at.chapter}:${at.verse}`;
+
 const chip = "rounded-full border px-3.5 py-1.5 text-[13px] transition-colors";
 
+const stripBook = ({ chapter, verse }: BookVerseRef) => ({ chapter, verse });
+
+/** A range as a passage; it ends in another book only when it really runs into one. */
+function passageOf({ start, end }: { start: BookVerseRef; end: BookVerseRef }): PassageRef {
+  return {
+    book: start.book,
+    start: stripBook(start),
+    end: stripBook(end),
+    ...(end.book !== start.book && { endBook: end.book }),
+  };
+}
+
 /**
- * Pick a passage: any run of verses in one book, with no length limit and free to cross
- * chapters. Reusable: it reads and writes the passage as `?p=`, so any screen can send people
- * here and take them back.
+ * Pick a passage: any run of verses with no length limit, free to cross chapters and books.
+ * Reusable: it reads and writes the passage as `?p=`, so any screen can send people here and take
+ * them back. Browsing to another book keeps the selection, so a range can start in one book and
+ * end in a later one.
  */
 export function RangePicker({
-  book,
-  counts,
   initial,
+  initialCounts,
   musicBooks,
 }: {
-  book: { slug: string; name: string; chapterCount: number };
-  /** Verses in each chapter; chapter n is `counts[n - 1]`. */
-  counts: readonly number[];
   initial: PassageRef;
+  /** Verses in each chapter of the books already known (chapter n is `counts[n - 1]`). */
+  initialCounts: Readonly<Record<string, readonly number[]>>;
   musicBooks: readonly string[];
 }) {
-  const router = useRouter();
-  const [range, setRange] = useState<RangeState>(startRange(initial.start, initial.end));
-  const [view, setView] = useState(initial.start.chapter);
+  const [range, setRange] = useState<RangeState>(
+    startRange(
+      { book: initial.book, ...initial.start },
+      { book: initial.endBook ?? initial.book, ...initial.end },
+    ),
+  );
+  const [view, setView] = useState({ book: initial.book, chapter: initial.start.chapter });
+  const [counts, setCounts] = useState<Record<string, readonly number[]>>({ ...initialCounts });
   const [anchor, setAnchor] = useState<PanelAnchor | null>(null);
   const dropdown = useRef<HTMLButtonElement>(null);
   // False on the server and during hydration, true once taps work (tests wait for this).
@@ -59,15 +79,27 @@ export function RangePicker({
     () => false,
   );
 
-  const passage: PassageRef = { book: book.slug, start: range.start, end: range.end };
+  const book = bookBySlug(view.book)!;
+  const passage = passageOf(range);
+
+  // Verse counts for the book on show and every book the range touches, loaded as needed.
+  const needed = [view.book, ...splitByBook(passage).map((part) => part.book)].filter(
+    (slug, i, all) => all.indexOf(slug) === i,
+  );
+  const missing = needed.filter((slug) => counts[slug] === undefined).join(",");
+  useEffect(() => {
+    for (const slug of missing.split(",").filter(Boolean)) {
+      fetch(`/api/scripture/verse-counts?book=${encodeURIComponent(slug)}`)
+        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("failed"))))
+        .then((body: { counts: number[] }) => setCounts((c) => ({ ...c, [slug]: body.counts })))
+        .catch(() => setCounts((c) => ({ ...c, [slug]: [] })));
+    }
+  }, [missing]);
 
   const update = (next: RangeState) => {
     setRange(next);
     const url = new URL(window.location.href);
-    url.searchParams.set(
-      "p",
-      formatPassageParam({ book: book.slug, start: next.start, end: next.end }),
-    );
+    url.searchParams.set("p", formatPassageParam(passageOf(next)));
     window.history.replaceState(window.history.state, "", url);
   };
 
@@ -76,21 +108,18 @@ export function RangePicker({
     if (rect) setAnchor(anchorBelow(rect, rect.bottom + 6, window.innerWidth, "left"));
   };
 
-  const chooseChapter = (chosen: { slug: string }, chapter: number) => {
-    if (chosen.slug === book.slug) return setView(chapter);
-    // A different book starts a fresh selection there.
-    router.replace(
-      withPassage("/memorize/range", {
-        book: chosen.slug,
-        start: { chapter, verse: 1 },
-        end: { chapter, verse: 1 },
-      }),
-    );
+  const chooseChapter = (chosen: { slug: string }, chapter: number) =>
+    setView({ book: chosen.slug, chapter });
+  const step = (direction: 1 | -1) => {
+    const next = adjacentChapter(view.book, view.chapter, direction);
+    if (next) setView({ book: next.book.slug, chapter: next.chapter });
   };
+  const hasPrev = adjacentChapter(view.book, view.chapter, -1) !== null;
+  const hasNext = adjacentChapter(view.book, view.chapter, 1) !== null;
 
-  const verses = counts[view - 1] ?? 0;
+  const verses = counts[view.book]?.[view.chapter - 1] ?? 0;
   const hint = HINTS[range.picking ?? "none"];
-  const total = rangeLength(range, counts);
+  const total = rangeLength(range, (slug) => counts[slug]);
 
   return (
     <div data-testid="range-picker" data-interactive={interactive}>
@@ -103,7 +132,7 @@ export function RangePicker({
           className="flex w-full items-center justify-between rounded-[9px] border border-gold bg-[#0b0b0b] px-4 py-3 font-serif text-[21px]"
         >
           <span>
-            {book.name} {view}
+            {book.name} {view.chapter}
           </span>
           <small className="text-gold" aria-hidden="true">
             ▾
@@ -112,8 +141,8 @@ export function RangePicker({
         <button
           type="button"
           aria-label="Previous chapter"
-          disabled={view <= 1}
-          onClick={() => setView(view - 1)}
+          disabled={!hasPrev}
+          onClick={() => step(-1)}
           className="grid h-[52px] w-[52px] flex-none place-items-center rounded-[9px] border border-line text-gold disabled:opacity-30"
         >
           ‹
@@ -121,8 +150,8 @@ export function RangePicker({
         <button
           type="button"
           aria-label="Next chapter"
-          disabled={view >= book.chapterCount}
-          onClick={() => setView(view + 1)}
+          disabled={!hasNext}
+          onClick={() => step(1)}
           className="grid h-[52px] w-[52px] flex-none place-items-center rounded-[9px] border border-line text-gold disabled:opacity-30"
         >
           ›
@@ -132,10 +161,10 @@ export function RangePicker({
       <div
         className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(54px,1fr))] gap-[9px] max-[520px]:grid-cols-5"
         role="group"
-        aria-label={`${book.name} ${view} verses`}
+        aria-label={`${book.name} ${view.chapter} verses`}
       >
         {Array.from({ length: verses }, (_, i) => i + 1).map((verse) => {
-          const mark = markVerse(range, { chapter: view, verse });
+          const mark = markVerse(range, { book: view.book, chapter: view.chapter, verse });
           return (
             <button
               key={verse}
@@ -143,7 +172,9 @@ export function RangePicker({
               aria-label={`Verse ${verse}`}
               aria-pressed={mark !== "none"}
               data-mark={mark}
-              onClick={() => update(tapRangeVerse(range, { chapter: view, verse }))}
+              onClick={() =>
+                update(tapRangeVerse(range, { book: view.book, chapter: view.chapter, verse }))
+              }
               className={cn(
                 "h-12 rounded-lg border font-serif text-xl",
                 mark === "endpoint" &&
@@ -177,7 +208,8 @@ export function RangePicker({
                   : "border-line text-muted hover:border-gold",
               )}
             >
-              {which === "start" ? "Start" : "End"}: {range[which].chapter}:{range[which].verse}
+              {which === "start" ? "Start" : "End"}:{" "}
+              {endpointLabel(range[which], range.start.book === range.end.book)}
             </button>
           ))}
         </div>
@@ -197,8 +229,8 @@ export function RangePicker({
         <BookSelectorPanel
           anchor={anchor}
           attached={false}
-          currentBook={book.slug}
-          currentChapter={view}
+          currentBook={view.book}
+          currentChapter={view.chapter}
           musicBooks={new Set(musicBooks)}
           onClose={() => {
             setAnchor(null);

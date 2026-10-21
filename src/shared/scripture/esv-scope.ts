@@ -1,4 +1,4 @@
-import { compareRefs } from "./refs";
+import { compareRefs, splitByBook } from "./refs";
 import type { PassageRef, VerseRef } from "./types";
 
 /**
@@ -16,9 +16,14 @@ export function isWithinEsvScope(
   ref: PassageRef,
   scope: readonly EsvScopeRange[] = ESV_SCOPE,
 ): boolean {
-  return scope.some(
-    (r) =>
-      r.book === ref.book && compareRefs(ref.start, r.from) >= 0 && compareRefs(ref.end, r.to) <= 0,
+  // Across books, every book's share of the passage must be inside a permitted range.
+  return splitByBook(ref).every((part) =>
+    scope.some(
+      (r) =>
+        r.book === part.book &&
+        compareRefs(part.start, r.from) >= 0 &&
+        compareRefs(part.end, r.to) <= 0,
+    ),
   );
 }
 

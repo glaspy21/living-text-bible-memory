@@ -1,5 +1,6 @@
 import "server-only";
-import { bookBySlug } from "@/shared/scripture/books";
+import { BOOKS, bookBySlug } from "@/shared/scripture/books";
+import { splitByBook } from "@/shared/scripture/refs";
 import type { PlayableRecording } from "@/shared/audio/playlist";
 import type { PassageRef } from "@/shared/scripture/types";
 import type { PrismaClient } from "@/server/db/generated/client";
@@ -19,20 +20,31 @@ export type PlayableSet = {
 export function createPlayback(client: Pick<PrismaClient, "recording">) {
   return {
     async playableFor(passage: PassageRef): Promise<PlayableSet> {
-      const book = bookBySlug(passage.book);
-      if (!book) return { recordings: [], genres: [] };
+      // One condition per book the passage touches (the middle books of a long range whole).
+      const touching = splitByBook(passage).flatMap((part) => {
+        const book = bookBySlug(part.book);
+        return book
+          ? [
+              {
+                bookId: book.id,
+                chapter: { lte: part.end.chapter },
+                endChapter: { gte: part.start.chapter },
+              },
+            ]
+          : [];
+      });
+      if (touching.length === 0) return { recordings: [], genres: [] };
 
       const rows = await client.recording.findMany({
         where: {
           status: "PUBLISHED",
           publishedTimingId: { not: null },
-          bookId: book.id,
-          chapter: { lte: passage.end.chapter },
-          endChapter: { gte: passage.start.chapter },
+          OR: touching,
         },
         orderBy: [{ arrangementNo: "asc" }, { createdAt: "asc" }],
         select: {
           id: true,
+          bookId: true,
           arrangementNo: true,
           genre: { select: { slug: true, name: true } },
           originalAsset: { select: { id: true, durationMs: true } },
@@ -51,6 +63,7 @@ export function createPlayback(client: Pick<PrismaClient, "recording">) {
         const audio = r.publishedTiming?.audioAsset ?? r.originalAsset;
         return {
           id: r.id,
+          book: BOOKS.find((b) => b.id === r.bookId)?.slug ?? "",
           assetId: audio.id,
           genreSlug: r.genre.slug,
           arrangementNo: r.arrangementNo,

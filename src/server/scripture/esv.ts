@@ -1,7 +1,7 @@
 import "server-only";
 import { bookBySlug } from "@/shared/scripture/books";
 import { chapterPassage, isWithinEsvScope } from "@/shared/scripture/esv-scope";
-import type { PassageRef, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, Verse } from "@/shared/scripture/types";
 import { TtlCache } from "./cache";
 import { parseEsvText } from "./esv-text";
 import { passageFromChapters } from "./passage";
@@ -93,7 +93,7 @@ export class EsvProvider implements ScriptureProvider {
     return verses;
   }
 
-  getPassage(ref: PassageRef): Promise<Verse[]> {
+  getPassage(ref: PassageRef): Promise<PassageVerse[]> {
     return passageFromChapters(ref, (b, c) => this.getChapter(b, c));
   }
 

@@ -1,6 +1,6 @@
 import { playableFor } from "@/server/library";
 import { bookVerseCounts } from "@/server/scripture";
-import { expandPassage } from "@/shared/scripture/refs";
+import { expandPassageAcrossBooks, splitByBook } from "@/shared/scripture/refs";
 import { parsePassageParam } from "@/shared/scripture/passage-param";
 
 /**
@@ -12,9 +12,14 @@ export async function GET(request: Request) {
   const passage = parsePassageParam(new URL(request.url).searchParams.get("p"));
   if (!passage) return Response.json({ error: "Not a valid passage" }, { status: 400 });
 
-  const [counts, music] = await Promise.all([bookVerseCounts(passage.book), playableFor(passage)]);
+  const slugs = splitByBook(passage).map((part) => part.book);
+  const [countList, music] = await Promise.all([
+    Promise.all(slugs.map((slug) => bookVerseCounts(slug))),
+    playableFor(passage),
+  ]);
+  const counts = new Map(slugs.map((slug, i) => [slug, countList[i]]));
   return Response.json(
-    { passage, verses: expandPassage(passage, counts), ...music },
+    { passage, verses: expandPassageAcrossBooks(passage, (b) => counts.get(b) ?? []), ...music },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

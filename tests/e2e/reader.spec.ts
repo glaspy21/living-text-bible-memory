@@ -99,6 +99,37 @@ test.describe("choosing verses", () => {
     await expect(page.locator('[data-verse="5"]')).toHaveAttribute("aria-pressed", "true");
   });
 
+  test("a range can run from the end of one book into the next", async ({ page }) => {
+    await openReader(page, "/read/luke/24");
+    await page.locator('[data-book="luke"] [data-verse="50"]').click();
+    await expect(page.getByRole("link", { name: /^Memorize Luke 24:50$/ })).toBeVisible();
+    // Reading on past Luke's last verse brings John 1 in below.
+    await page.getByRole("main").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    const john3 = page.locator('[data-book="john"][data-chapter="1"] [data-verse="3"]');
+    await expect(john3).toBeAttached();
+    await john3.scrollIntoViewIfNeeded();
+    await john3.click();
+    await expect(
+      page.getByRole("link", { name: /^Memorize Luke 24:50–John 1:3$/ }),
+    ).toHaveAttribute("href", "/memorize?p=luke+24%3A50-john+1%3A3");
+    await expect(page).toHaveURL(/p=luke\+24%3A50-john\+1%3A3/);
+    // Verses of both books are marked; the end of Luke and the start of John are inside it.
+    await expect(page.locator('[data-book="luke"] [data-verse="53"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(
+      page.locator('[data-book="john"][data-chapter="1"] [data-verse="2"]'),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator('[data-book="john"][data-chapter="1"] [data-verse="4"]'),
+    ).toHaveAttribute("aria-pressed", "false");
+    // Memorize shows all seven verses, in order.
+    await page.goto("/memorize/steps?p=luke+24%3A50-john+1%3A3");
+    await streamed(page);
+    await expect(page.locator("[aria-label^='Verse ']")).toHaveCount(7);
+  });
+
   test("the keyboard can select verses", async ({ page }) => {
     await openReader(page, "/read/john/1");
     await page.locator('[data-verse="2"]').focus();
@@ -128,27 +159,29 @@ test.describe("choosing verses", () => {
 });
 
 test.describe("moving between chapters", () => {
-  test("Prev and Next move through chapters and across books", async ({ page }) => {
+  test("The triangles move through chapters and across books", async ({ page }) => {
     await openReader(page, "/read/john/1");
-    await page.getByRole("link", { name: "Next ›" }).click();
+    await page.getByRole("link", { name: "Next chapter" }).click();
     await expect(page).toHaveURL(/\/read\/john\/2$/);
 
     await page.goto("/read/john/21");
 
     await streamed(page);
-    await page.getByRole("link", { name: "Next ›" }).click();
+    await page.getByRole("link", { name: "Next chapter" }).click();
     await expect(page).toHaveURL(/\/read\/acts\/1$/);
-    await page.getByRole("link", { name: "‹ Prev" }).click();
+    await page.getByRole("link", { name: "Previous chapter" }).click();
     await expect(page).toHaveURL(/\/read\/john\/21$/);
   });
 
-  test("there is no Prev at Genesis 1 and no Next at Revelation 22", async ({ page }) => {
+  test("there is no left triangle at Genesis 1 and no right triangle at Revelation 22", async ({
+    page,
+  }) => {
     await page.goto("/read/genesis/1");
     await streamed(page);
-    await expect(page.getByRole("link", { name: "‹ Prev" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Previous chapter" })).toHaveCount(0);
     await page.goto("/read/revelation/22");
     await streamed(page);
-    await expect(page.getByRole("link", { name: "Next ›" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Next chapter" })).toHaveCount(0);
   });
 });
 

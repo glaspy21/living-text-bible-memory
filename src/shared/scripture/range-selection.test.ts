@@ -8,7 +8,7 @@ import {
   type RangeState,
 } from "./range-selection";
 
-const v = (verse: number, chapter = 1) => ({ chapter, verse });
+const v = (verse: number, chapter = 1) => ({ book: "john", chapter, verse });
 const state = (a: number, b: number, picking: RangeState["picking"] = null): RangeState => ({
   start: v(a),
   end: v(b),
@@ -116,5 +116,17 @@ describe("rangeLength", () => {
   it("counts verses across chapters", () => {
     expect(rangeLength({ start: v(50, 1), end: v(2, 2), picking: null }, counts)).toBe(4);
     expect(rangeLength({ start: v(50, 1), end: v(1, 3), picking: null }, counts)).toBe(2 + 25 + 1);
+  });
+});
+
+describe("rangeLength across books", () => {
+  it("counts the end of one book and the start of the next", () => {
+    const counts = (book: string) => (book === "luke" ? Array(24).fill(53) : [51, 25]);
+    const state: RangeState = {
+      start: { book: "luke", chapter: 24, verse: 50 },
+      end: { book: "john", chapter: 1, verse: 3 },
+      picking: null,
+    };
+    expect(rangeLength(state, counts)).toBe(4 + 3);
   });
 });

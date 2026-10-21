@@ -22,6 +22,7 @@ const seg = (
 ): Segment => ({
   recordingId: `rec-${assetId}`,
   assetId,
+  book: "john",
   chapter,
   verse,
   startMs,

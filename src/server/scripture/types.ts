@@ -1,4 +1,4 @@
-import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, TranslationCode, Verse } from "@/shared/scripture/types";
 
 /** What the reader, steps and flashcards ask of a translation. They never talk to a source directly. */
 export interface ScriptureProvider {
@@ -6,7 +6,7 @@ export interface ScriptureProvider {
   /** Every verse of one chapter, in order. */
   getChapter(book: string, chapter: number): Promise<Verse[]>;
   /** The verses of a passage, which may cross chapters. */
-  getPassage(ref: PassageRef): Promise<Verse[]>;
+  getPassage(ref: PassageRef): Promise<PassageVerse[]>;
   /** The last verse number of a chapter (feeds the verse-range grid). */
   verseCount(book: string, chapter: number): Promise<number>;
 }

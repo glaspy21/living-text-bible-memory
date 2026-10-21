@@ -32,11 +32,11 @@ import {
   type Status,
 } from "@/shared/audio/player-machine";
 import { formatPassageParam } from "@/shared/scripture/passage-param";
-import type { PassageRef, VerseRef } from "@/shared/scripture/types";
+import type { PassageRef, BookVerseRef } from "@/shared/scripture/types";
 import { DEFAULT_END_MODES, isEndMode, type PlayerContextKind } from "./end-modes";
 
 type PlaybackData = {
-  verses: VerseRef[];
+  verses: BookVerseRef[];
   recordings: PlayableRecording[];
   genres: { slug: string; name: string }[];
 };
@@ -47,10 +47,10 @@ export type PlayerApi = {
   status: Status;
   error: string | null;
   /** The registered passage's verses (empty when no page has registered one). */
-  verses: readonly VerseRef[];
+  verses: readonly BookVerseRef[];
   /** The current verse's index in `verses`. */
   index: number;
-  currentVerse: VerseRef | null;
+  currentVerse: BookVerseRef | null;
   /** True while the music for the passage is being looked up. */
   loadingMusic: boolean;
   hasMusic: boolean;

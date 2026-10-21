@@ -91,25 +91,35 @@ test.describe("verse range selector", () => {
     await expect(verse(page, 3)).toHaveAttribute("data-mark", "none"); // chapter 4's grid
   });
 
-  test("choosing another book starts a fresh selection there", async ({ page }) => {
-    await openRange(page, "?p=john+1%3A3-7");
-    await page.getByRole("button", { name: "John 1", exact: true }).click();
+  test("browsing to another book keeps the selection, and a range can run into it", async ({
+    page,
+  }) => {
+    await openRange(page, "?p=luke+24%3A50");
+    await page.getByRole("button", { name: "End: 24:50" }).click();
+    await page.getByRole("button", { name: "Luke 24", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Choose a book and chapter" });
-    await dialog.getByRole("button", { name: /^Psalms/ }).click();
-    await dialog.getByRole("button", { name: "23", exact: true }).click();
-    await expect(page).toHaveURL(/p=psalms\+23%3A1/);
-    await expect(page.getByRole("button", { name: "Psalms 23", exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("group", { name: "Psalms 23 verses" }).getByRole("button"),
-    ).toHaveCount(6);
+    await dialog.getByRole("button", { name: /^John/ }).click();
+    await dialog.getByRole("button", { name: "1", exact: true }).click();
+    await expect(page.getByRole("button", { name: "John 1", exact: true })).toBeVisible();
+    await verse(page, 3).click();
+    await expect(summary(page)).toHaveText("Luke 24:50–John 1:3 · 7 verses");
+    await expect(page).toHaveURL(/p=luke\+24%3A50-john\+1%3A3/);
+    await expect(page.getByRole("button", { name: "End: John 1:3" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Memorize Luke 24:50–John 1:3" })).toHaveAttribute(
+      "href",
+      "/memorize?p=luke+24%3A50-john+1%3A3",
+    );
   });
 
-  test("the chapter arrows stop at the ends of the book", async ({ page }) => {
+  test("the chapter arrows run on across books and stop at the ends of the Bible", async ({
+    page,
+  }) => {
     await openRange(page, "?p=ruth+1%3A1");
-    await expect(page.getByRole("button", { name: "Previous chapter" })).toBeDisabled();
+    await page.getByRole("button", { name: "Next chapter" }).click();
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next chapter" }).click();
-    await expect(page.getByRole("button", { name: "Ruth 4", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Next chapter" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "1 Samuel 1", exact: true })).toBeVisible();
+    await openRange(page, "?p=genesis+1%3A1");
+    await expect(page.getByRole("button", { name: "Previous chapter" })).toBeDisabled();
   });
 
   test("Memorize carries the passage on", async ({ page }) => {

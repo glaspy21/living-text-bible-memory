@@ -1,6 +1,6 @@
 import "server-only";
 import { bookBySlug } from "@/shared/scripture/books";
-import type { PassageRef, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, Verse } from "@/shared/scripture/types";
 import { passageFromChapters } from "./passage";
 import { ScriptureUnavailableError, type ScriptureProvider } from "./types";
 
@@ -38,7 +38,7 @@ export class WebProvider implements ScriptureProvider {
     return stored.map(([verse, text]) => ({ chapter, verse, text }));
   }
 
-  getPassage(ref: PassageRef): Promise<Verse[]> {
+  getPassage(ref: PassageRef): Promise<PassageVerse[]> {
     return passageFromChapters(ref, (b, c) => this.getChapter(b, c));
   }
 

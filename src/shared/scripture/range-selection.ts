@@ -1,11 +1,11 @@
-import { compareRefs } from "./refs";
-import type { VerseRef } from "./types";
+import { compareBookRefs as compareRefs, splitByBook } from "./refs";
+import type { BookVerseRef as VerseRef } from "./types";
 
 /**
  * The verse-range selector's state. Tapping works like this:
  * - Tap a verse: it becomes a one-verse selection and the selector waits for a closing verse (`first`).
  * - Tap another: the range runs between the two, whichever comes first (the endpoints may be in
- *   different chapters).
+ *   different chapters, or different books).
  * - Tap Start or End first, and the next tap moves only that endpoint (the other is dragged along
  *   if the move would cross it).
  * There is no length limit.
@@ -62,11 +62,31 @@ export function markVerse(state: RangeState, verse: VerseRef): VerseMark {
     : "none";
 }
 
-/** Number of verses in the range, given each chapter's verse count (chapter n is `counts[n - 1]`). */
-export function rangeLength(state: RangeState, counts: readonly number[]): number {
-  const { start, end } = state;
-  if (start.chapter === end.chapter) return end.verse - start.verse + 1;
-  let total = (counts[start.chapter - 1] ?? 0) - start.verse + 1;
-  for (let c = start.chapter + 1; c < end.chapter; c++) total += counts[c - 1] ?? 0;
-  return total + end.verse;
+/**
+ * Number of verses in the range, given each chapter's verse count (chapter n is `counts[n - 1]`),
+ * either for one book or, across books, per book (a book whose counts aren't known counts as empty).
+ */
+export function rangeLength(
+  state: RangeState,
+  counts: readonly number[] | ((book: string) => readonly number[] | undefined),
+): number {
+  const countsOf = typeof counts === "function" ? counts : () => counts;
+  let total = 0;
+  for (const part of splitByBook({
+    book: state.start.book,
+    endBook: state.end.book,
+    start: state.start,
+    end: state.end,
+  })) {
+    const known = countsOf(part.book) ?? [];
+    for (let c = part.start.chapter; c <= part.end.chapter; c++) {
+      const first = c === part.start.chapter ? part.start.verse : 1;
+      const last =
+        c === part.end.chapter
+          ? Math.min(part.end.verse, known[c - 1] ?? part.end.verse)
+          : (known[c - 1] ?? 0);
+      total += Math.max(0, last - first + 1);
+    }
+  }
+  return total;
 }

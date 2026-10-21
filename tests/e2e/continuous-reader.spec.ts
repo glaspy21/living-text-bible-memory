@@ -151,21 +151,44 @@ test.describe("continuous scrolling", () => {
     ).toBeAttached();
   });
 
-  test("tapping verses in another book selects there, and never across books", async ({ page }) => {
+  test("a chapter scrolled on to has the same triangles on its title line", async ({ page }) => {
+    await openReader(page, "/read/john/1");
+    await scrollToEnd(page);
+    const section = page.locator('[data-book="john"][data-chapter="2"]');
+    await expect(section).toBeAttached();
+    await expect(section.getByRole("link", { name: "Previous chapter" })).toHaveAttribute(
+      "href",
+      "/read/john/1",
+    );
+    await expect(section.getByRole("link", { name: "Next chapter" })).toHaveAttribute(
+      "href",
+      "/read/john/3",
+    );
+  });
+
+  test("tapping verses in two books selects a range across them", async ({ page }) => {
     await openReader(page, "/read/obadiah/1");
     await scrollToEnd(page);
     await expect(page.locator('[data-book="jonah"][data-chapter="1"]')).toBeAttached();
     await page.locator('[data-book="obadiah"] [data-verse="2"]').click();
     await page.locator('[data-book="jonah"] [data-verse="3"]').click();
-    // A tap in a different book starts a new selection rather than joining the first.
-    await expect(page).toHaveURL(/p=jonah/);
-    await expect(page.locator('[data-book="obadiah"] [data-verse="2"]')).not.toHaveAttribute(
+    await expect(page).toHaveURL(/p=obadiah\+1%3A2-jonah\+1%3A3/);
+    // Only the two outer verses carry the gold edge; the verses between are tinted.
+    await expect(page.locator('[data-book="obadiah"] [data-verse="2"]')).toHaveAttribute(
       "data-edge",
       "true",
     );
     await expect(page.locator('[data-book="jonah"] [data-verse="3"]')).toHaveAttribute(
       "data-edge",
       "true",
+    );
+    await expect(page.locator('[data-book="obadiah"] [data-verse="10"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.locator('[data-book="jonah"] [data-verse="4"]')).toHaveAttribute(
+      "aria-pressed",
+      "false",
     );
   });
 

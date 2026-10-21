@@ -22,8 +22,9 @@ import {
   type StepId,
 } from "@/shared/memorize/steps";
 import { formatPassageParam, withPassage } from "@/shared/scripture/passage-param";
+import { bookBySlug } from "@/shared/scripture/books";
 import { formatReference } from "@/shared/scripture/refs";
-import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
+import type { PassageRef, PassageVerse, TranslationCode } from "@/shared/scripture/types";
 
 const card = "rounded-[10px] border border-line bg-[rgba(18,18,18,.7)] p-[18px]";
 const cardLabel = "text-[11px] tracking-[.14em] text-muted uppercase";
@@ -58,7 +59,7 @@ export function StepsView({
   initialStep,
 }: {
   passage: PassageRef;
-  verses: Verse[];
+  verses: PassageVerse[];
   translation: TranslationCode;
   note: string | null;
   initialStep: StepId;
@@ -76,7 +77,9 @@ export function StepsView({
     setSeenPlayerIndex(player.index);
     const sung = player.currentVerse;
     const at = sung
-      ? verses.findIndex((v) => v.chapter === sung.chapter && v.verse === sung.verse)
+      ? verses.findIndex(
+          (v) => v.book === sung.book && v.chapter === sung.chapter && v.verse === sung.verse,
+        )
       : -1;
     if (player.hasMusic && at >= 0) setFocus(at);
   }
@@ -109,7 +112,7 @@ export function StepsView({
     setRevealed(false);
     const wanted = verses[index];
     const at = player.verses.findIndex(
-      (v) => v.chapter === wanted.chapter && v.verse === wanted.verse,
+      (v) => v.book === wanted.book && v.chapter === wanted.chapter && v.verse === wanted.verse,
     );
     if (at >= 0) player.seekVerse(at);
   };
@@ -147,12 +150,17 @@ export function StepsView({
             </button>
             <div className="flex items-center gap-4">
               <span className="text-muted max-[520px]:hidden" data-testid="focus-label">
-                {focusLabel(
-                  mode,
-                  focused?.verse ?? 0,
-                  verses[0].verse,
-                  verses[verses.length - 1].verse,
-                )}
+                {passage.endBook && mode !== "whole" && focused
+                  ? // Verse numbers alone are ambiguous across books, so name the verse.
+                    `${bookBySlug(focused.book)?.name ?? focused.book} ${focused.chapter}:${focused.verse}${
+                      mode === "multi" ? " · click a verse to move focus" : ""
+                    }`
+                  : focusLabel(
+                      mode,
+                      focused?.verse ?? 0,
+                      verses[0].verse,
+                      verses[verses.length - 1].verse,
+                    )}
               </span>
               <Link
                 href={withPassage("/memorize/flashcards", passage)}
@@ -185,7 +193,7 @@ export function StepsView({
               const showText = !hidden || (revealed && (mode === "whole" || i === focus));
               return (
                 <div
-                  key={`${verse.chapter}:${verse.verse}`}
+                  key={`${verse.book}:${verse.chapter}:${verse.verse}`}
                   role="button"
                   tabIndex={vis === "gone" ? -1 : 0}
                   aria-label={`Verse ${verse.verse}`}

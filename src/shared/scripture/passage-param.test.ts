@@ -57,7 +57,7 @@ describe("passage param", () => {
   });
 });
 
-const v = (verse: number, chapter = 1) => ({ chapter, verse });
+const v = (verse: number, chapter = 1) => ({ book: "john", chapter, verse });
 
 describe("tapVerse", () => {
   it("selects one verse on the first tap", () => {
