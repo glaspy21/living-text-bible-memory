@@ -180,3 +180,10 @@
 - Audio still starts only on Play (flip, next, back, shuffle and restart never start it). Tests: deck rules (unit) and browser tests on desktop and phone (off by default, sequence, on keeps card and covers every card, real randomness, off keeps card, Restart in both modes, layout order).
 - Layout change (owner): Restart and Shuffle now sit on one centred line beneath the cards, **Restart on the left**, spaced apart. Restart has the same gold outline as a lit Shuffle but only lights up (fill and glow) while pressed; Shuffle stays lit while on.
 
+## 2026-10-21 — Header navigation down to the verse (branch `m8b-verse-navigation`, off `m12b-flashcard-shuffle`)
+- Owner request. The header's centre button now always shows Scripture navigation: the chapter in the reader, the passage on Memorize/Steps/Flashcards/Range, and elsewhere the last chapter read on this device (John 1 on a first visit). "Home", "Memorize", "Flashcards" and "Verse range" no longer appear there. (Phone Home keeps its header without the button, as in the mockups.)
+- The selector: books → chapters as before; picking a chapter puts its number beside the book title (and in the header button) and swaps the chapter numbers for that chapter's verse numbers in the same window. Pick a verse to open the reader there: scrolled into view and marked briefly (no animation under reduced motion). Each step has a centred title ("Chapter", then "Verse"); "← Chapters" goes back; verse 1 opens the chapter from its start (no separate Read chapter button); Escape or the backdrop closes and drops the unopened pick.
+- Chapter cells in the header selector are now buttons (they were links); the range selector's use of the panel is unchanged.
+- Tests: header-label rules (unit); browser tests for the whole flow on desktop and phone, back, close, read chapter, and the header on every screen.
+- Open: `?v=` scrolls once per arrival; picking the same verse again while already there does not re-scroll. Memorize screens link to the reader's chapter only (not a verse) for now.
+

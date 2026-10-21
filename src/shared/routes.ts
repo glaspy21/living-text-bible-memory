@@ -1,5 +1,5 @@
 /**
- * Route table for the app shell: the header title and active nav item per screen.
+ * Route table for the app shell: the active nav item per screen (the header always shows Scripture navigation, see header-reference.ts).
  * Pages declare their own layout (right panel, player) by what they render.
  */
 
@@ -24,8 +24,6 @@ export const ADMIN_NAV: readonly NavItem[] = [
 
 export type ListenerScreen = {
   id: "home" | "read" | "choice" | "steps" | "cards" | "range" | "other";
-  /** Text in the header's reference button. */
-  title: string;
   /** Sidebar item to highlight, or null. */
   nav: string | null;
 };
@@ -46,15 +44,13 @@ export function readerTitle(pathname: string): string {
 
 export function listenerScreen(pathname: string): ListenerScreen {
   const path = pathname.replace(/\/+$/, "") || "/";
-  if (path === "/") return { id: "home", title: "Home", nav: "/" };
-  if (path === "/read" || path.startsWith("/read/"))
-    return { id: "read", title: readerTitle(path), nav: "/read" };
-  if (path === "/memorize") return { id: "choice", title: "Memorize", nav: "/memorize" };
-  if (path === "/memorize/steps") return { id: "steps", title: "Memorize", nav: "/memorize" };
-  if (path === "/memorize/flashcards")
-    return { id: "cards", title: "Flashcards", nav: "/memorize/flashcards" };
-  if (path === "/memorize/range") return { id: "range", title: "Verse range", nav: "/memorize" };
-  return { id: "other", title: "Living Text", nav: null };
+  if (path === "/") return { id: "home", nav: "/" };
+  if (path === "/read" || path.startsWith("/read/")) return { id: "read", nav: "/read" };
+  if (path === "/memorize") return { id: "choice", nav: "/memorize" };
+  if (path === "/memorize/steps") return { id: "steps", nav: "/memorize" };
+  if (path === "/memorize/flashcards") return { id: "cards", nav: "/memorize/flashcards" };
+  if (path === "/memorize/range") return { id: "range", nav: "/memorize" };
+  return { id: "other", nav: null };
 }
 
 /** The admin nav item a path belongs to (longest matching prefix). */

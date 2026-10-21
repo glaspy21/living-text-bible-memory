@@ -42,6 +42,10 @@ function BookRow({
   onToggle,
   onChoose,
   onSelect,
+  pickedChapter,
+  verseCount,
+  versesFailed,
+  onBack,
 }: {
   book: BookInfo;
   expanded: boolean;
@@ -51,7 +55,14 @@ function BookRow({
   onToggle: () => void;
   onChoose: () => void;
   onSelect?: (book: BookInfo, chapter: number) => void;
+  /** The chapter chosen in this book: its number joins the title and the verses replace the chapters. */
+  pickedChapter?: number | null;
+  /** Verses in the picked chapter; undefined while loading. */
+  verseCount?: number;
+  versesFailed?: boolean;
+  onBack?: () => void;
 }) {
+  const chapterHref = `/read/${book.slug}/${pickedChapter}`; // verse links add ?v=
   return (
     <div>
       <button
@@ -63,7 +74,15 @@ function BookRow({
           current || expanded ? "text-gold2" : "text-muted",
         )}
       >
-        <span>{book.name}</span>
+        <span>
+          {book.name}
+          {pickedChapter ? (
+            <>
+              {" "}
+              <span className="ml-1 text-gold-bright">{pickedChapter}</span>
+            </>
+          ) : null}
+        </span>
         {hasMusic && (
           <span
             className="inline-block h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]"
@@ -72,45 +91,90 @@ function BookRow({
           />
         )}
       </button>
-      {expanded && (
-        <div
-          className="grid grid-cols-[repeat(auto-fill,minmax(46px,1fr))] gap-2 pt-1.5 pb-3"
-          role="group"
-          aria-label={`${book.name} chapters`}
-        >
-          {Array.from({ length: book.chapterCount }, (_, i) => i + 1).map((chapter) => {
-            const isCurrent = current && currentChapter === chapter;
-            const cell = cn(
-              "grid h-10 place-items-center rounded-[7px] border font-serif text-[18px]",
-              isCurrent
-                ? "border-[#e8cb8a] bg-gradient-to-b from-[#e8c97e] to-[#c99c44] text-[#17110a]"
-                : "border-line bg-[#101010] hover:border-gold",
-            );
-            return onSelect ? (
-              <button
-                key={chapter}
-                type="button"
-                onClick={() => onSelect(book, chapter)}
-                aria-current={isCurrent ? "true" : undefined}
-                className={cell}
-              >
-                {chapter}
-              </button>
-            ) : (
-              <Link
-                key={chapter}
-                href={`/read/${book.slug}/${chapter}`}
-                prefetch={false}
-                onClick={onChoose}
-                aria-current={isCurrent ? "page" : undefined}
-                className={cell}
-              >
-                {chapter}
-              </Link>
-            );
-          })}
+      {expanded && pickedChapter ? (
+        <div className="pt-1.5 pb-3" data-testid="verse-step">
+          <div className="mb-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label={`Back to ${book.name} chapters`}
+              className="justify-self-start font-serif text-lg text-gold hover:text-gold2"
+            >
+              ← Chapters
+            </button>
+            <h3 className="font-serif text-lg text-gold">Verse</h3>
+            <span aria-hidden="true" />
+          </div>
+          {verseCount === undefined && !versesFailed && (
+            <p className="text-muted">Loading verses…</p>
+          )}
+          {versesFailed && (
+            <p className="text-muted" role="status">
+              The verses could not be loaded. You can still read the whole chapter.
+            </p>
+          )}
+          {verseCount !== undefined && (
+            <div
+              className="grid grid-cols-[repeat(auto-fill,minmax(46px,1fr))] gap-2"
+              role="group"
+              aria-label={`${book.name} ${pickedChapter} verses`}
+            >
+              {Array.from({ length: verseCount }, (_, i) => i + 1).map((verse) => (
+                <Link
+                  key={verse}
+                  href={`${chapterHref}?v=${verse}`}
+                  prefetch={false}
+                  onClick={onChoose}
+                  className="grid h-10 place-items-center rounded-[7px] border border-line bg-[#101010] font-serif text-[18px] hover:border-gold"
+                >
+                  {verse}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      ) : expanded ? (
+        <div className="pt-1.5 pb-3">
+          <h3 className="mb-2.5 text-center font-serif text-lg text-gold">Chapter</h3>
+          <div
+            className="grid grid-cols-[repeat(auto-fill,minmax(46px,1fr))] gap-2"
+            role="group"
+            aria-label={`${book.name} chapters`}
+          >
+            {Array.from({ length: book.chapterCount }, (_, i) => i + 1).map((chapter) => {
+              const isCurrent = current && currentChapter === chapter;
+              const cell = cn(
+                "grid h-10 place-items-center rounded-[7px] border font-serif text-[18px]",
+                isCurrent
+                  ? "border-[#e8cb8a] bg-gradient-to-b from-[#e8c97e] to-[#c99c44] text-[#17110a]"
+                  : "border-line bg-[#101010] hover:border-gold",
+              );
+              return onSelect ? (
+                <button
+                  key={chapter}
+                  type="button"
+                  onClick={() => onSelect(book, chapter)}
+                  aria-current={isCurrent ? "true" : undefined}
+                  className={cell}
+                >
+                  {chapter}
+                </button>
+              ) : (
+                <Link
+                  key={chapter}
+                  href={`/read/${book.slug}/${chapter}`}
+                  prefetch={false}
+                  onClick={onChoose}
+                  aria-current={isCurrent ? "page" : undefined}
+                  className={cell}
+                >
+                  {chapter}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -126,6 +190,8 @@ export function BookSelectorPanel({
   musicBooks,
   onClose,
   onSelect,
+  withVerses = false,
+  onPreview,
   attached = true,
 }: {
   anchor: PanelAnchor;
@@ -135,6 +201,13 @@ export function BookSelectorPanel({
   onClose: () => void;
   /** Pick a chapter without leaving the page (otherwise chapters are links to the reader). */
   onSelect?: (book: BookInfo, chapter: number) => void;
+  /**
+   * Choosing a chapter opens a verse menu (instead of going straight to the chapter) so a verse
+   * can be reached directly; `onPreview` tells the header which chapter to show beside the book
+   * name while that menu is up, and null when it is gone.
+   */
+  withVerses?: boolean;
+  onPreview?: (picked: { book: string; chapter: number } | null) => void;
   /** Joined to the header above it (square top) rather than floating under a control. */
   attached?: boolean;
 }) {
@@ -144,6 +217,9 @@ export function BookSelectorPanel({
   const listRef = useRef<HTMLDivElement>(null);
   const newStartRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const [picked, setPicked] = useState<{ book: BookInfo; chapter: number } | null>(null);
+  // Verses per chapter, by book; null once a lookup has failed (the chapter can still be opened).
+  const [counts, setCounts] = useState<Record<string, number[] | null>>({});
   const scrollingToTab = useRef(false);
   const unlock = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -176,6 +252,23 @@ export function BookSelectorPanel({
     unlock.current = setTimeout(() => (scrollingToTab.current = false), 600);
   };
 
+  const pick = (book: BookInfo, chapter: number) => {
+    setPicked({ book, chapter });
+    onPreview?.({ book: book.slug, chapter });
+    // The clicked chapter button is about to be replaced; keep the keyboard (Escape) in the panel.
+    dialogRef.current?.focus();
+    if (counts[book.slug] !== undefined) return;
+    fetch(`/api/scripture/verse-counts?book=${encodeURIComponent(book.slug)}`)
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("failed"))))
+      .then((body: { counts: number[] }) => setCounts((c) => ({ ...c, [book.slug]: body.counts })))
+      .catch(() => setCounts((c) => ({ ...c, [book.slug]: null })));
+  };
+  const back = () => {
+    setPicked(null);
+    onPreview?.(null);
+    dialogRef.current?.focus();
+  };
+
   const rows = (books: BookInfo[]) =>
     books.map((book) => (
       <BookRow
@@ -185,14 +278,26 @@ export function BookSelectorPanel({
         current={currentBook === book.slug}
         currentChapter={currentChapter}
         hasMusic={musicBooks.has(book.slug)}
-        onToggle={() => setExpanded((open) => (open === book.slug ? null : book.slug))}
+        onToggle={() => {
+          // Opening another book (or closing this one) drops a chosen chapter.
+          if (picked) back();
+          setExpanded((open) => (open === book.slug ? null : book.slug));
+        }}
+        pickedChapter={picked?.book.slug === book.slug ? picked.chapter : null}
+        verseCount={
+          picked?.book.slug === book.slug ? counts[book.slug]?.[picked.chapter - 1] : undefined
+        }
+        versesFailed={counts[book.slug] === null}
+        onBack={back}
         onChoose={onClose}
         onSelect={
-          onSelect &&
-          ((b, c) => {
-            onSelect(b, c);
-            onClose();
-          })
+          withVerses
+            ? pick
+            : onSelect &&
+              ((b, c) => {
+                onSelect(b, c);
+                onClose();
+              })
         }
       />
     ));
@@ -208,7 +313,7 @@ export function BookSelectorPanel({
       <div
         ref={dialogRef}
         role="dialog"
-        aria-label="Choose a book and chapter"
+        aria-label={withVerses ? "Choose a book, chapter and verse" : "Choose a book and chapter"}
         tabIndex={-1}
         onKeyDown={(event) => event.key === "Escape" && onClose()}
         className={cn(

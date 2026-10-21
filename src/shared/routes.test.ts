@@ -14,10 +14,6 @@ describe("listenerScreen", () => {
     expect(listenerScreen(path)).toMatchObject({ id, nav });
   });
 
-  it("titles the reader with its reference", () => {
-    expect(listenerScreen("/read/psalms/23").title).toBe("Psalms 23");
-  });
-
   it("ignores a trailing slash", () => {
     expect(listenerScreen("/memorize/")).toMatchObject({ id: "choice" });
   });

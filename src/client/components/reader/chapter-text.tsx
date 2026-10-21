@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore, type KeyboardEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useSyncExternalStore, type KeyboardEvent } from "react";
 import { cn } from "@/client/lib/cn";
 import { isSelected } from "@/shared/scripture/selection";
 import type { Verse } from "@/shared/scripture/types";
@@ -22,8 +23,26 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
     () => false,
   );
 
+  // Arriving with ?v=16 (from the header's verse menu) scrolls to that verse and marks it briefly.
+  const goTo = useSearchParams().get("v");
+  const container = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!goTo || !/^\d+$/.test(goTo)) return;
+    const row = container.current?.querySelector<HTMLElement>(`[data-verse="${goTo}"]`);
+    if (!row) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    row.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+    row.setAttribute("data-arrived", "");
+    const timer = setTimeout(() => row.removeAttribute("data-arrived"), 2600);
+    return () => {
+      clearTimeout(timer);
+      row.removeAttribute("data-arrived");
+    };
+  }, [goTo]);
+
   return (
     <div
+      ref={container}
       className="mt-[18px] font-serif text-[22px] leading-[1.6] max-[520px]:mt-1.5 max-[520px]:text-[17.5px] max-[520px]:leading-[1.5]"
       data-testid="chapter-text"
       data-interactive={interactive}
@@ -56,6 +75,7 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
               selected
                 ? "bg-[rgba(201,164,92,.10)] shadow-[inset_2px_0_var(--gold)]"
                 : "hover:bg-[rgba(201,164,92,.05)]",
+              "data-[arrived]:border-gold data-[arrived]:bg-[rgba(201,164,92,.16)]",
               sounding &&
                 "border-gold bg-gradient-to-b from-[rgba(212,168,79,.16)] to-[rgba(212,168,79,.07)] shadow-[0_0_24px_rgba(212,168,79,.12)]",
             )}

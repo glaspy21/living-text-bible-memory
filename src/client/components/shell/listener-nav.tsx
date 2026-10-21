@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
+import { useRecent } from "@/client/lib/recent-store";
+import { headerReference, previewLabel } from "@/shared/scripture/header-reference";
 import { LISTENER_NAV, listenerScreen } from "@/shared/routes";
 import { BookSelectorPanel, anchorBelow, type PanelAnchor } from "./book-selector";
 import { NavLink } from "./side-nav";
@@ -24,20 +26,26 @@ export function ListenerNav() {
 }
 
 /**
- * Header reference button ("John 1 ▾"). Opens the book and chapter selector beneath it.
+ * Header reference button ("John 3 ▾"): always Scripture navigation, never the page name. Opens
+ * the book selector beneath it: books, then chapters, then (once a chapter is chosen, which
+ * appears beside the book name) a verse menu that opens the reader at that verse.
  * `musicBooks` are the slugs of books with published music (a dot beside each).
  */
 export function HeaderReference({ musicBooks = [] }: { musicBooks?: readonly string[] }) {
   const pathname = usePathname();
-  const { title } = listenerScreen(pathname);
+  const passage = useSearchParams().get("p");
+  const lastRead = useRecent()[0] ?? null;
+  const current = headerReference(pathname, passage, lastRead);
   const [openOn, setOpenOn] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<PanelAnchor | null>(null);
+  // The chapter picked in the selector, shown beside the book name until it is opened or dropped.
+  const [preview, setPreview] = useState<{ book: string; chapter: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   // Open only for the page it was opened on, so any navigation closes it.
   const open = openOn === pathname && anchor !== null;
 
   const toggle = () => {
-    if (open) return setOpenOn(null);
+    if (open) return close();
     const control = button.current?.getBoundingClientRect();
     const header = button.current?.closest("header")?.getBoundingClientRect();
     if (!control || !header) return;
@@ -46,12 +54,9 @@ export function HeaderReference({ musicBooks = [] }: { musicBooks?: readonly str
   };
   const close = () => {
     setOpenOn(null);
+    setPreview(null);
     button.current?.focus();
   };
-
-  const [, , slug = null, chapter = null] = pathname.startsWith("/read/")
-    ? pathname.split("/")
-    : [];
 
   return (
     <>
@@ -63,7 +68,7 @@ export function HeaderReference({ musicBooks = [] }: { musicBooks?: readonly str
         onClick={toggle}
         className="shell-ref flex items-center gap-[7px] justify-self-center rounded-md px-4 py-1.5 font-serif text-[21px] tracking-[.03em] text-text hover:bg-[rgba(201,164,92,.08)] max-[520px]:px-2 max-[520px]:py-1 max-[520px]:text-lg"
       >
-        {title}
+        {open && preview ? previewLabel(preview.book, preview.chapter) : current.label}
         <small className="text-[11px] text-gold" aria-hidden="true">
           ▾
         </small>
@@ -71,10 +76,12 @@ export function HeaderReference({ musicBooks = [] }: { musicBooks?: readonly str
       {open && anchor && (
         <BookSelectorPanel
           anchor={anchor}
-          currentBook={slug ? decodeURIComponent(slug) : null}
-          currentChapter={chapter && /^\d+$/.test(chapter) ? Number(chapter) : null}
+          currentBook={current.book}
+          currentChapter={current.chapter}
           musicBooks={new Set(musicBooks)}
           onClose={close}
+          withVerses
+          onPreview={setPreview}
         />
       )}
     </>

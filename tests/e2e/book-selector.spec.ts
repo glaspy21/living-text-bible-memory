@@ -15,11 +15,13 @@ async function openSelector(page: Page, path: string) {
   // Retry the click until the page has hydrated and the button's handler is attached.
   await expect(async () => {
     await page.locator("header button[aria-haspopup='dialog']").click();
-    await expect(page.getByRole("dialog", { name: "Choose a book and chapter" })).toBeVisible({
+    await expect(
+      page.getByRole("dialog", { name: "Choose a book, chapter and verse" }),
+    ).toBeVisible({
       timeout: 1000,
     });
   }).toPass();
-  return page.getByRole("dialog", { name: "Choose a book and chapter" });
+  return page.getByRole("dialog", { name: "Choose a book, chapter and verse" });
 }
 
 test.describe("book and chapter selector", () => {
@@ -62,25 +64,82 @@ test.describe("book and chapter selector", () => {
     );
   });
 
-  test("a book expands to its chapters and choosing one opens it", async ({ page }) => {
+  const headerButton = (page: Page) => page.locator("header button[aria-haspopup='dialog']");
+
+  test("a book expands to its chapters; choosing one shows its verses", async ({ page }) => {
     const dialog = await openSelector(page, "/read/genesis/1");
     await dialog.getByRole("button", { name: "New Testament" }).click();
     await book(dialog, "John").click();
     await expect(
-      dialog.getByRole("group", { name: "John chapters" }).getByRole("link"),
+      dialog.getByRole("group", { name: "John chapters" }).getByRole("button"),
     ).toHaveCount(21);
-    await dialog.getByRole("link", { name: "3", exact: true }).click();
-    await expect(page).toHaveURL(/\/read\/john\/3$/);
+    await dialog.getByRole("button", { name: "3", exact: true }).click();
+
+    // The chapter now sits beside the book title in the same list, and its numbers are replaced by
+    // the verses, in the same window (no second menu).
+    await expect(dialog.getByRole("button", { name: /^John 3$/ })).toBeVisible();
+    await expect(dialog.getByRole("group", { name: "John chapters" })).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(1);
+    await expect(headerButton(page)).toContainText("John 3");
+    await expect(page).toHaveURL(/\/read\/genesis\/1$/); // nothing opened yet
+    const verses = dialog.getByRole("group", { name: "John 3 verses" });
+    await expect(verses.getByRole("link")).toHaveCount(36);
+
+    // A verse goes directly there: the reader opens at it, scrolled into view and marked.
+    await verses.getByRole("link", { name: "16", exact: true }).click();
+    await expect(page).toHaveURL(/\/read\/john\/3\?v=16$/);
     await expect(dialog).toBeHidden();
     await expect(page.getByRole("heading", { name: "John 3", level: 1 })).toBeAttached();
+    const verse16 = page.getByRole("main").locator("[data-verse='16']");
+    await expect(verse16).toBeInViewport();
+    await expect(verse16).toHaveAttribute("data-arrived", "");
+    await expect(headerButton(page)).toContainText("John 3");
+  });
+
+  test("titles the step you are on, and verse 1 opens the chapter from its start", async ({
+    page,
+  }) => {
+    const dialog = await openSelector(page, "/read/genesis/1");
+    await book(dialog, "Ruth").click();
+    await expect(dialog.getByRole("heading", { name: "Chapter", level: 3 })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Verse", level: 3 })).toHaveCount(0);
+
+    await dialog.getByRole("button", { name: "2", exact: true }).click();
+    await expect(dialog.getByRole("heading", { name: "Verse", level: 3 })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Chapter", level: 3 })).toHaveCount(0);
+    await expect(dialog.getByRole("link", { name: "Read chapter" })).toHaveCount(0);
+
+    await dialog.getByRole("link", { name: "1", exact: true }).click();
+    await expect(page).toHaveURL(/\/read\/ruth\/2\?v=1$/);
+    await expect(dialog).toBeHidden();
+  });
+
+  test("going back from the verses returns to the chapters, and closing drops the chapter", async ({
+    page,
+  }) => {
+    const dialog = await openSelector(page, "/read/genesis/1");
+    await book(dialog, "Ruth").click();
+    await dialog.getByRole("button", { name: "3", exact: true }).click();
+    await expect(headerButton(page)).toContainText("Ruth 3");
+
+    await dialog.getByRole("button", { name: /Back to Ruth chapters/ }).click();
+    await expect(headerButton(page)).toContainText("Genesis 1");
+    await expect(dialog.getByRole("group", { name: "Ruth chapters" })).toBeVisible();
+    await expect(book(dialog, "Ruth")).toBeVisible(); // the chapter number left the title
+
+    await dialog.getByRole("button", { name: "4", exact: true }).click();
+    await expect(headerButton(page)).toContainText("Ruth 4");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(headerButton(page)).toContainText("Genesis 1"); // nothing was opened
   });
 
   test("the current chapter is marked", async ({ page }) => {
     const dialog = await openSelector(page, "/read/john/3");
     await book(dialog, "John").click();
-    await expect(dialog.getByRole("link", { name: "3", exact: true })).toHaveAttribute(
+    await expect(dialog.getByRole("button", { name: "3", exact: true })).toHaveAttribute(
       "aria-current",
-      "page",
+      "true",
     );
   });
 
@@ -98,8 +157,12 @@ test.describe("book and chapter selector", () => {
     test.skip(isMobile, "the phone home screen has no reference button");
     const dialog = await openSelector(page, "/");
     await book(dialog, "Psalms").click();
-    await dialog.getByRole("link", { name: "23", exact: true }).click();
-    await expect(page).toHaveURL(/\/read\/psalms\/23$/);
+    await dialog.getByRole("button", { name: "23", exact: true }).click();
+    await dialog
+      .getByRole("group", { name: "Psalms 23 verses" })
+      .getByRole("link", { name: "4", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/read\/psalms\/23\?v=4$/);
   });
 });
 
@@ -133,5 +196,38 @@ test.describe("music dots", () => {
     await page.goto("/read/ruth/3");
     await streamed(page);
     await expect(page.getByText("No recording for this chapter yet")).toBeVisible();
+  });
+});
+
+test.describe("the header always shows Scripture navigation", () => {
+  const header = (page: Page) => page.locator("header button[aria-haspopup='dialog']");
+
+  for (const [path, label] of [
+    ["/", "John 1"],
+    ["/memorize", "John 1"],
+    ["/memorize/flashcards", "John 1"],
+    ["/memorize/steps?p=john+1%3A3-6", "John 1:3–6"],
+    ["/memorize/flashcards?p=john+1%3A3-6", "John 1:3–6"],
+    ["/memorize/range?p=john+1%3A3-6", "John 1:3–6"],
+    ["/read/psalms/23", "Psalms 23"],
+  ] as const) {
+    test(`${path} shows ${label}, never a page name`, async ({ page, isMobile }) => {
+      test.skip(isMobile && path === "/", "the phone home screen has no reference button");
+      await page.goto(path);
+      await streamed(page);
+      await expect(header(page)).toContainText(label);
+      for (const name of ["Home", "Memorize", "Flashcards", "Verse range"]) {
+        await expect(header(page)).not.toHaveText(new RegExp(`^${name}`));
+      }
+    });
+  }
+
+  test("the last chapter read is shown away from the reader", async ({ page, isMobile }) => {
+    test.skip(isMobile, "the phone home screen has no reference button");
+    await page.goto("/read/ruth/2");
+    await streamed(page);
+    await page.goto("/");
+    await streamed(page);
+    await expect(header(page)).toContainText("Ruth 2");
   });
 });
