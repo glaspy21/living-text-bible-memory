@@ -247,9 +247,10 @@ test.describe("the header always shows Scripture navigation", () => {
     ["/", "John 1"],
     ["/memorize", "John 1"],
     ["/memorize/flashcards", "John 1"],
-    ["/memorize/steps?p=john+1%3A3-6", "John 1:3–6"],
-    ["/memorize/flashcards?p=john+1%3A3-6", "John 1:3–6"],
-    ["/memorize/range?p=john+1%3A3-6", "John 1:3–6"],
+    // The verse numbers of a passage are never in the header: only its book and chapter.
+    ["/memorize/steps?p=john+1%3A3-6", "John 1"],
+    ["/memorize/flashcards?p=john+1%3A3-6", "John 1"],
+    ["/memorize/range?p=john+1%3A3-6", "John 1"],
     ["/read/psalms/23", "Psalms 23"],
   ] as const) {
     test(`${path} shows ${label}, never a page name`, async ({ page, isMobile }) => {
@@ -257,6 +258,7 @@ test.describe("the header always shows Scripture navigation", () => {
       await page.goto(path);
       await streamed(page);
       await expect(header(page)).toContainText(label);
+      await expect(header(page)).not.toContainText(":");
       for (const name of ["Home", "Memorize", "Flashcards", "Verse range"]) {
         await expect(header(page)).not.toHaveText(new RegExp(`^${name}`));
       }

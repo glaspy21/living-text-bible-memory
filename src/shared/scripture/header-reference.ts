@@ -1,6 +1,5 @@
 import { bookBySlug } from "./books";
 import { parsePassageParam } from "./passage-param";
-import { formatReference } from "./refs";
 
 /** What the header's reference button shows, and which book and chapter the selector marks. */
 export type HeaderReference = { label: string; book: string; chapter: number };
@@ -17,7 +16,7 @@ const chapterRef = (book: string, chapter: number): HeaderReference => ({
 /**
  * The header always shows Scripture navigation, never the page name:
  * - in the reader, the chapter being read;
- * - on the memorize screens, the passage being studied (`p` in the link);
+ * - on the memorize screens, the book and chapter where the passage being studied (`p` in the link) starts;
  * - anywhere else, the chapter read most recently on this device, else John 1.
  */
 export function headerReference(
@@ -33,7 +32,8 @@ export function headerReference(
   }
   const passage = path.startsWith("/memorize") ? parsePassageParam(passageParam) : null;
   if (passage) {
-    return { label: formatReference(passage), book: passage.book, chapter: passage.start.chapter };
+    // Only the book and chapter (where the passage starts), never the verse numbers.
+    return chapterRef(passage.book, passage.start.chapter);
   }
   const fallback = lastRead && bookBySlug(lastRead.book) ? lastRead : DEFAULT_CHAPTER;
   return chapterRef(fallback.book, fallback.chapter);

@@ -14,12 +14,13 @@ async function openRange(page: Page, query = "") {
 
 const verse = (page: Page, n: number) =>
   page.getByRole("button", { name: `Verse ${n}`, exact: true });
+const picker = (page: Page) => page.getByTestId("range-picker");
 const summary = (page: Page) => page.getByTestId("range-summary");
 
 test.describe("verse range selector", () => {
   test("shows the passage from the link, with its verses marked", async ({ page }) => {
     await openRange(page, "?p=john+1%3A3-7");
-    await expect(page.getByRole("button", { name: "John 1", exact: true })).toBeVisible();
+    await expect(picker(page).getByRole("button", { name: "John 1", exact: true })).toBeVisible();
     await expect(
       page.getByRole("group", { name: "John 1 verses" }).getByRole("button"),
     ).toHaveCount(51);
@@ -62,7 +63,7 @@ test.describe("verse range selector", () => {
     await openRange(page, "?p=john+1%3A50");
     await page.getByRole("button", { name: /^End:/ }).click();
     await page.getByRole("button", { name: "Next chapter" }).click();
-    await expect(page.getByRole("button", { name: "John 2", exact: true })).toBeVisible();
+    await expect(picker(page).getByRole("button", { name: "John 2", exact: true })).toBeVisible();
     await verse(page, 5).click();
 
     await expect(summary(page)).toHaveText("John 1:50–2:5 · 7 verses");
@@ -81,12 +82,12 @@ test.describe("verse range selector", () => {
 
   test("the chapter dropdown moves the grid without losing the selection", async ({ page }) => {
     await openRange(page, "?p=john+1%3A3-7");
-    await page.getByRole("button", { name: "John 1", exact: true }).click();
+    await picker(page).getByRole("button", { name: "John 1", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Choose a book and chapter" });
     await dialog.getByRole("button", { name: /^John/ }).click();
     await dialog.getByRole("button", { name: "4", exact: true }).click();
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole("button", { name: "John 4", exact: true })).toBeVisible();
+    await expect(picker(page).getByRole("button", { name: "John 4", exact: true })).toBeVisible();
     await expect(summary(page)).toHaveText("John 1:3–7 · 5 verses");
     await expect(verse(page, 3)).toHaveAttribute("data-mark", "none"); // chapter 4's grid
   });
@@ -96,11 +97,11 @@ test.describe("verse range selector", () => {
   }) => {
     await openRange(page, "?p=luke+24%3A50");
     await page.getByRole("button", { name: "End: 24:50" }).click();
-    await page.getByRole("button", { name: "Luke 24", exact: true }).click();
+    await picker(page).getByRole("button", { name: "Luke 24", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Choose a book and chapter" });
     await dialog.getByRole("button", { name: /^John/ }).click();
     await dialog.getByRole("button", { name: "1", exact: true }).click();
-    await expect(page.getByRole("button", { name: "John 1", exact: true })).toBeVisible();
+    await expect(picker(page).getByRole("button", { name: "John 1", exact: true })).toBeVisible();
     await verse(page, 3).click();
     await expect(summary(page)).toHaveText("Luke 24:50–John 1:3 · 7 verses");
     await expect(page).toHaveURL(/p=luke\+24%3A50-john\+1%3A3/);
@@ -117,7 +118,9 @@ test.describe("verse range selector", () => {
     await openRange(page, "?p=ruth+1%3A1");
     await page.getByRole("button", { name: "Next chapter" }).click();
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next chapter" }).click();
-    await expect(page.getByRole("button", { name: "1 Samuel 1", exact: true })).toBeVisible();
+    await expect(
+      picker(page).getByRole("button", { name: "1 Samuel 1", exact: true }),
+    ).toBeVisible();
     await openRange(page, "?p=genesis+1%3A1");
     await expect(page.getByRole("button", { name: "Previous chapter" })).toBeDisabled();
   });

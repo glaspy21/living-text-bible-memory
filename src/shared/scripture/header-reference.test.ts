@@ -19,13 +19,13 @@ describe("headerReference", () => {
       "/memorize/range",
     ]) {
       expect(headerReference(path, "john 1:3-6")).toEqual({
-        label: "John 1:3–6",
+        label: "John 1",
         book: "john",
         chapter: 1,
       });
     }
     expect(headerReference("/memorize/steps", "john 1:51-2:5")).toMatchObject({
-      label: "John 1:51–2:5",
+      label: "John 1",
       chapter: 1,
     });
   });

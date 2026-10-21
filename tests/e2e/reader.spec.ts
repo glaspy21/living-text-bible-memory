@@ -130,6 +130,17 @@ test.describe("choosing verses", () => {
     await expect(page.locator("[aria-label^='Verse ']")).toHaveCount(7);
   });
 
+  test("the header names only the book and chapter on the Memorize screens, never the verses", async ({
+    page,
+  }) => {
+    const header = page.locator("header button[aria-haspopup='dialog']");
+    for (const path of ["/memorize/steps", "/memorize/flashcards", "/memorize/range"]) {
+      await page.goto(`${path}?p=luke+23%3A35-38`);
+      await streamed(page);
+      await expect(header).toHaveText(/^Luke 23\s*▾$/);
+    }
+  });
+
   test("the keyboard can select verses", async ({ page }) => {
     await openReader(page, "/read/john/1");
     await page.locator('[data-verse="2"]').focus();

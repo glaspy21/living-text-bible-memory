@@ -225,3 +225,4 @@
 - A passage can now run across books (`?p=luke 24:50-john 1:3`): reader taps, the range picker, Memorize text (Steps, Flashcards) and the player (per-verse segments from each book's own recording; a new song at the book boundary). See `docs/DECISIONS.md`.
 - Previous/Next chapter buttons are now left/right triangles in the chapter title colour on the title line, also on every chapter scrolled on to.
 - Open: a cross-book range in the ESV (only John 1–2 is licensed) falls back to the WEB as a whole, as for any out-of-scope passage. Not tested with real multi-book recordings (the test library has none): the per-book matching is unit-tested only.
+- Fix: on the Memorize screens the header names only the book and chapter where the passage starts (e.g. "Luke 23"), never the verse numbers.
