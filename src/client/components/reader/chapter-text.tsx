@@ -4,6 +4,7 @@ import { useSyncExternalStore, type KeyboardEvent } from "react";
 import { cn } from "@/client/lib/cn";
 import { isSelected } from "@/shared/scripture/selection";
 import type { Verse } from "@/shared/scripture/types";
+import { usePlayer } from "@/client/player/player-provider";
 import { useReaderSelection } from "./reader-selection";
 
 /**
@@ -13,6 +14,7 @@ import { useReaderSelection } from "./reader-selection";
  */
 export function ChapterText({ verses }: { verses: Verse[] }) {
   const { selection, tap } = useReaderSelection();
+  const player = usePlayer();
   // False on the server and during hydration, true once taps will work (tests wait for this).
   const interactive = useSyncExternalStore(
     () => () => {},
@@ -28,6 +30,10 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
     >
       {verses.map((verse) => {
         const selected = isSelected(selection, verse);
+        const sounding =
+          player.status === "playing" &&
+          player.currentVerse?.chapter === verse.chapter &&
+          player.currentVerse.verse === verse.verse;
         const onKeyDown = (event: KeyboardEvent) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
@@ -42,6 +48,7 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
             aria-pressed={selected}
             aria-label={`Verse ${verse.verse}`}
             data-verse={verse.verse}
+            data-playing={sounding || undefined}
             onClick={() => tap(verse)}
             onKeyDown={onKeyDown}
             className={cn(
@@ -49,6 +56,8 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
               selected
                 ? "bg-[rgba(201,164,92,.10)] shadow-[inset_2px_0_var(--gold)]"
                 : "hover:bg-[rgba(201,164,92,.05)]",
+              sounding &&
+                "border-gold bg-gradient-to-b from-[rgba(212,168,79,.16)] to-[rgba(212,168,79,.07)] shadow-[0_0_24px_rgba(212,168,79,.12)]",
             )}
           >
             <span

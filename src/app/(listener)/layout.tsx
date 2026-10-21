@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { HeaderReference } from "@/client/components/shell/listener-nav";
 import { ListenerShell } from "@/client/components/shell/listener-shell";
 import { TranslationMenu } from "@/client/components/shell/translation-menu";
+import { PlayerProvider } from "@/client/player/player-provider";
 import { booksWithMusic } from "@/server/library";
 import { setTranslation } from "@/server/scripture/actions";
 import { availableTranslations } from "@/server/scripture";
@@ -31,19 +32,21 @@ async function TranslationControl() {
 
 export default function ListenerLayout({ children }: LayoutProps<"/">) {
   return (
-    <ListenerShell
-      translation={
-        <Suspense fallback={<span className="shell-esv" />}>
-          <TranslationControl />
-        </Suspense>
-      }
-      reference={
-        <Suspense fallback={<span />}>
-          <ReferenceWithMusic />
-        </Suspense>
-      }
-    >
-      {children}
-    </ListenerShell>
+    <PlayerProvider>
+      <ListenerShell
+        translation={
+          <Suspense fallback={<span className="shell-esv" />}>
+            <TranslationControl />
+          </Suspense>
+        }
+        reference={
+          <Suspense fallback={<span />}>
+            <ReferenceWithMusic />
+          </Suspense>
+        }
+      >
+        {children}
+      </ListenerShell>
+    </PlayerProvider>
   );
 }

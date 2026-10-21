@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  chooseGenre,
   genreCoverage,
   nearestCovered,
   resolveSegments,
@@ -128,5 +129,30 @@ describe("nearestCovered", () => {
   it("returns null when nothing is covered in that direction", () => {
     expect(nearestCovered(segments, 3, 1)).toBeNull();
     expect(nearestCovered([null, null], 0, 1)).toBeNull();
+  });
+});
+
+describe("chooseGenre", () => {
+  const complete = { genreSlug: "pop", covered: 3, total: 3, complete: true };
+  const partial = { genreSlug: "rock", covered: 2, total: 3, complete: false };
+  const other = { genreSlug: "rnb", covered: 3, total: 3, complete: true };
+
+  it("has no genre when there is no music", () => {
+    expect(chooseGenre([], "pop")).toBeNull();
+  });
+
+  it("keeps the remembered genre when it covers the whole passage", () => {
+    expect(chooseGenre([complete, other], "rnb")).toBe("rnb");
+  });
+
+  it("otherwise takes the first genre that covers everything", () => {
+    expect(chooseGenre([complete, other, partial], "rock")).toBe("pop");
+    expect(chooseGenre([complete, partial])).toBe("pop");
+  });
+
+  it("falls back to partial coverage, preferring the remembered genre", () => {
+    const less = { genreSlug: "rnb", covered: 1, total: 3, complete: false };
+    expect(chooseGenre([partial, less], "rnb")).toBe("rnb");
+    expect(chooseGenre([partial, less], "pop")).toBe("rock");
   });
 });

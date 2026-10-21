@@ -1,8 +1,12 @@
 import "server-only";
 import { db } from "@/server/db/client";
 import { createAvailability } from "./availability";
+import { createPlayback } from "./playback";
 
 const availability = createAvailability(db);
+const playback = createPlayback(db);
+
+export const playableFor = playback.playableFor;
 
 /**
  * The dots and "recording available" notes are a courtesy, so if the database is unreachable the

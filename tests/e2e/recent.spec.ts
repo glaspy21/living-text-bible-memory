@@ -3,7 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 /** Open a chapter and wait until the page has hydrated (that is when it is noted as opened). */
 async function read(page: Page, path: string) {
   await page.goto(path);
-  await expect(page.getByTestId("chapter-text")).toHaveAttribute("data-interactive", "true");
+  await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+    "data-interactive",
+    "true",
+  );
 }
 
 const home = (page: Page) => page.getByRole("region", { name: "Recently Studied" });

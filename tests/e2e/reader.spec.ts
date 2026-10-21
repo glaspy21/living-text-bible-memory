@@ -3,7 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 /** Open a chapter and wait until taps will work (the page has hydrated). */
 async function openReader(page: Page, path: string) {
   await page.goto(path);
-  await expect(page.getByTestId("chapter-text")).toHaveAttribute("data-interactive", "true");
+  await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+    "data-interactive",
+    "true",
+  );
 }
 
 test.describe("reading a chapter", () => {
@@ -53,7 +56,10 @@ test.describe("choosing verses", () => {
     await expect(page).toHaveURL(/p=john\+1%3A3-7/);
 
     await page.reload();
-    await expect(page.getByTestId("chapter-text")).toHaveAttribute("data-interactive", "true");
+    await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+      "data-interactive",
+      "true",
+    );
     await expect(page.locator('[data-verse="5"]')).toHaveAttribute("aria-pressed", "true");
   });
 

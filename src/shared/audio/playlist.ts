@@ -119,3 +119,19 @@ export function nearestCovered(
   for (let i = from; i >= 0 && i < segments.length; i += step) if (segments[i]) return i;
   return null;
 }
+
+/**
+ * Which genre to start with: the listener's remembered one if it covers the whole passage,
+ * otherwise the first genre that does, otherwise the one covering the most. Null when there is no music.
+ */
+export function chooseGenre(
+  coverage: readonly GenreCoverage[],
+  preferredSlug?: string | null,
+): string | null {
+  if (coverage.length === 0) return null;
+  const preferred = coverage.find((g) => g.genreSlug === preferredSlug);
+  if (preferred?.complete) return preferred.genreSlug;
+  // `genreCoverage` puts complete genres first, then the most covered; keep a partial preference only
+  // when nothing covers the whole passage.
+  return coverage[0].complete ? coverage[0].genreSlug : (preferred ?? coverage[0]).genreSlug;
+}

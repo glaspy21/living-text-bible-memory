@@ -63,11 +63,89 @@ export class TestDb {
     return assetId as string;
   }
 
+  /**
+   * A published recording with published verse timings, for playback tests. `verses` are the
+   * boundaries within the audio; `genre` is a genre slug ("pop", "rock", "rnb").
+   */
+  async addPlayableRecording(opts: {
+    storageKey: string;
+    mime: string;
+    bytes: number;
+    durationMs: number;
+    bookId: number;
+    chapter: number;
+    verses: { verse: number; startMs: number; endMs: number }[];
+    genre?: string;
+    arrangementNo?: number;
+  }) {
+    const q = (text: string, values: unknown[] = []) => this.connection.query(text, values);
+    const one = async (text: string, values: unknown[] = []) => (await q(text, values)).rows[0].id;
+    const translationId = await one(`SELECT id FROM "Translation" WHERE code = 'WEB'`);
+    const genreId = await one(`SELECT id FROM "Genre" WHERE slug = $1`, [opts.genre ?? "pop"]);
+    const userId = await one(
+      `INSERT INTO "User" (id, email, role) VALUES ($1, $2, 'ADMIN')
+       ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email RETURNING id`,
+      [randomUUID(), this.email],
+    );
+    const assetId = await one(
+      `INSERT INTO "AudioAsset" (id, "storageKey", mime, bytes, "durationMs", sha256)
+       VALUES ($1, $2, $3, $4, $5, 'x') RETURNING id`,
+      [randomUUID(), opts.storageKey, opts.mime, opts.bytes, opts.durationMs],
+    );
+    const recordingId = randomUUID();
+    const last = opts.verses[opts.verses.length - 1].verse;
+    await q(
+      `INSERT INTO "Recording"
+         (id, "translationId", "bookId", chapter, "verseStart", "endChapter", "verseEnd", "genreId",
+          "arrangementNo", status, "originalAssetId", "createdById", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $4, $6, $7, $8, 'PUBLISHED', $9, $10, now())`,
+      [
+        recordingId,
+        translationId,
+        opts.bookId,
+        opts.chapter,
+        opts.verses[0].verse,
+        last,
+        genreId,
+        opts.arrangementNo ?? 1,
+        assetId,
+        userId,
+      ],
+    );
+    const timingId = randomUUID();
+    await q(
+      `INSERT INTO "TimingSet" (id, "recordingId", version, state, "createdById")
+       VALUES ($1, $2, 1, 'PUBLISHED', $3)`,
+      [timingId, recordingId, userId],
+    );
+    for (const v of opts.verses) {
+      await q(
+        `INSERT INTO "VerseTiming" (id, "timingSetId", chapter, verse, "startMs", "endMs")
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [randomUUID(), timingId, opts.chapter, v.verse, v.startMs, v.endMs],
+      );
+    }
+    await q(`UPDATE "Recording" SET "publishedTimingId" = $1 WHERE id = $2`, [
+      timingId,
+      recordingId,
+    ]);
+    return { assetId: assetId as string, recordingId };
+  }
+
   /** Remove everything this run created, then close the connection. Safe to call repeatedly. */
   async cleanup() {
     const pool = this.pool;
     if (!pool) return;
     this.pool = undefined;
+    await pool.query(
+      `UPDATE "Recording" SET "publishedTimingId" = NULL
+       WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`,
+      [this.email],
+    );
+    await pool.query(
+      `DELETE FROM "TimingSet" WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`,
+      [this.email],
+    );
     await pool.query(
       `WITH u AS (SELECT id FROM "User" WHERE email = $1),
             r AS (DELETE FROM "Recording" WHERE "createdById" IN (SELECT id FROM u)

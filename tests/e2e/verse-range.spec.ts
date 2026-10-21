@@ -2,7 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function openRange(page: Page, query = "") {
   await page.goto(`/memorize/range${query}`);
-  await expect(page.getByTestId("range-picker")).toHaveAttribute("data-interactive", "true");
+  await expect(page.getByRole("main").getByTestId("range-picker")).toHaveAttribute(
+    "data-interactive",
+    "true",
+  );
+  // While the page streams in, a hidden copy of the content exists; wait for the swap to finish.
+  await expect(page.getByTestId("range-picker")).toHaveCount(1);
 }
 
 const verse = (page: Page, n: number) =>

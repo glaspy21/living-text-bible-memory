@@ -79,6 +79,13 @@ Warnings (require acknowledge, never auto-fixed): gap between consecutive verses
 - If a verse in the range has no recording for the chosen genre: Next Verse skips silently to the next covered verse; the UI marks uncovered verses (no music) and offers the genres that cover the whole range, falling back to partial coverage with a visible note. Never silently substitute another genre.
 - Memorization steps and flashcards work for the full range regardless of audio coverage.
 
+**As built (M10):**
+- *Logic (pure, in `src/shared/audio`):* `playlist.ts` resolves a passage's verses against published recordings into one segment per verse (chosen or earliest arrangement; uncovered verses stay uncovered, never filled from another genre) and reports genre coverage. `player-machine.ts` is the state machine, `(state, event, segments) → (state, effects)`, with ~45 tests.
+- *Data:* `GET /api/playback?p=<passage>` returns the passage's verses and every published recording (with published timing) that touches it. Choosing a genre needs no new request.
+- *Browser (`src/client/player`):* `PlayerProvider` sits in the listener layout so audio survives page changes. It owns one `<audio>` element, runs the machine, detects verse ends every animation frame (plus a 100 ms timer for hidden tabs), and preloads the next recording 5 s early. Pages declare their passage with `<PlayerPassage passage context>`; `context` picks the default end mode (reader = Next Verse, practice = Loop Verse) and the user's choice is remembered per context.
+- *UI:* the player bar shows progress and time within the current verse, an end-mode menu (exactly Loop / Stop / Next, active one checked and its icon on the button), skip, play/pause and a genre menu that notes partial coverage. Without music it says "No recording yet" and the controls are off. In the reader the verse being sung is highlighted.
+- *Known limit:* in a background tab, browsers slow timers, so verse ends can be caught up to about a second late. If that matters on phones, move verse playback to the Web Audio API (risk 2 above).
+
 ## 6. Audio pipeline
 1. Admin requests a **presigned upload URL** (server verifies admin) → browser uploads direct to R2 (no secrets client-side, no function-size limit).
 2. Server job: probe duration, compute sha256, generate **waveform peaks JSON** (e.g. `audiowaveform` or ffmpeg) → stored beside asset; editor loads peaks, not the whole decoded file.

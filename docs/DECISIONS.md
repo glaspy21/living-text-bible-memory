@@ -41,4 +41,7 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | Visitors start on the WEB; the ESV is chosen from the header menu (cookie `lt_translation`) and only offered when enabled. Outside its permitted chapters the reader falls back to the WEB with a note rather than showing nothing | [R] |
 | 2026-10-20 | Recently studied is kept in the browser (localStorage `lt.recent.v1`), not the database: listener accounts are post-MVP | [R] |
 | 2026-10-20 | Phones keep Prev/Next and get a full-width Memorize button under the chapter (the right panel is hidden there); the chapter title row is hidden as in the mockups | [R] additions |
+| 2026-10-20 | The player's progress bar and times are within the current verse (not the whole recording), since loop/stop/next all work per verse and a passage may span several recordings | [R] |
+| 2026-10-20 | Genre choice is remembered per browser; if the remembered genre doesn't cover the whole passage, the first genre that does is used, else the one covering most. Another genre is never silently substituted for an uncovered verse | [R] |
+| 2026-10-20 | Playback end modes are remembered per context (reader vs. practice), starting from the assumed defaults in decision #10 | [R] |
 
