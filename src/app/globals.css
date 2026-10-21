@@ -116,7 +116,8 @@ button {
 }
 
 .wipe:hover .wipe-fill,
-.wipe:focus-visible .wipe-fill {
+.wipe:focus-visible .wipe-fill,
+.wipe[aria-pressed="true"] .wipe-fill {
   clip-path: inset(0 0 0 0);
 }
 

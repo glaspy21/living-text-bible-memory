@@ -202,7 +202,7 @@ export function FlashcardsView({
               data-testid="shuffle"
               className={cn(
                 "wipe flex items-center gap-[9px] rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] transition-[background,box-shadow,color] duration-200",
-                shuffleOn ? "text-gold [&_.wipe-fill]:[clip-path:inset(0)]" : "text-gold",
+                shuffleOn ? "text-gold" : "text-gold",
               )}
             >
               <Icon name="shuffle" size={22} />

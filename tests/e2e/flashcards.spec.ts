@@ -92,6 +92,21 @@ test.describe("flashcards", () => {
     await expect(card(page)).toHaveAttribute("data-flipped", "false");
   });
 
+  test("Shuffle stays fully filled while on, even with the cursor away", async ({ page }) => {
+    await openCards(page);
+    const clip = () =>
+      shuffle(page)
+        .locator(".wipe-fill")
+        .evaluate((el) => getComputedStyle(el).clipPath);
+    await expect.poll(clip).toContain("100%");
+    await shuffle(page).click();
+    await page.mouse.move(0, 0);
+    await expect.poll(clip).not.toContain("100%");
+    await shuffle(page).click();
+    await page.mouse.move(0, 0);
+    await expect.poll(clip).toContain("100%");
+  });
+
   test("Shuffle is a switch that starts off, with Restart to its left", async ({ page }) => {
     await openCards(page);
     await expect(shuffle(page)).toHaveAttribute("aria-pressed", "false");
