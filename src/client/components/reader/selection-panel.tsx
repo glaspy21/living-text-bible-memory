@@ -11,8 +11,10 @@ const ghost =
   "wipe mt-3.5 inline-flex w-full items-center justify-center rounded-[7px] border border-line px-5 py-[9px] text-muted transition-colors";
 
 /** Right panel of the reader: what is selected, and the way on to Memorize or Edit range. */
-export function SelectionPanel({ music }: { music: { available: boolean } }) {
-  const { passage, isWholeChapter } = useReaderSelection();
+export function SelectionPanel({ musicChapters }: { musicChapters: readonly number[] }) {
+  const { passage, isWholeChapter, currentChapter } = useReaderSelection();
+  // Music is about the chapter in view, which moves as you scroll on.
+  const available = musicChapters.includes(currentChapter);
   return (
     <>
       <h2 className="mb-1.5 font-serif text-[22px] font-medium text-heading">Memorize</h2>
@@ -28,7 +30,7 @@ export function SelectionPanel({ music }: { music: { available: boolean } }) {
       <div className="mt-[22px] rounded-[10px] border border-line bg-[rgba(18,18,18,.7)] p-[18px]">
         <div className="flex items-center justify-between">
           <b className="font-medium text-gold2">Music</b>
-          {music.available && (
+          {available && (
             <span
               className="inline-block h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]"
               role="img"
@@ -37,7 +39,7 @@ export function SelectionPanel({ music }: { music: { available: boolean } }) {
           )}
         </div>
         <p className="mt-1.5 text-muted">
-          {music.available ? "Recording available" : "No recording for this chapter yet"}
+          {available ? "Recording available" : "No recording for this chapter yet"}
         </p>
       </div>
       <Link href={withPassage("/memorize/range", passage)} className={ghost}>

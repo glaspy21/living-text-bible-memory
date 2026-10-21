@@ -26,7 +26,7 @@ async function openObadiah(page: Page) {
   await streamed(page);
   // The player knows about the music once it has looked it up.
   await expect(page.getByRole("button", { name: "Genre" })).toBeEnabled();
-  await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+  await expect(page.getByRole("main").getByTestId("chapter-text").first()).toHaveAttribute(
     "data-interactive",
     "true",
   );

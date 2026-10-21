@@ -75,6 +75,14 @@ describe("music availability", () => {
     expect(await availability.chapterHasMusic("john", 3)).toBe(false);
   });
 
+  it("lists the chapters of a book that have published music, in order", async () => {
+    await makeRecording(44, 3, 5, "PUBLISHED"); // Acts 3–5
+    await makeRecording(44, 9, 9, "PUBLISHED"); // Acts 9
+    await makeRecording(44, 12, 12, "DRAFT"); // Acts 12: a draft never counts
+    expect(await availability.chaptersWithMusic("acts")).toEqual([3, 4, 5, 9]);
+    expect(await availability.chaptersWithMusic("nonsense")).toEqual([]);
+  });
+
   it("says no for an unknown book", async () => {
     expect(await availability.chapterHasMusic("nonsense", 1)).toBe(false);
   });

@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useSyncExternalStore, type KeyboardEvent } from "react";
 import { cn } from "@/client/lib/cn";
-import { isSelected } from "@/shared/scripture/selection";
+import { verseMarking } from "@/shared/scripture/selection";
 import type { Verse } from "@/shared/scripture/types";
 import { usePlayer } from "@/client/player/player-provider";
 import { useReaderSelection } from "./reader-selection";
@@ -13,7 +13,14 @@ import { useReaderSelection } from "./reader-selection";
  * completes the range. Verses are keyboard-operable buttons-in-spirit (role="button") rather than
  * real buttons so the text can still be selected and copied.
  */
-export function ChapterText({ verses }: { verses: Verse[] }) {
+export function ChapterText({
+  verses,
+  arrive = false,
+}: {
+  verses: Verse[];
+  /** Whether `?v=` (a verse chosen in the header menu) points into this chapter. */
+  arrive?: boolean;
+}) {
   const { selection, tap } = useReaderSelection();
   const player = usePlayer();
   // False on the server and during hydration, true once taps will work (tests wait for this).
@@ -27,7 +34,7 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
   const goTo = useSearchParams().get("v");
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!goTo || !/^\d+$/.test(goTo)) return;
+    if (!arrive || !goTo || !/^\d+$/.test(goTo)) return;
     const row = container.current?.querySelector<HTMLElement>(`[data-verse="${goTo}"]`);
     if (!row) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -38,7 +45,7 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
       clearTimeout(timer);
       row.removeAttribute("data-arrived");
     };
-  }, [goTo]);
+  }, [arrive, goTo]);
 
   return (
     <div
@@ -48,7 +55,7 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
       data-interactive={interactive}
     >
       {verses.map((verse) => {
-        const selected = isSelected(selection, verse);
+        const { inRange, edge } = verseMarking(selection, verse);
         const sounding =
           player.status === "playing" &&
           player.currentVerse?.chapter === verse.chapter &&
@@ -64,17 +71,18 @@ export function ChapterText({ verses }: { verses: Verse[] }) {
             key={verse.verse}
             role="button"
             tabIndex={0}
-            aria-pressed={selected}
+            aria-pressed={inRange}
             aria-label={`Verse ${verse.verse}`}
             data-verse={verse.verse}
+            data-edge={edge || undefined}
             data-playing={sounding || undefined}
             onClick={() => tap(verse)}
             onKeyDown={onKeyDown}
             className={cn(
               "mb-0.5 grid cursor-pointer grid-cols-[46px_1fr] rounded-lg border border-transparent py-1.5 pr-3 transition-colors duration-200 max-[520px]:grid-cols-[34px_1fr] max-[520px]:py-[5px] max-[520px]:pr-1.5",
-              selected
-                ? "bg-[rgba(201,164,92,.10)] shadow-[inset_2px_0_var(--gold)]"
-                : "hover:bg-[rgba(201,164,92,.05)]",
+              // Every verse of the range shares the tint; only its first and last carry the gold edge.
+              inRange ? "bg-[rgba(201,164,92,.10)]" : "hover:bg-[rgba(201,164,92,.05)]",
+              edge && "shadow-[inset_2px_0_var(--gold)]",
               "data-[arrived]:border-gold data-[arrived]:bg-[rgba(201,164,92,.16)]",
               sounding &&
                 "border-gold bg-gradient-to-b from-[rgba(212,168,79,.16)] to-[rgba(212,168,79,.07)] shadow-[0_0_24px_rgba(212,168,79,.12)]",

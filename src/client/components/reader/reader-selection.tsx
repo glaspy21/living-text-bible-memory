@@ -25,6 +25,10 @@ type ReaderSelection = {
   passage: PassageRef;
   /** True when `passage` is the whole chapter because nothing was chosen. */
   isWholeChapter: boolean;
+  /** The chapter in view (continuous scrolling moves it on); also where Memorize's default comes from. */
+  currentChapter: number;
+  /** Called by the chapter list as the chapter in view changes. */
+  setCurrent(chapter: number, lastVerse: number): void;
   tap(verse: VerseRef): void;
 };
 
@@ -57,6 +61,17 @@ export function ReaderSelectionProvider({
   // Server render and hydration see "no selection"; the browser then reads the real URL.
   const param = useSyncExternalStore(subscribe, readParam, () => "");
   const [anchor, setAnchor] = useState<VerseRef | null>(null);
+  // Scrolling on into the next chapter moves "the chapter in view" without leaving the page.
+  const [current, setCurrentState] = useState({ chapter, lastVerse });
+  const setCurrent = useCallback(
+    (nextChapter: number, nextLastVerse: number) =>
+      setCurrentState((c) =>
+        c.chapter === nextChapter && c.lastVerse === nextLastVerse
+          ? c
+          : { chapter: nextChapter, lastVerse: nextLastVerse },
+      ),
+    [],
+  );
 
   const selection = useMemo<Selection | null>(() => {
     const parsed = parsePassageParam(param);
@@ -83,11 +98,17 @@ export function ReaderSelectionProvider({
       selection,
       passage: selection
         ? { book, start: selection.start, end: selection.end }
-        : { book, start: { chapter, verse: 1 }, end: { chapter, verse: lastVerse } },
+        : {
+            book,
+            start: { chapter: current.chapter, verse: 1 },
+            end: { chapter: current.chapter, verse: current.lastVerse },
+          },
       isWholeChapter: selection === null,
+      currentChapter: current.chapter,
+      setCurrent,
       tap,
     }),
-    [book, chapter, lastVerse, selection, tap],
+    [book, current, selection, setCurrent, tap],
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

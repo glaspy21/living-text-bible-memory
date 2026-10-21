@@ -187,3 +187,10 @@
 - Tests: header-label rules (unit); browser tests for the whole flow on desktop and phone, back, close, read chapter, and the header on every screen.
 - Open: `?v=` scrolls once per arrival; picking the same verse again while already there does not re-scroll. Memorize screens link to the reader's chapter only (not a verse) for now.
 
+## 2026-10-21 — Continuous reading and range highlight (branch `m8c-continuous-reader`, off `m8b-verse-navigation`)
+- Owner request. **Scrolling goes on into the next chapter**: near the end of a chapter the next one loads below it (own heading), and so on to the end of the book, where "Continue to <next book> 1 ›" appears. Loading failures say so and offer Try again. New route `GET /api/scripture/chapter` (translation fallback as on the page, never cached).
+- The chapter in view (about a third down the screen, once the reader has actually scrolled) updates the address (`/read/john/2`, rewritten in place, no extra history), the header button, Recently Studied, the whole-chapter default for Memorize and the right panel's music note (it now knows which chapters have music, `chaptersWithMusic`). Prev/Next at the top still belong to the chapter the page was opened on.
+- **Range highlight**: all verses of a range get the same tinted background; only the first and last verse (or a single tapped verse) get the gold edge on the left. Ranges work across chapters that have been scrolled into view (e.g. John 1:50–2:3).
+- Tests: marking rules (unit); chapters-with-music (database); browser tests for loading on scroll, address/header/panel following, recents, end of book, failure and retry, `?v=` with chapters below, ranges (tint vs edge, across chapters) and the new route. Existing reader tests now tolerate several chapters on the page.
+- Open: only forwards (scrolling up past the opened chapter does not load the previous one; use Prev). Memorize screens still start from the passage, not from continuous reading. Scroll position when a chapter is appended is untouched (nothing above moves).
+

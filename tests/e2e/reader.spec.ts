@@ -5,7 +5,7 @@ import { streamed } from "./helpers";
 async function openReader(page: Page, path: string) {
   await page.goto(path);
   await streamed(page);
-  await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+  await expect(page.getByRole("main").getByTestId("chapter-text").first()).toHaveAttribute(
     "data-interactive",
     "true",
   );
@@ -64,7 +64,7 @@ test.describe("choosing verses", () => {
     await page.reload();
 
     await streamed(page);
-    await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
+    await expect(page.getByRole("main").getByTestId("chapter-text").first()).toHaveAttribute(
       "data-interactive",
       "true",
     );

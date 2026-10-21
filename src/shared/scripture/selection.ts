@@ -30,3 +30,19 @@ export function isSelected(selection: Selection | null, verse: VerseRef): boolea
     compareRefs(verse, selection.end) <= 0
   );
 }
+
+/**
+ * How a verse is marked on the reader: every verse in the chosen range gets the same tinted
+ * background, and only the first and last verse of the range (or the single tapped verse) also
+ * get the gold edge on the left.
+ */
+export function verseMarking(
+  selection: Selection | null,
+  verse: VerseRef,
+): { inRange: boolean; edge: boolean } {
+  if (!isSelected(selection, verse) || !selection) return { inRange: false, edge: false };
+  return {
+    inRange: true,
+    edge: compareRefs(verse, selection.start) === 0 || compareRefs(verse, selection.end) === 0,
+  };
+}

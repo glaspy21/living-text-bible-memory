@@ -1,14 +1,13 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Attribution } from "@/client/components/scripture/attribution";
 import { ChapterNav } from "@/client/components/reader/chapter-nav";
-import { ChapterText } from "@/client/components/reader/chapter-text";
+import { ContinuousChapters } from "@/client/components/reader/continuous-chapters";
 import { RecentTracker } from "@/client/components/recent/recent-tracker";
 import { ReaderPlayer } from "@/client/components/reader/reader-player";
 import { ReaderSelectionProvider } from "@/client/components/reader/reader-selection";
 import { MemorizeBar, SelectionPanel } from "@/client/components/reader/selection-panel";
 import { Main, RightPanel } from "@/client/components/shell/regions";
-import { chapterHasMusic } from "@/server/library";
+import { chaptersWithMusic } from "@/server/library";
 import { getPreferredTranslation } from "@/server/scripture/preference";
 import { loadReaderChapter } from "@/server/scripture/reader";
 import { ScriptureUnavailableError } from "@/server/scripture/types";
@@ -23,17 +22,24 @@ async function Reader({ params }: { params: Params }) {
   if (!book || !(chapter >= 1 && chapter <= book.chapterCount)) notFound();
 
   const preferred = await getPreferredTranslation();
-  const [loaded, hasMusic] = await Promise.all([
+  const [loaded, musicChapters] = await Promise.all([
     loadReaderChapter(book.slug, chapter, preferred).catch((error) => {
       if (error instanceof ScriptureUnavailableError) notFound();
       throw error;
     }),
-    chapterHasMusic(book.slug, chapter),
+    chaptersWithMusic(book.slug),
   ]);
   const lastVerse = loaded.verses[loaded.verses.length - 1]?.verse ?? 1;
 
   return (
-    <ReaderSelectionProvider book={book.slug} chapter={chapter} lastVerse={lastVerse}>
+    <ReaderSelectionProvider
+      // A new chapter, or a switch of translation, starts the reader afresh (chapters scrolled on to
+      // were loaded in the old one).
+      key={`${book.slug}-${chapter}-${preferred}-${loaded.translation}`}
+      book={book.slug}
+      chapter={chapter}
+      lastVerse={lastVerse}
+    >
       <RecentTracker book={book.slug} chapter={chapter} />
       <ReaderPlayer />
       <Main player>
@@ -44,18 +50,17 @@ async function Reader({ params }: { params: Params }) {
             </h1>
             <ChapterNav book={book.slug} chapter={chapter} />
           </header>
-          {loaded.note && (
-            <p className="mt-2 font-serif text-[15px] text-muted italic" role="note">
-              {loaded.note}
-            </p>
-          )}
-          <ChapterText verses={loaded.verses} />
+          <ContinuousChapters
+            book={book.slug}
+            bookName={book.name}
+            chapterCount={book.chapterCount}
+            initial={{ chapter, ...loaded }}
+          />
           <MemorizeBar />
-          <Attribution translation={loaded.translation} className="mt-6" />
         </div>
       </Main>
       <RightPanel label="Memorize">
-        <SelectionPanel music={{ available: hasMusic }} />
+        <SelectionPanel musicChapters={musicChapters} />
       </RightPanel>
     </ReaderSelectionProvider>
   );

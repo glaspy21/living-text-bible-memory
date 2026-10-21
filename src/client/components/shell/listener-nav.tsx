@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CHAPTER_VIEW_EVENT, type ChapterViewDetail } from "@/client/lib/chapter-view";
 import { useRecent } from "@/client/lib/recent-store";
 import { headerReference, previewLabel } from "@/shared/scripture/header-reference";
 import { LISTENER_NAV, listenerScreen } from "@/shared/routes";
@@ -35,7 +36,17 @@ export function HeaderReference({ musicBooks = [] }: { musicBooks?: readonly str
   const pathname = usePathname();
   const passage = useSearchParams().get("p");
   const lastRead = useRecent()[0] ?? null;
-  const current = headerReference(pathname, passage, lastRead);
+  // While reading on into the next chapters, the reader reports the chapter in view.
+  const [viewing, setViewing] = useState<ChapterViewDetail | null>(null);
+  useEffect(() => {
+    const onView = (event: Event) => setViewing((event as CustomEvent<ChapterViewDetail>).detail);
+    window.addEventListener(CHAPTER_VIEW_EVENT, onView);
+    return () => window.removeEventListener(CHAPTER_VIEW_EVENT, onView);
+  }, []);
+  const current =
+    viewing && viewing.base === pathname
+      ? headerReference(`/read/${viewing.book}/${viewing.chapter}`, null)
+      : headerReference(pathname, passage, lastRead);
   const [openOn, setOpenOn] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<PanelAnchor | null>(null);
   // The chapter picked in the selector, shown beside the book name until it is opened or dropped.

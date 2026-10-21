@@ -15,6 +15,21 @@ export function createAvailability(client: Pick<PrismaClient, "recording">) {
       return new Set(rows.map((r) => r.book.slug));
     },
 
+    /** The chapters of a book that a published recording covers, in order (for the reader's music note). */
+    async chaptersWithMusic(bookSlug: string): Promise<number[]> {
+      const book = bookBySlug(bookSlug);
+      if (!book) return [];
+      const rows = await client.recording.findMany({
+        where: { status: "PUBLISHED", bookId: book.id },
+        select: { chapter: true, endChapter: true },
+      });
+      const chapters = new Set<number>();
+      for (const r of rows)
+        for (let c = r.chapter; c <= Math.min(r.endChapter, book.chapterCount); c++)
+          chapters.add(c);
+      return [...chapters].sort((a, b) => a - b);
+    },
+
     /** True when a published recording covers any part of the chapter (recordings may span chapters). */
     async chapterHasMusic(bookSlug: string, chapter: number): Promise<boolean> {
       const book = bookBySlug(bookSlug);
