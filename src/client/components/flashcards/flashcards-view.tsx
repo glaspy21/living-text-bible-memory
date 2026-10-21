@@ -110,7 +110,7 @@ export function FlashcardsView({
             </span>
             <Link
               href={withPassage("/memorize/steps", passage)}
-              className="wipe inline-flex items-center gap-[9px] rounded-[7px] border border-gold bg-[rgba(201,164,92,.07)] px-3 py-[5px] text-xs text-gold2"
+              className="wipe inline-flex h-[42px] items-center gap-[9px] rounded-[10px] border-[1.5px] border-gold bg-[rgba(201,164,92,.07)] px-4 font-serif text-[17px] text-gold2"
             >
               <Icon name="list" size={20} />
               Switch to Steps
@@ -188,9 +188,12 @@ export function FlashcardsView({
             <button
               type="button"
               onClick={restart}
-              className="rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] text-gold transition-[background,box-shadow,color] duration-200 hover:text-gold2 active:bg-[rgba(201,164,92,.22)] active:shadow-[0_0_18px_rgba(201,164,92,.35)]"
+              className="wipe rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] text-gold transition-[background,box-shadow,color] duration-200 active:bg-[rgba(201,164,92,.22)] active:shadow-[0_0_18px_rgba(201,164,92,.35)]"
             >
               Restart
+              <span className="wipe-fill" aria-hidden="true">
+                Restart
+              </span>
             </button>
             <button
               type="button"
@@ -198,14 +201,18 @@ export function FlashcardsView({
               aria-pressed={shuffleOn}
               data-testid="shuffle"
               className={cn(
-                "flex items-center gap-[9px] rounded-[7px] border px-4 py-[7px] font-serif text-[19px] transition-[background,box-shadow,border-color,color] duration-200",
+                "wipe flex items-center gap-[9px] rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] transition-[background,box-shadow,color] duration-200",
                 shuffleOn
                   ? "border-gold bg-[rgba(201,164,92,.22)] text-gold-bright shadow-[0_0_18px_rgba(201,164,92,.35)]"
-                  : "border-transparent text-gold hover:text-gold2",
+                  : "text-gold",
               )}
             >
               <Icon name="shuffle" size={22} />
               Shuffle
+              <span className="wipe-fill" aria-hidden="true">
+                <Icon name="shuffle" size={22} />
+                Shuffle
+              </span>
             </button>
           </div>
           <p className="mt-3.5 text-xs text-muted max-[520px]:hidden">

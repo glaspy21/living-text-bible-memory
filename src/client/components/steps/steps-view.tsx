@@ -260,7 +260,7 @@ export function StepsView({
               </span>
               <Link
                 href={withPassage("/memorize/flashcards", passage)}
-                className="wipe inline-flex items-center gap-[9px] rounded-[7px] border border-gold bg-[rgba(201,164,92,.07)] px-3 py-[5px] text-xs text-gold2"
+                className="wipe inline-flex h-[42px] items-center gap-[9px] rounded-[10px] border-[1.5px] border-gold bg-[rgba(201,164,92,.07)] px-4 font-serif text-[17px] text-gold2"
               >
                 <Icon name="cards" size={20} />
                 Switch to Flashcards
