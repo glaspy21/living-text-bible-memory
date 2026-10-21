@@ -181,7 +181,14 @@ export function FlashcardsView({
             </button>
           </div>
 
-          <div className="mt-5 flex flex-col items-center gap-2.5">
+          <div className="mt-5 flex items-center justify-center gap-10 max-[520px]:gap-5">
+            <button
+              type="button"
+              onClick={restart}
+              className="rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] text-gold transition-[background,box-shadow,color] duration-200 hover:text-gold2 active:bg-[rgba(201,164,92,.22)] active:shadow-[0_0_18px_rgba(201,164,92,.35)]"
+            >
+              Restart
+            </button>
             <button
               type="button"
               onClick={toggleShuffle}
@@ -196,13 +203,6 @@ export function FlashcardsView({
             >
               <Icon name="shuffle" size={22} />
               Shuffle
-            </button>
-            <button
-              type="button"
-              onClick={restart}
-              className="rounded-[7px] px-4 py-1 font-serif text-[19px] text-gold hover:text-gold2"
-            >
-              Restart
             </button>
           </div>
           <p className="mt-3.5 text-xs text-muted max-[520px]:hidden">

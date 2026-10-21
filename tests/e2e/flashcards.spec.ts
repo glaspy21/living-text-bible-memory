@@ -92,7 +92,7 @@ test.describe("flashcards", () => {
     await expect(card(page)).toHaveAttribute("data-flipped", "false");
   });
 
-  test("Shuffle is a switch that starts off, with Restart beneath it", async ({ page }) => {
+  test("Shuffle is a switch that starts off, with Restart to its left", async ({ page }) => {
     await openCards(page);
     await expect(shuffle(page)).toHaveAttribute("aria-pressed", "false");
     await shuffle(page).click();
@@ -102,7 +102,13 @@ test.describe("flashcards", () => {
 
     const shuffleBox = (await shuffle(page).boundingBox())!;
     const restartBox = (await restart(page).boundingBox())!;
-    expect(restartBox.y).toBeGreaterThan(shuffleBox.y + shuffleBox.height - 1);
+    // Side by side on one line, Restart to the left, the pair centred under the card.
+    expect(Math.abs(restartBox.y - shuffleBox.y)).toBeLessThan(2);
+    expect(shuffleBox.x).toBeGreaterThan(restartBox.x + restartBox.width);
+    const pairCentre = (restartBox.x + shuffleBox.x + shuffleBox.width) / 2;
+    // The wrapper never moves (the card inside slides in after each click).
+    const cardBox = (await card(page).locator("xpath=..").boundingBox())!;
+    expect(Math.abs(pairCentre - (cardBox.x + cardBox.width / 2))).toBeLessThan(3);
   });
 
   test("with Shuffle off the cards go in sequence, wrapping around", async ({ page }) => {

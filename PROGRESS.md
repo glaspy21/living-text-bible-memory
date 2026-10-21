@@ -178,4 +178,5 @@
 - New **Restart** button under Shuffle: back to CARD 1 OF n. In shuffle mode it starts a fresh random pass and stays shuffled. **Confirm:** is that the right reading, or should Restart in shuffle mode replay the same order?
 - With Shuffle on, "CARD n OF m" counts your place in the current random pass, so turning it on shows CARD 1 OF m on the same verse.
 - Audio still starts only on Play (flip, next, back, shuffle and restart never start it). Tests: deck rules (unit) and browser tests on desktop and phone (off by default, sequence, on keeps card and covers every card, real randomness, off keeps card, Restart in both modes, layout order).
+- Layout change (owner): Restart and Shuffle now sit on one centred line beneath the cards, **Restart on the left**, spaced apart. Restart has the same gold outline as a lit Shuffle but only lights up (fill and glow) while pressed; Shuffle stays lit while on.
 
