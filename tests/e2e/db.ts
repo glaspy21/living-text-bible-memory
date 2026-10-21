@@ -149,6 +149,43 @@ export class TestDb {
              DELETE FROM "AudioAsset" WHERE id IN (SELECT "originalAssetId" FROM r)`);
   }
 
+  /** Remove one recording made through the app, with its timing sheets, sessions and audio. */
+  async removeRecording(id: string) {
+    const q = (text: string) => this.connection.query(text, [id]);
+    await q(`UPDATE "Recording" SET "publishedTimingId" = NULL WHERE id = $1`);
+    await q(`DELETE FROM "TimingSet" WHERE "recordingId" = $1`);
+    await q(`WITH r AS (DELETE FROM "Recording" WHERE id = $1 RETURNING "originalAssetId")
+             DELETE FROM "AudioAsset" WHERE id IN (SELECT "originalAssetId" FROM r)`);
+  }
+
+  /** Remove every recording of these books (canonical numbers): leftovers from an aborted run. */
+  async removeRecordingsInBooks(bookIds: number[]) {
+    const result = await this.connection.query(
+      `SELECT id FROM "Recording" WHERE "bookId" = ANY($1::int[])`,
+      [bookIds],
+    );
+    for (const row of result.rows) await this.removeRecording(row.id);
+  }
+
+  /** The timing rows of a recording's newest sheet, by verse. */
+  async timingRows(recordingId: string) {
+    const result = await this.connection.query(
+      `SELECT v.verse, v."startMs", v."endMs", t.state, t.version
+       FROM "VerseTiming" v JOIN "TimingSet" t ON t.id = v."timingSetId"
+       WHERE t."recordingId" = $1
+         AND t.version = (SELECT max(version) FROM "TimingSet" WHERE "recordingId" = $1)
+       ORDER BY v.chapter, v.verse`,
+      [recordingId],
+    );
+    return result.rows as {
+      verse: number;
+      startMs: number | null;
+      endMs: number | null;
+      state: string;
+      version: number;
+    }[];
+  }
+
   /** The audio asset id of the newest recording an admin created. */
   async assetIdOfNewestRecordingBy(email: string): Promise<string> {
     const result = await this.connection.query(

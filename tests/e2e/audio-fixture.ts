@@ -68,3 +68,41 @@ export async function addToneRecording(
   });
   await context.close();
 }
+
+/**
+ * Upload the tone through the real routes and save it as a draft recording of verses 1–3 of
+ * chapter 1 (blank timing). Returns the recording id. Use a book no other spec uses.
+ */
+export async function addToneDraft(
+  browser: Browser,
+  baseURL: string | undefined,
+  book: string,
+): Promise<string> {
+  const context = await browser.newContext({ baseURL });
+  await signInAs(context, E2E_ADMIN_EMAIL);
+  const api = context.request;
+  const wav = toneWav();
+  const requested = await api.post("/api/admin/uploads", {
+    data: { mime: "audio/wav", bytes: wav.length },
+  });
+  const { key, upload } = await requested.json();
+  await api.put(upload.url, { data: wav, headers: upload.headers });
+  await api.post("/api/admin/uploads/complete", { data: { key, bytes: wav.length } });
+  const peaks = Array.from({ length: 400 }, (_, i) => 0.3 + 0.5 * Math.abs(Math.sin(i / 9)));
+  const created = await api.post("/api/admin/recordings", {
+    data: {
+      key,
+      translation: "WEB",
+      book,
+      chapter: 1,
+      verseStart: 1,
+      endChapter: 1,
+      verseEnd: 3,
+      genre: { kind: "builtin", slug: "pop" },
+      peaks,
+    },
+  });
+  const { id } = await created.json();
+  await context.close();
+  return id as string;
+}

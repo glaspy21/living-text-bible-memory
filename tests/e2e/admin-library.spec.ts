@@ -17,6 +17,7 @@ let draftId = "";
 let publishedId = "";
 
 test.beforeAll(async ({ browser, baseURL }) => {
+  await db.removeRecordingsInBooks([MICAH, HAGGAI]); // leftovers of an aborted run
   // A draft with no timing, and a published recording (3 verses, 12 seconds, real file).
   const draftKey = `recordings/e2e-lib-${Date.now()}-aaaa/original.mp3`;
   await db.addRecording(draftKey, 10, "DRAFT", { bookId: MICAH, chapter: 1, verseEnd: 3 });

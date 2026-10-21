@@ -250,3 +250,10 @@
 - Open: `admin-library.spec.ts` still fails when earlier runs left recordings in the shared test database (see above); unrelated.
 - Range picker → reader: Select range returns to `/read/<book>/<chapter>?p=…&v=<first verse>&jump=1`; the first verse of the range is at the top at once (no smooth scroll). The picker also restarts on a new passage (Next kept its old range when revisited).
 
+
+## 2026-10-21 — M15 Admin timing editor (branch `m15-timing-editor`, off `m8d-reader-backward`)
+- `/admin/timing?recording=…` is now the editor: waveform with a time ruler and verse regions, play/pause, click or drag to scrub, **draggable start/end handles**, zoom (buttons, Ctrl/⌘+wheel, Fit) with a scroll bar, **Mark at playhead** (key M, Space plays), a table with typed times (`m:ss.mmm`, ↑/↓ nudges), "Start here / End here" at the playhead and a **per-verse Preview** that stops where the verse ends.
+- **Autosave** into the draft sheet (one request at a time) with a visible state, a warning if you leave with unsaved changes, and **Earlier sessions** to return to a previous state (the current state is kept first). A published recording opens read-only until you **Start a new draft version**; the published timing is never edited in place.
+- Server: `createTimingEditor` (load, startDraft, save, sessions, restore) behind admin-only routes `GET/PUT/POST /api/admin/recordings/[id]/timing` and `GET/POST …/timing/sessions`; the peaks route can fetch a specific audio file (`?asset=`) so a draft made for replaced audio draws its own waveform.
+- Tests: timing rules (unit, 36), editor service (database, 15), browser tests of entry, autosave, bad times, nudging, marking, dragging, zoom, preview, sessions, the published flow and access. Also made `admin-library.spec.ts` clear its books first (it failed when earlier runs left rows behind).
+- Open: validation flags and the Ready/Publish flow are M16 (the sheet already stores acknowledgements). Not verified with a real full-length chapter recording or an MP3 (tests use a 12 s WAV); a very long recording at the widest zoom is drawn per pixel column and should be fine, but was not measured.

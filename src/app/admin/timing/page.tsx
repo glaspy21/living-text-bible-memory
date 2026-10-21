@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WizardSteps } from "@/client/components/admin/wizard-steps";
-import { Main, PageTitle, Placeholder } from "@/client/components/shell/regions";
+import { Main, PageTitle } from "@/client/components/shell/regions";
 import { requireAdmin } from "@/server/auth/require-admin";
 import { db } from "@/server/db/client";
 import { formatReference } from "@/shared/scripture/refs";
 import { formatTime } from "@/shared/audio/format-time";
+import { TimingEditor } from "@/client/components/admin/timing-editor";
+import { timingEditor } from "@/server/timing";
 
 // Admin pages wait for the session check; nothing is shown before it.
 export const instant = false;
@@ -21,6 +24,7 @@ export default async function TimingPage({ searchParams }: PageProps<"/admin/tim
       })
     : null;
   if (id && !recording) notFound();
+  const data = id ? await timingEditor.load(id) : null;
 
   return (
     <Main>
@@ -47,10 +51,31 @@ export default async function TimingPage({ searchParams }: PageProps<"/admin/tim
             </span>
           </div>
         )}
-        <Placeholder milestone="M15 · Timing editor">
-          Waveform, ruler, zoom, scrub, draggable handles, numeric entry, per-verse preview,
-          autosave.
-        </Placeholder>
+        {data ? (
+          <TimingEditor
+            // a new key remounts the editor when the draft it works on changes
+            key={data.draft?.id ?? "published"}
+            recordingId={data.recording.id}
+            status={data.recording.status}
+            draft={data.draft}
+            audioAssetId={data.audioAssetId}
+            durationMs={data.durationMs}
+            initialRows={data.rows}
+            labels={data.rows.map((r) =>
+              data.recording.chapter === data.recording.endChapter
+                ? `${r.verse}`
+                : `${r.chapter}:${r.verse}`,
+            )}
+          />
+        ) : (
+          <p className="text-muted" data-testid="timing-pick">
+            Choose a recording from the{" "}
+            <Link href="/admin/library" className="text-gold2 underline">
+              track library
+            </Link>{" "}
+            to set its verse timing.
+          </p>
+        )}
       </div>
     </Main>
   );
