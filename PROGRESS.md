@@ -173,3 +173,9 @@
 - Dev note: `.env.local` has no `DATABASE_URL` yet, so I ran the migration with the local Docker URL from `.env.example`. Run `npm run db:migrate` after merging.
 - Open: "Ready" status is only reachable once M16 (validation) exists; until then everything shows as Draft or Published. The timing editor itself is M15. Next: **M15 Timing editor**.
 
+## 2026-10-21 — Flashcards: Shuffle switch and Restart (branch `m12b-flashcard-shuffle`, off `m14-admin-library`)
+- Owner request. Shuffle is now an on/off switch, lit (gold border, fill, glow) when on. Turning it on keeps the card you are on and then goes through every other card once, at random; turning it off keeps the card and carries on in sequence from it. After the last card it wraps to the first, as before.
+- New **Restart** button under Shuffle: back to CARD 1 OF n. In shuffle mode it starts a fresh random pass and stays shuffled. **Confirm:** is that the right reading, or should Restart in shuffle mode replay the same order?
+- With Shuffle on, "CARD n OF m" counts your place in the current random pass, so turning it on shows CARD 1 OF m on the same verse.
+- Audio still starts only on Play (flip, next, back, shuffle and restart never start it). Tests: deck rules (unit) and browser tests on desktop and phone (off by default, sequence, on keeps card and covers every card, real randomness, off keeps card, Restart in both modes, layout order).
+

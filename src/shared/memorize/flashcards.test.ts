@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inOrder, moveCard, shuffled } from "./flashcards";
+import { inOrder, moveCard, shuffledFrom } from "./flashcards";
 
 describe("moveCard", () => {
   it("steps forward and back", () => {
@@ -19,29 +19,32 @@ describe("moveCard", () => {
   });
 });
 
-describe("shuffled", () => {
-  it("contains every card exactly once", () => {
-    for (const seed of [0, 0.25, 0.5, 0.99]) {
-      const order = shuffled(7, () => seed);
-      expect([...order].sort((a, b) => a - b)).toEqual(inOrder(7));
+describe("shuffledFrom", () => {
+  it("starts on the given card and contains every card exactly once", () => {
+    for (const first of [0, 3, 6]) {
+      for (const seed of [0, 0.25, 0.5, 0.99]) {
+        const order = shuffledFrom(7, first, () => seed);
+        expect(order[0]).toBe(first);
+        expect([...order].sort((a, b) => a - b)).toEqual(inOrder(7));
+      }
     }
   });
 
   it("is exact for a given random sequence", () => {
-    // random() = 0 always swaps with index 0: [0,1,2,3] → rotates the deck.
-    expect(shuffled(4, () => 0)).toEqual([1, 2, 3, 0]);
+    // Without card 1 the rest is [0, 2, 3]; random() = 0 always swaps with slot 0, rotating it.
+    expect(shuffledFrom(4, 1, () => 0)).toEqual([1, 2, 3, 0]);
+    // random() just under 1 never moves anything: the rest stays in order.
+    expect(shuffledFrom(4, 1, () => 0.999999)).toEqual([1, 0, 2, 3]);
   });
 
-  it("changes the order when asked to differ from the previous one", () => {
-    const identity = inOrder(5);
-    // random() just under 1 always picks the last slot, so nothing moves: the identity order.
-    const order = shuffled(5, () => 0.999999, identity);
-    expect(order).not.toEqual(identity);
-    expect([...order].sort((a, b) => a - b)).toEqual(identity);
+  it("actually reorders the rest with real randomness", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 40; i++) seen.add(shuffledFrom(6, 2).join());
+    expect(seen.size).toBeGreaterThan(1);
   });
 
   it("handles decks of zero and one card", () => {
-    expect(shuffled(0)).toEqual([]);
-    expect(shuffled(1, Math.random, [0])).toEqual([0]);
+    expect(shuffledFrom(0, 0)).toEqual([]);
+    expect(shuffledFrom(1, 0)).toEqual([0]);
   });
 });

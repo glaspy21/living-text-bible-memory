@@ -9,6 +9,7 @@ const count = (page: Page) => page.getByRole("main").getByTestId("card-count");
 const next = (page: Page) => page.getByRole("button", { name: "Next card" });
 const prev = (page: Page) => page.getByRole("button", { name: "Previous card" });
 const shuffle = (page: Page) => page.getByRole("button", { name: "Shuffle" });
+const restart = (page: Page) => page.getByRole("button", { name: "Restart" });
 
 async function openCards(page: Page, query = PASSAGE) {
   await page.goto(`/memorize/flashcards${query}`);
@@ -91,23 +92,108 @@ test.describe("flashcards", () => {
     await expect(card(page)).toHaveAttribute("data-flipped", "false");
   });
 
-  test("shuffle keeps every card, restarts at card 1 and really changes the order", async ({
+  test("Shuffle is a switch that starts off, with Restart beneath it", async ({ page }) => {
+    await openCards(page);
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "false");
+    await shuffle(page).click();
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "true");
+    await shuffle(page).click();
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "false");
+
+    const shuffleBox = (await shuffle(page).boundingBox())!;
+    const restartBox = (await restart(page).boundingBox())!;
+    expect(restartBox.y).toBeGreaterThan(shuffleBox.y + shuffleBox.height - 1);
+  });
+
+  test("with Shuffle off the cards go in sequence, wrapping around", async ({ page }) => {
+    await openCards(page);
+    const seen: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      seen.push(await reference(page));
+      await next(page).click();
+    }
+    expect(seen).toEqual(["1:3", "1:4", "1:5", "1:6", "1:3"]);
+  });
+
+  test("turning Shuffle on keeps the current card, then visits every card once at random", async ({
     page,
   }) => {
     await openCards(page);
-    const orders: string[] = [];
-    for (let round = 0; round < 4; round++) {
-      await shuffle(page).click();
-      await expect(count(page)).toHaveText("CARD 1 OF 4");
+    await next(page).click();
+    await next(page).click();
+    expect(await reference(page)).toBe("1:5");
+
+    await shuffle(page).click();
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "true");
+    expect(await reference(page)).toBe("1:5"); // stays on the card you were looking at
+    await expect(count(page)).toHaveText("CARD 1 OF 4");
+
+    const seen: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      seen.push(await reference(page));
+      await next(page).click();
+    }
+    expect(seen[0]).toBe("1:5");
+    expect([...seen].sort()).toEqual(["1:3", "1:4", "1:5", "1:6"]);
+    // After the last card of the pass it comes back round to the first.
+    expect(await reference(page)).toBe("1:5");
+  });
+
+  test("the shuffled order is really random from one switch-on to the next", async ({ page }) => {
+    await openCards(page);
+    const orders = new Set<string>();
+    for (let round = 0; round < 8; round++) {
+      await shuffle(page).click(); // on, from the card we are on
       const seen: string[] = [];
       for (let i = 0; i < 4; i++) {
         seen.push(await reference(page));
         await next(page).click();
       }
-      expect([...seen].sort()).toEqual(["1:3", "1:4", "1:5", "1:6"]);
-      orders.push(seen.join(" "));
+      orders.add(seen.slice(1).join(" "));
+      await shuffle(page).click(); // off
     }
-    expect(orders.every((o) => o === "1:3 1:4 1:5 1:6")).toBe(false);
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  test("turning Shuffle off keeps the current card and carries on in sequence", async ({
+    page,
+  }) => {
+    await openCards(page);
+    await shuffle(page).click();
+    await next(page).click();
+    const current = await reference(page);
+    await shuffle(page).click();
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "false");
+    expect(await reference(page)).toBe(current);
+
+    const verse = Number(current.split(":")[1]);
+    await next(page).click();
+    const following = verse === 6 ? 3 : verse + 1;
+    expect(await reference(page)).toBe(`1:${following}`);
+  });
+
+  test("Restart goes back to card 1, in sequence or shuffled", async ({ page }) => {
+    await openCards(page);
+    await next(page).click();
+    await next(page).click();
+    await card(page).click();
+    await restart(page).click();
+    await expect(count(page)).toHaveText("CARD 1 OF 4");
+    expect(await reference(page)).toBe("1:3");
+    await expect(card(page)).toHaveAttribute("data-flipped", "false");
+
+    await shuffle(page).click();
+    await next(page).click();
+    await next(page).click();
+    await restart(page).click();
+    await expect(count(page)).toHaveText("CARD 1 OF 4");
+    await expect(shuffle(page)).toHaveAttribute("aria-pressed", "true"); // still shuffling
+    const seen: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      seen.push(await reference(page));
+      await next(page).click();
+    }
+    expect([...seen].sort()).toEqual(["1:3", "1:4", "1:5", "1:6"]);
   });
 
   test("Switch to Steps carries the passage", async ({ page }) => {
@@ -165,12 +251,15 @@ test.describe("flashcards with music", () => {
     await expect(count(page)).toHaveText("CARD 1 OF 3");
   }
 
-  test("flip, next, back and shuffle never start the music; only Play does", async ({ page }) => {
+  test("flip, next, back, shuffle and restart never start the music; only Play does", async ({
+    page,
+  }) => {
     await openHabakkuk(page);
     await card(page).click();
     await next(page).click();
     await prev(page).click();
     await shuffle(page).click();
+    await restart(page).click();
     await page.waitForTimeout(1500);
     await expect(play(page)).toBeVisible();
     await expect(pause(page)).toHaveCount(0);

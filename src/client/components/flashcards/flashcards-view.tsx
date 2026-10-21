@@ -5,10 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { Attribution } from "@/client/components/scripture/attribution";
 import { Main } from "@/client/components/shell/regions";
 import { Icon } from "@/client/components/ui/icons";
+import { cn } from "@/client/lib/cn";
 import { recordActivity } from "@/client/lib/activity-store";
 import { PlayerPassage } from "@/client/player/player-passage";
 import { usePlayer } from "@/client/player/player-provider";
-import { inOrder, moveCard, shuffled } from "@/shared/memorize/flashcards";
+import { inOrder, moveCard, shuffledFrom } from "@/shared/memorize/flashcards";
 import { bookBySlug } from "@/shared/scripture/books";
 import { formatPassageParam, withPassage } from "@/shared/scripture/passage-param";
 import type { PassageRef, TranslationCode, Verse } from "@/shared/scripture/types";
@@ -18,7 +19,8 @@ const arrow =
 
 /**
  * One card per verse. The front shows the reference ("Tap to reveal"); tapping turns it over to
- * the verse. Moving to another card, flipping and shuffling never start the music: only Play does.
+ * the verse. Moving to another card, flipping, shuffling and restarting never start the music:
+ * only Play does.
  * (If the music is already playing, it follows you to the new card's verse.)
  */
 export function FlashcardsView({
@@ -35,6 +37,8 @@ export function FlashcardsView({
   const player = usePlayer();
   const [order, setOrder] = useState(() => inOrder(verses.length));
   const [position, setPosition] = useState(0);
+  // Shuffle is a switch: on, the cards come in random order (every card once); off, in sequence.
+  const [shuffleOn, setShuffleOn] = useState(false);
   const [flipped, setFlipped] = useState(false);
   // Counts moves so the new card slides in (the card is re-created for each).
   const [moves, setMoves] = useState(0);
@@ -78,7 +82,19 @@ export function FlashcardsView({
   useEffect(() => {
     moveRef.current = move;
   });
-  const shuffle = () => show(shuffled(verses.length, Math.random, order), 0);
+  /** Switch Shuffle on or off. Either way you stay on the card you are looking at. */
+  const toggleShuffle = () => {
+    const current = order[position];
+    const next = !shuffleOn;
+    setShuffleOn(next);
+    if (next) show(shuffledFrom(verses.length, current), 0);
+    else show(inOrder(verses.length), current);
+  };
+  /** Back to the beginning of the deck: card 1 in sequence, or a fresh random pass when shuffled. */
+  const restart = () =>
+    shuffleOn
+      ? show(shuffledFrom(verses.length, Math.floor(Math.random() * verses.length)), 0)
+      : show(order, 0);
 
   return (
     <>
@@ -165,16 +181,32 @@ export function FlashcardsView({
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={shuffle}
-            className="mx-auto mt-5 flex items-center gap-[9px] font-serif text-[19px] text-gold hover:text-gold2"
-          >
-            <Icon name="shuffle" size={22} />
-            Shuffle
-          </button>
+          <div className="mt-5 flex flex-col items-center gap-2.5">
+            <button
+              type="button"
+              onClick={toggleShuffle}
+              aria-pressed={shuffleOn}
+              data-testid="shuffle"
+              className={cn(
+                "flex items-center gap-[9px] rounded-[7px] border px-4 py-[7px] font-serif text-[19px] transition-[background,box-shadow,border-color,color] duration-200",
+                shuffleOn
+                  ? "border-gold bg-[rgba(201,164,92,.22)] text-gold-bright shadow-[0_0_18px_rgba(201,164,92,.35)]"
+                  : "border-transparent text-gold hover:text-gold2",
+              )}
+            >
+              <Icon name="shuffle" size={22} />
+              Shuffle
+            </button>
+            <button
+              type="button"
+              onClick={restart}
+              className="rounded-[7px] px-4 py-1 font-serif text-[19px] text-gold hover:text-gold2"
+            >
+              Restart
+            </button>
+          </div>
           <p className="mt-3.5 text-xs text-muted max-[520px]:hidden">
-            Audio plays only when you press Play — never on flip, next or shuffle.
+            Audio plays only when you press Play — never on flip, next, shuffle or restart.
           </p>
           <Attribution translation={translation} className="mt-4" />
         </div>

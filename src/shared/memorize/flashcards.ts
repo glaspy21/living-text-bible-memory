@@ -12,27 +12,21 @@ export function inOrder(size: number): number[] {
 }
 
 /**
- * A random order of the deck (Fisher–Yates). `random` returns a number in [0, 1) and is
- * injectable so tests are exact. With more than one card the result is never the same order as
- * `previous`, so pressing Shuffle always visibly changes something.
+ * A random order of the whole deck that starts with card `first`, so turning Shuffle on keeps
+ * you on the card you are looking at and then visits every other card exactly once, in random
+ * order (Fisher–Yates over the rest). `random` returns a number in [0, 1) and is injectable so
+ * tests are exact.
  */
-export function shuffled(
+export function shuffledFrom(
   size: number,
+  first: number,
   random: () => number = Math.random,
-  previous?: readonly number[],
 ): number[] {
-  const attempt = () => {
-    const order = inOrder(size);
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-    return order;
-  };
-  let order = attempt();
-  // A second, deterministic step if the shuffle landed on the same order: rotate by one.
-  if (size > 1 && previous && order.every((v, i) => v === previous[i])) {
-    order = [...order.slice(1), order[0]];
+  if (size <= 0) return [];
+  const rest = inOrder(size).filter((card) => card !== first);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
   }
-  return order;
+  return first >= 0 && first < size ? [first, ...rest] : rest;
 }
