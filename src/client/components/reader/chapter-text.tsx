@@ -6,7 +6,47 @@ import { cn } from "@/client/lib/cn";
 import { verseMarking } from "@/shared/scripture/selection";
 import type { Verse } from "@/shared/scripture/types";
 import { usePlayer } from "@/client/player/player-provider";
+import { GO_TO_VERSE_EVENT, type GoToVerseDetail } from "@/client/lib/chapter-view";
 import { useReaderSelection } from "./reader-selection";
+
+let stopCurrent: (() => void) | undefined;
+
+/**
+ * Scroll a verse to the top of the screen. Near the end of a chapter the page may be too short to
+ * bring the verse up until the next chapter has loaded below it, so once the scrolling comes to
+ * rest it tries again, until the verse is at the top, the reader scrolls for themselves, or a few
+ * seconds have passed. Returns a function that gives up.
+ */
+function bringToTop(row: HTMLElement): () => void {
+  stopCurrent?.();
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  row.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+  const scroller = row.closest("main");
+  let lastTop = scroller?.scrollTop;
+  let ticks = 0;
+  const finish = () => {
+    clearInterval(interval);
+    document.removeEventListener("wheel", finish);
+    document.removeEventListener("touchmove", finish);
+    document.removeEventListener("keydown", finish);
+    if (stopCurrent === finish) stopCurrent = undefined;
+  };
+  const interval = setInterval(() => {
+    const top = scroller?.scrollTop;
+    const settled = top === lastTop;
+    lastTop = top;
+    const off = scroller
+      ? row.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+      : 0;
+    if (++ticks > 16 || (settled && Math.abs(off) < 2 && ticks > 2)) return finish();
+    if (settled && Math.abs(off) >= 2) row.scrollIntoView({ block: "start", behavior: "auto" });
+  }, 250);
+  document.addEventListener("wheel", finish, { passive: true });
+  document.addEventListener("touchmove", finish, { passive: true });
+  document.addEventListener("keydown", finish);
+  stopCurrent = finish;
+  return finish;
+}
 
 /**
  * A chapter with hanging verse numbers. Tapping a verse starts a selection; a second tap
@@ -38,10 +78,27 @@ export function ChapterText({
   useEffect(() => {
     if (!arrive || !goTo || !/^\d+$/.test(goTo)) return;
     const row = container.current?.querySelector<HTMLElement>(`[data-verse="${goTo}"]`);
-    if (!row) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    row.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+    return row ? bringToTop(row) : undefined;
   }, [arrive, goTo]);
+
+  // Choosing the verse that is already in the address bar changes nothing there, so the menu also
+  // says so directly.
+  const chapter = verses[0]?.chapter;
+  useEffect(() => {
+    let cancel: (() => void) | undefined;
+    const onGo = (event: Event) => {
+      const want = (event as CustomEvent<GoToVerseDetail>).detail;
+      if (want.book !== book || want.chapter !== chapter) return;
+      const row = container.current?.querySelector<HTMLElement>(`[data-verse="${want.verse}"]`);
+      cancel?.();
+      cancel = row ? bringToTop(row) : undefined;
+    };
+    window.addEventListener(GO_TO_VERSE_EVENT, onGo);
+    return () => {
+      window.removeEventListener(GO_TO_VERSE_EVENT, onGo);
+      cancel?.();
+    };
+  }, [book, chapter]);
 
   return (
     <div

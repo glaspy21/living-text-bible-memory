@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BOOKS, type BookInfo } from "@/shared/scripture/books";
 import { cn } from "@/client/lib/cn";
+import { GO_TO_VERSE_EVENT, type GoToVerseDetail } from "@/client/lib/chapter-view";
 
 const OLD = BOOKS.filter((b) => b.testament === "OLD");
 const NEW = BOOKS.filter((b) => b.testament === "NEW");
@@ -124,7 +125,16 @@ function BookRow({
                   key={verse}
                   href={`${chapterHref}?v=${verse}`}
                   prefetch={false}
-                  onClick={onChoose}
+                  // The reader scrolls to the verse itself; Next's own scroll-to-top would undo it.
+                  scroll={false}
+                  onClick={() => {
+                    onChoose();
+                    window.dispatchEvent(
+                      new CustomEvent<GoToVerseDetail>(GO_TO_VERSE_EVENT, {
+                        detail: { book: book.slug, chapter: pickedChapter, verse },
+                      }),
+                    );
+                  }}
                   className="grid h-10 place-items-center rounded-[7px] border border-line bg-[#101010] font-serif text-[18px] hover:border-gold"
                 >
                   {verse}

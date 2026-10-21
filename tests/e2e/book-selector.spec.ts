@@ -105,6 +105,37 @@ test.describe("book and chapter selector", () => {
     await expect(headerButton(page)).toContainText("John 3");
   });
 
+  test("a verse near the end of the chapter reaches the top, also after tapping a verse and when chosen twice", async ({
+    page,
+  }) => {
+    const atTop = () =>
+      page.evaluate(() => {
+        const row = document.querySelector("[data-verse='30']")!.getBoundingClientRect();
+        return Math.abs(row.top - document.querySelector("main")!.getBoundingClientRect().top) < 2;
+      });
+    const choose = async () => {
+      await headerButton(page).click();
+      const dialog = page.getByRole("dialog");
+      await dialog.getByRole("button", { name: "3", exact: true }).click();
+      await dialog.getByRole("link", { name: "30", exact: true }).click();
+    };
+    await page.goto("/read/john/3");
+    await streamed(page);
+    await expect(page.getByTestId("chapter-text").first()).toHaveAttribute(
+      "data-interactive",
+      "true",
+    );
+    await page.locator("[data-verse='2']").click();
+    await choose();
+    await expect.poll(atTop, { timeout: 10000 }).toBe(true);
+    // Back up the page, then choose the same verse again: it still goes there.
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -1500);
+    await page.waitForTimeout(500);
+    await choose();
+    await expect.poll(atTop, { timeout: 10000 }).toBe(true);
+  });
+
   test("titles the step you are on, and verse 1 opens the chapter from its start", async ({
     page,
   }) => {

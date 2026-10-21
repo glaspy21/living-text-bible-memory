@@ -6,3 +6,8 @@
 export const CHAPTER_VIEW_EVENT = "lt:chapter-view";
 
 export type ChapterViewDetail = { base: string; book: string; chapter: number };
+
+/** Sent by the selector when a verse is chosen, so the reader scrolls it to the top even when the address is unchanged. */
+export const GO_TO_VERSE_EVENT = "lt:go-to-verse";
+
+export type GoToVerseDetail = { book: string; chapter: number; verse: number };

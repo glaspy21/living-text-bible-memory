@@ -219,3 +219,4 @@
 - Tests updated/added in `continuous-reader.spec.ts` and `book-selector.spec.ts`.
 - Verse arrival no longer highlights the verse (it is already at the top of the screen).
 - Tapping the one selected verse again switches it off (the `?p=` selection is dropped and Memorize uses the whole chapter). Ranges still start over on a tap.
+- Fix: a verse chosen in the selector now reaches the top even near the chapter's end (it retries once the next chapter has loaded below), after tapping a verse, and when the same verse is chosen twice (the selector tells the reader directly).
