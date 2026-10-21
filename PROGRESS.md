@@ -228,3 +228,4 @@
 - Fix: on the Memorize screens the header names only the book and chapter where the passage starts (e.g. "Luke 23"), never the verse numbers.
 - Steps: the single/several-verses toggle no longer lights up (it looks the same in both views); its icon now shows the current view — one dot with one line for a single verse, three dots with three lines for several (and for Chain's whole passage). The Flashcards "Switch to Steps" link keeps the three-line icon.
 - Steps, single-verse view: verses out of view now fade and then give up their space, so the focused verse moves up beneath the toggle / Switch to Flashcards row, the page doesn't scroll and Listen · Sing · Recall · Chain stay in view (unless one verse is itself taller than the screen).
+- Steps: the help button, the Listen · Sing · Recall · Chain bar and the translation notice are pinned to the bottom of the scrolling area; long text scrolls away behind them (soft fade above). Checked at desktop and phone widths.

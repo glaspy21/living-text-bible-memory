@@ -102,6 +102,32 @@ test.describe("memorization steps", () => {
     expect(await row(page, 5).evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
   });
 
+  test("the steps stay at the bottom of the screen while long text scrolls behind them", async ({
+    page,
+  }) => {
+    await openSteps(page, "?p=john+1%3A1-18");
+    await toggle(page).click();
+    await page.waitForTimeout(1200);
+    const scrolled = await page.getByRole("main").evaluate((main) => {
+      main.scrollTo(0, 400);
+      return main.scrollTop > 0;
+    });
+    expect(scrolled).toBe(true);
+    await page.waitForTimeout(300);
+    const edges = await page.evaluate(() => {
+      const steps = document.querySelector("nav[aria-label='Memorization steps']")!;
+      return {
+        mainBottom: document.querySelector("main")!.getBoundingClientRect().bottom,
+        // The block holding the steps reaches the very bottom of the scrolling area.
+        blockBottom: steps.parentElement!.getBoundingClientRect().bottom,
+        stepsBottom: steps.getBoundingClientRect().bottom,
+      };
+    });
+    expect(Math.abs(edges.blockBottom - edges.mainBottom)).toBeLessThan(1);
+    expect(edges.stepsBottom).toBeLessThanOrEqual(edges.mainBottom);
+    await expect(stepButton(page, "Chain")).toBeInViewport();
+  });
+
   test("the toggle's icon shows the view: one dot and line for a verse, three for several", async ({
     page,
   }) => {
