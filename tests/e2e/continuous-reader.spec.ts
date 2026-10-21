@@ -43,6 +43,55 @@ test.describe("continuous scrolling", () => {
     await expect(page.locator("[data-chapter]")).toHaveCount(3);
   });
 
+  test("scrolling up from a later chapter brings the earlier ones in without a jump", async ({
+    page,
+  }) => {
+    await openReader(page, "/read/john/3");
+    // Nothing is added above until the reader goes up.
+    await expect(page.locator("[data-chapter]")).toHaveCount(1);
+    const top = () =>
+      page.locator('[data-chapter="3"]').evaluate((e) => e.getBoundingClientRect().top);
+    const before = await top();
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -200);
+    await expect(page.locator('[data-book="john"][data-chapter="2"]')).toBeAttached();
+    await expect(page.getByTestId("chapter-heading").filter({ hasText: "John 2" })).toBeAttached();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("John 3");
+    await page.waitForTimeout(300);
+    expect(Math.abs((await top()) - before)).toBeLessThan(2);
+    await expect(page).toHaveURL(/\/read\/john\/3$/);
+    // And on up to John 1, once John 2 has been read back to its top.
+    await main(page).evaluate((el) => el.scrollTo(0, 0));
+    await page.mouse.wheel(0, -50);
+    await expect(page.locator('[data-book="john"][data-chapter="1"]')).toBeAttached();
+  });
+
+  test("the address and header follow the reader up into an earlier chapter", async ({ page }) => {
+    await openReader(page, "/read/john/2");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -200);
+    await expect(page.locator('[data-book="john"][data-chapter="1"]')).toBeAttached();
+    await scrollChapterIntoReading(page, 1);
+    await expect(page).toHaveURL(/\/read\/john\/1$/);
+    await expect(headerRef(page)).toContainText("John 1");
+    // Back to the opened chapter, and the address returns.
+    await scrollChapterIntoReading(page, 2);
+    await expect(page).toHaveURL(/\/read\/john\/2$/);
+  });
+
+  test("Genesis 1 has nothing above it, and Revelation 22 nothing below", async ({ page }) => {
+    await openReader(page, "/read/genesis/1");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -200);
+    await page.waitForTimeout(300);
+    await expect(page.locator("[data-chapter]")).toHaveCount(1);
+    await openReader(page, "/read/revelation/22");
+    await scrollToEnd(page);
+    await page.waitForTimeout(300);
+    await expect(page.locator("[data-chapter]")).toHaveCount(1);
+    await expect(page.getByTestId("more-loading")).toHaveCount(0);
+  });
+
   test("the address, header and whole-chapter passage follow the chapter being read", async ({
     page,
     isMobile,
@@ -78,14 +127,50 @@ test.describe("continuous scrolling", () => {
     );
   });
 
-  test("it stops at the end of a book and offers the next one", async ({ page }) => {
+  test("the end of a book runs on into the first chapter of the next", async ({ page }) => {
     await openReader(page, "/read/obadiah/1");
-    await expect(page.locator("[data-chapter]")).toHaveCount(1);
-    await expect(page.getByTestId("more-loading")).toHaveCount(0);
     await scrollToEnd(page);
-    const next = page.getByRole("link", { name: /Continue to Jonah 1/ });
-    await expect(next).toHaveAttribute("href", "/read/jonah/1");
-    await expect(page.locator("[data-chapter]")).toHaveCount(1);
+    await expect(page.getByTestId("chapter-heading").filter({ hasText: "Jonah 1" })).toBeAttached();
+    await expect(page.locator('[data-book="jonah"][data-chapter="1"]')).toBeAttached();
+    await page.locator('[data-book="jonah"]').evaluate((section) => {
+      const scroller = section.closest("main")!;
+      scroller.scrollTo(
+        0,
+        scroller.scrollTop + section.getBoundingClientRect().top - window.innerHeight * 0.38,
+      );
+    });
+    await expect(page).toHaveURL(/\/read\/jonah\/1$/);
+    await expect(headerRef(page)).toContainText("Jonah 1");
+  });
+
+  test("the start of a book runs back into the last chapter of the one before", async ({
+    page,
+  }) => {
+    await openReader(page, "/read/jonah/1");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -200);
+    await expect(page.locator('[data-book="obadiah"][data-chapter="1"]')).toBeAttached();
+    await expect(
+      page.getByTestId("chapter-heading").filter({ hasText: "Obadiah 1" }),
+    ).toBeAttached();
+  });
+
+  test("tapping verses in another book selects there, and never across books", async ({ page }) => {
+    await openReader(page, "/read/obadiah/1");
+    await scrollToEnd(page);
+    await expect(page.locator('[data-book="jonah"][data-chapter="1"]')).toBeAttached();
+    await page.locator('[data-book="obadiah"] [data-verse="2"]').click();
+    await page.locator('[data-book="jonah"] [data-verse="3"]').click();
+    // A tap in a different book starts a new selection rather than joining the first.
+    await expect(page).toHaveURL(/p=jonah/);
+    await expect(page.locator('[data-book="obadiah"] [data-verse="2"]')).not.toHaveAttribute(
+      "data-edge",
+      "true",
+    );
+    await expect(page.locator('[data-book="jonah"] [data-verse="3"]')).toHaveAttribute(
+      "data-edge",
+      "true",
+    );
   });
 
   test("a chapter that cannot be loaded says so and can be retried", async ({ page }) => {

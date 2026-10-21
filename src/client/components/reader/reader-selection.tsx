@@ -21,15 +21,19 @@ import type { PassageRef, VerseRef } from "@/shared/scripture/types";
 type ReaderSelection = {
   /** The tapped verses, or null when nothing is chosen. */
   selection: Selection | null;
+  /** The book the selection is in (a selection never spans books); null when nothing is chosen. */
+  selectionBook: string | null;
   /** What Memorize will use: the selection, or the whole chapter when nothing is chosen. */
   passage: PassageRef;
   /** True when `passage` is the whole chapter because nothing was chosen. */
   isWholeChapter: boolean;
   /** The chapter in view (continuous scrolling moves it on); also where Memorize's default comes from. */
+  currentBook: string;
   currentChapter: number;
-  /** Called by the chapter list as the chapter in view changes. */
-  setCurrent(chapter: number, lastVerse: number): void;
-  tap(verse: VerseRef): void;
+  /** Called by the chapter list as the chapter in view changes (it may be in another book). */
+  setCurrent(book: string, chapter: number, lastVerse: number): void;
+  /** Tap a verse of `book`; a tap in a different book from the selection starts a fresh selection. */
+  tap(book: string, verse: VerseRef): void;
 };
 
 const Context = createContext<ReaderSelection | null>(null);
@@ -62,53 +66,60 @@ export function ReaderSelectionProvider({
   const param = useSyncExternalStore(subscribe, readParam, () => "");
   const [anchor, setAnchor] = useState<VerseRef | null>(null);
   // Scrolling on into the next chapter moves "the chapter in view" without leaving the page.
-  const [current, setCurrentState] = useState({ chapter, lastVerse });
+  const [current, setCurrentState] = useState({ book, chapter, lastVerse });
   const setCurrent = useCallback(
-    (nextChapter: number, nextLastVerse: number) =>
+    (nextBook: string, nextChapter: number, nextLastVerse: number) =>
       setCurrentState((c) =>
-        c.chapter === nextChapter && c.lastVerse === nextLastVerse
+        c.book === nextBook && c.chapter === nextChapter && c.lastVerse === nextLastVerse
           ? c
-          : { chapter: nextChapter, lastVerse: nextLastVerse },
+          : { book: nextBook, chapter: nextChapter, lastVerse: nextLastVerse },
       ),
     [],
   );
 
+  const parsedPassage = useMemo(() => parsePassageParam(param), [param]);
+  const selectionBook = parsedPassage?.book ?? null;
   const selection = useMemo<Selection | null>(() => {
-    const parsed = parsePassageParam(param);
-    if (!parsed || parsed.book !== book) return null;
-    const waiting =
-      anchor && compareRefs(anchor, parsed.start) === 0 && compareRefs(anchor, parsed.end) === 0;
-    return { start: parsed.start, end: parsed.end, anchor: waiting ? anchor : null };
-  }, [param, book, anchor]);
+    if (!parsedPassage) return null;
+    const { start, end } = parsedPassage;
+    const waiting = anchor && compareRefs(anchor, start) === 0 && compareRefs(anchor, end) === 0;
+    return { start, end, anchor: waiting ? anchor : null };
+  }, [parsedPassage, anchor]);
 
   const tap = useCallback(
-    (verse: VerseRef) => {
-      const next = tapVerse(selection, verse);
+    (tappedBook: string, verse: VerseRef) => {
+      const next = tapVerse(tappedBook === selectionBook ? selection : null, verse);
       setAnchor(next.anchor);
       const url = new URL(window.location.href);
-      url.searchParams.set("p", formatPassageParam({ book, start: next.start, end: next.end }));
+      url.searchParams.set(
+        "p",
+        formatPassageParam({ book: tappedBook, start: next.start, end: next.end }),
+      );
       window.history.replaceState(window.history.state, "", url);
       window.dispatchEvent(new Event(CHANGE_EVENT));
     },
-    [book, selection],
+    [selection, selectionBook],
   );
 
   const value = useMemo<ReaderSelection>(
     () => ({
       selection,
-      passage: selection
-        ? { book, start: selection.start, end: selection.end }
-        : {
-            book,
-            start: { chapter: current.chapter, verse: 1 },
-            end: { chapter: current.chapter, verse: current.lastVerse },
-          },
+      selectionBook,
+      passage:
+        selection && selectionBook
+          ? { book: selectionBook, start: selection.start, end: selection.end }
+          : {
+              book: current.book,
+              start: { chapter: current.chapter, verse: 1 },
+              end: { chapter: current.chapter, verse: current.lastVerse },
+            },
       isWholeChapter: selection === null,
+      currentBook: current.book,
       currentChapter: current.chapter,
       setCurrent,
       tap,
     }),
-    [book, current, selection, setCurrent, tap],
+    [current, selection, selectionBook, setCurrent, tap],
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

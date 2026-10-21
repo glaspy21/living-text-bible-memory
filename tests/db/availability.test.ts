@@ -83,6 +83,15 @@ describe("music availability", () => {
     expect(await availability.chaptersWithMusic("nonsense")).toEqual([]);
   });
 
+  it("lists the chapters with published music for every book at once", async () => {
+    await makeRecording(48, 3, 4, "PUBLISHED"); // Galatians 3–4
+    await makeRecording(49, 2, 2, "PUBLISHED"); // Ephesians 2
+    await makeRecording(49, 5, 5, "DRAFT"); // a draft never counts
+    const all = await availability.chaptersWithMusicByBook();
+    expect(all.galatians).toEqual([3, 4]);
+    expect(all.ephesians).toEqual([2]);
+  });
+
   it("says no for an unknown book", async () => {
     expect(await availability.chapterHasMusic("nonsense", 1)).toBe(false);
   });

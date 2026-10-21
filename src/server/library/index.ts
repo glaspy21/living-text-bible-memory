@@ -36,6 +36,8 @@ async function orElse<T>(fallback: T, read: () => Promise<T>): Promise<T> {
 export const booksWithMusic = () => orElse(new Set<string>(), availability.booksWithMusic);
 export const chaptersWithMusic = (book: string) =>
   orElse<number[]>([], () => availability.chaptersWithMusic(book));
+export const chaptersWithMusicByBook = () =>
+  orElse<Record<string, number[]>>({}, availability.chaptersWithMusicByBook);
 export const chapterHasMusic = (book: string, chapter: number) =>
   orElse(false, () => availability.chapterHasMusic(book, chapter));
 

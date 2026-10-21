@@ -14,14 +14,16 @@ import { useReaderSelection } from "./reader-selection";
  * real buttons so the text can still be selected and copied.
  */
 export function ChapterText({
+  book,
   verses,
   arrive = false,
 }: {
+  book: string;
   verses: Verse[];
   /** Whether `?v=` (a verse chosen in the header menu) points into this chapter. */
   arrive?: boolean;
 }) {
-  const { selection, tap } = useReaderSelection();
+  const { selection, selectionBook, tap } = useReaderSelection();
   const player = usePlayer();
   // False on the server and during hydration, true once taps will work (tests wait for this).
   const interactive = useSyncExternalStore(
@@ -55,7 +57,7 @@ export function ChapterText({
       data-interactive={interactive}
     >
       {verses.map((verse) => {
-        const { inRange, edge } = verseMarking(selection, verse);
+        const { inRange, edge } = verseMarking(selectionBook === book ? selection : null, verse);
         const sounding =
           player.status === "playing" &&
           player.currentVerse?.chapter === verse.chapter &&
@@ -63,7 +65,7 @@ export function ChapterText({
         const onKeyDown = (event: KeyboardEvent) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            tap(verse);
+            tap(book, verse);
           }
         };
         return (
@@ -76,7 +78,7 @@ export function ChapterText({
             data-verse={verse.verse}
             data-edge={edge || undefined}
             data-playing={sounding || undefined}
-            onClick={() => tap(verse)}
+            onClick={() => tap(book, verse)}
             onKeyDown={onKeyDown}
             className={cn(
               "mb-0.5 grid cursor-pointer grid-cols-[46px_1fr] rounded-lg border border-transparent py-1.5 pr-3 transition-colors duration-200 max-[520px]:grid-cols-[34px_1fr] max-[520px]:py-[5px] max-[520px]:pr-1.5",

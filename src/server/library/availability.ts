@@ -30,6 +30,25 @@ export function createAvailability(client: Pick<PrismaClient, "recording">) {
       return [...chapters].sort((a, b) => a - b);
     },
 
+    /** Every book's chapters with published music, for the reader that scrolls from book to book. */
+    async chaptersWithMusicByBook(): Promise<Record<string, number[]>> {
+      const rows = await client.recording.findMany({
+        where: { status: "PUBLISHED" },
+        select: { chapter: true, endChapter: true, book: { select: { slug: true } } },
+      });
+      const byBook = new Map<string, Set<number>>();
+      for (const r of rows) {
+        const book = bookBySlug(r.book.slug);
+        if (!book) continue;
+        const set = byBook.get(book.slug) ?? new Set<number>();
+        for (let c = r.chapter; c <= Math.min(r.endChapter, book.chapterCount); c++) set.add(c);
+        byBook.set(book.slug, set);
+      }
+      return Object.fromEntries(
+        [...byBook].map(([slug, set]) => [slug, [...set].sort((a, b) => a - b)]),
+      );
+    },
+
     /** True when a published recording covers any part of the chapter (recordings may span chapters). */
     async chapterHasMusic(bookSlug: string, chapter: number): Promise<boolean> {
       const book = bookBySlug(bookSlug);

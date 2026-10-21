@@ -7,7 +7,7 @@ import { ReaderPlayer } from "@/client/components/reader/reader-player";
 import { ReaderSelectionProvider } from "@/client/components/reader/reader-selection";
 import { MemorizeBar, SelectionPanel } from "@/client/components/reader/selection-panel";
 import { Main, RightPanel } from "@/client/components/shell/regions";
-import { chaptersWithMusic } from "@/server/library";
+import { chaptersWithMusicByBook } from "@/server/library";
 import { getPreferredTranslation } from "@/server/scripture/preference";
 import { loadReaderChapter } from "@/server/scripture/reader";
 import { ScriptureUnavailableError } from "@/server/scripture/types";
@@ -27,7 +27,7 @@ async function Reader({ params }: { params: Params }) {
       if (error instanceof ScriptureUnavailableError) notFound();
       throw error;
     }),
-    chaptersWithMusic(book.slug),
+    chaptersWithMusicByBook(),
   ]);
   const lastVerse = loaded.verses[loaded.verses.length - 1]?.verse ?? 1;
 
@@ -44,17 +44,16 @@ async function Reader({ params }: { params: Params }) {
       <ReaderPlayer />
       <Main player>
         <div className="mx-auto w-full max-w-[720px]">
-          <header className="mb-2 flex items-start justify-between gap-4">
-            <h1 className="font-serif text-[34px] font-medium tracking-[.02em] text-heading max-[520px]:sr-only">
-              {book.name} {chapter}
-            </h1>
-            <ChapterNav book={book.slug} chapter={chapter} />
-          </header>
           <ContinuousChapters
-            book={book.slug}
-            bookName={book.name}
-            chapterCount={book.chapterCount}
-            initial={{ chapter, ...loaded }}
+            initial={{ book: book.slug, chapter, ...loaded }}
+            header={
+              <header className="mb-2 flex items-start justify-between gap-4">
+                <h1 className="font-serif text-[34px] font-medium tracking-[.02em] text-heading max-[520px]:sr-only">
+                  {book.name} {chapter}
+                </h1>
+                <ChapterNav book={book.slug} chapter={chapter} />
+              </header>
+            }
           />
           <MemorizeBar />
         </div>

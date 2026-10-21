@@ -11,10 +11,14 @@ const ghost =
   "wipe mt-3.5 inline-flex w-full items-center justify-center rounded-[7px] border border-line px-5 py-[9px] text-muted transition-colors";
 
 /** Right panel of the reader: what is selected, and the way on to Memorize or Edit range. */
-export function SelectionPanel({ musicChapters }: { musicChapters: readonly number[] }) {
-  const { passage, isWholeChapter, currentChapter } = useReaderSelection();
+export function SelectionPanel({
+  musicChapters,
+}: {
+  musicChapters: Readonly<Record<string, readonly number[]>>;
+}) {
+  const { passage, isWholeChapter, currentBook, currentChapter } = useReaderSelection();
   // Music is about the chapter in view, which moves as you scroll on.
-  const available = musicChapters.includes(currentChapter);
+  const available = (musicChapters[currentBook] ?? []).includes(currentChapter);
   return (
     <>
       <h2 className="mb-1.5 font-serif text-[22px] font-medium text-heading">Memorize</h2>
