@@ -10,7 +10,9 @@ const stepButton = (page: Page, label: string) =>
   page.getByRole("navigation", { name: "Memorization steps" }).getByRole("button", { name: label });
 const toggle = (page: Page) => page.getByRole("button", { name: "Show several verses" });
 const reveal = (page: Page) => page.getByRole("button", { name: /(Reveal|Hide) Scripture/ });
-const label = (page: Page) => page.getByTestId("focus-label");
+const arrows = (page: Page) => page.getByRole("group", { name: "Move between verses" });
+const prev = (page: Page) => arrows(page).getByRole("button", { name: "Previous verse" });
+const next = (page: Page) => arrows(page).getByRole("button", { name: "Next verse" });
 
 async function openSteps(page: Page, query = PASSAGE) {
   await page.goto(`/memorize/steps${query}`);
@@ -50,7 +52,6 @@ test.describe("memorization steps", () => {
     await openSteps(page);
     await expect.poll(() => vis(page, 3)).toBe("focused");
     for (const n of [4, 5, 6]) expect(await vis(page, n)).toBe("gone");
-    await expect(label(page)).toHaveText("Verse 3 of 3–6");
     await expect(row(page, 3)).toContainText("All things were made through him");
   });
 
@@ -61,7 +62,6 @@ test.describe("memorization steps", () => {
     const size = () => row(page, 3).evaluate((el) => getComputedStyle(el).fontSize);
     const before = await size();
     await toggle(page).click();
-    await expect(label(page)).toHaveText("Focus: verse 3 · click a verse to move focus");
     expect(await vis(page, 4)).toBe("faded");
     const faded = await settledOpacity(page, 4);
     expect(faded).toBeGreaterThan(0.3);
@@ -237,7 +237,15 @@ test.describe("memorization steps", () => {
     await row(page, 5).click();
     await expect.poll(() => vis(page, 5)).toBe("focused");
     expect(await vis(page, 3)).toBe("faded");
-    await expect(label(page)).toContainText("verse 5");
+  });
+
+  test("the arrows move the focus to the next and previous verse", async ({ page }) => {
+    await openSteps(page);
+    await expect(prev(page)).toBeDisabled();
+    await next(page).click();
+    await expect.poll(() => vis(page, 4)).toBe("focused");
+    await prev(page).click();
+    await expect.poll(() => vis(page, 3)).toBe("focused");
   });
 
   test("Sing starts with several verses in view", async ({ page }) => {
@@ -263,7 +271,7 @@ test.describe("memorization steps", () => {
     await openSteps(page);
     await stepButton(page, "Chain").click();
     for (const n of [3, 4, 5, 6]) expect(await vis(page, n)).toBe("plain");
-    await expect(label(page)).toHaveText("Whole passage");
+    await expect(next(page)).toBeDisabled();
     await expect(toggle(page)).toBeDisabled();
     await expect(row(page, 6)).not.toContainText("There came a man");
     await reveal(page).click();
@@ -425,7 +433,10 @@ test.describe("with music", () => {
     await expect.poll(() => vis(page, 3)).toBe("focused");
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Previous verse" }).click();
+    await page
+      .getByRole("contentinfo", { name: "Player" })
+      .getByRole("button", { name: "Previous verse" })
+      .click();
     await expect.poll(() => vis(page, 2)).toBe("focused");
     await expect(row(page, 2)).toHaveAttribute("aria-current", "true");
   });

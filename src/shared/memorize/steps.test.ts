@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   STEPS,
   dashLines,
-  focusLabel,
   focusModeFor,
   hidesText,
   parseStep,
@@ -65,14 +64,6 @@ describe("visibility", () => {
 
   it("shows everything plainly in the whole-passage view", () => {
     expect([0, 1, 2].map((i) => visibility("whole", i, 1))).toEqual(["plain", "plain", "plain"]);
-  });
-});
-
-describe("focusLabel", () => {
-  it("describes each mode", () => {
-    expect(focusLabel("single", 4, 3, 7)).toBe("Verse 4 of 3–7");
-    expect(focusLabel("multi", 4, 3, 7)).toBe("Focus: verse 4 · click a verse to move focus");
-    expect(focusLabel("whole", 4, 3, 7)).toBe("Whole passage");
   });
 });
 

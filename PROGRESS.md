@@ -233,3 +233,9 @@
 - Steps: going from one verse to several keeps the focused verse exactly where it was on screen; the verses after it appear below and the earlier ones are above, to scroll up to.
 - Steps, several → one verse: the other verses fade out while the chosen verse stays completely still; after a clear pause (~0.4s) they close up and the verse glides to the top beneath the toggle row. One → several keeps the verse still while the others open around it. Reduced motion swaps instantly.
 - Open: `admin-library.spec.ts` fails against the shared test database when recordings from earlier runs are left behind (Micah 1:1–3 appears twice); unrelated to the reader/steps work. Clean the `livingtext_test` recordings or let me add per-run cleanup.
+
+## 2026-10-21 — Steps verse arrows, flashcard flip fix, button polish
+- Steps: the "Focus verse · click a verse to move focus" line is gone. Plain gold left/right triangles (same as the reader's chapter arrows) now sit centred on the toggle row and move the focus to the previous/next verse (disabled at the ends and in Chain). In the single-verse view the verse is replaced at once, so two verses never show together; several-verse and Chain transitions are unchanged. Removed `focusLabel`.
+- Flashcards: the previous/next arrows are the filled triangles. Fix: after moving to another card the card could not be turned over (the slide-in animation kept a `transform` that overrode the flip); the slide-in no longer holds its end state. Regression e2e test added.
+- The solid "Memorize" buttons (reader panel, range picker) use EB Garamond 19px like the other buttons.
+- Open: the owner reported the card still not flipping after the fix; could not reproduce in Playwright (desktop and mobile). Dev server restarted; if it recurs we need the browser and whether music is playing.

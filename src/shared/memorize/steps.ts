@@ -55,13 +55,6 @@ export function visibility(mode: FocusMode, index: number, focus: number): Visib
   return mode === "multi" ? "faded" : "gone";
 }
 
-/** The line beside the toggle button. `reference` is the current verse like "3". */
-export function focusLabel(mode: FocusMode, verse: number, first: number, last: number): string {
-  if (mode === "whole") return "Whole passage";
-  if (mode === "multi") return `Focus: verse ${verse} · click a verse to move focus`;
-  return `Verse ${verse} of ${first}–${last}`;
-}
-
 /**
  * Widths (percent) of the dashed placeholder lines standing in for a verse of `length`
  * characters: one line per ~70 characters, the last one shorter, so the shape hints at the length.

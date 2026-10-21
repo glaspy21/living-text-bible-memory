@@ -47,6 +47,18 @@ test.describe("flashcards", () => {
     await expect(card(page)).toHaveAttribute("data-flipped", "false");
   });
 
+  test("a card reached with the arrows still turns over when tapped", async ({ page }) => {
+    await openCards(page);
+    await next(page).click();
+    await prev(page).click();
+    await card(page).click();
+    await expect(card(page)).toHaveAttribute("data-flipped", "true");
+    // The slide-in must not leave a transform behind that stops the card from turning.
+    await page.waitForTimeout(1000);
+    const turned = await card(page).evaluate((el) => getComputedStyle(el).transform);
+    expect(turned).not.toBe("none");
+  });
+
   test("tapping turns the card over to the verse, and again to turn it back", async ({ page }) => {
     await openCards(page);
     await card(page).click();

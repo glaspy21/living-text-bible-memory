@@ -13,7 +13,6 @@ import { usePlayer } from "@/client/player/player-provider";
 import {
   STEPS,
   dashLines,
-  focusLabel,
   focusModeFor,
   hidesText,
   stepAfter,
@@ -22,7 +21,6 @@ import {
   type StepId,
 } from "@/shared/memorize/steps";
 import { formatPassageParam, withPassage } from "@/shared/scripture/passage-param";
-import { bookBySlug } from "@/shared/scripture/books";
 import { formatReference } from "@/shared/scripture/refs";
 import type { PassageRef, PassageVerse, TranslationCode } from "@/shared/scripture/types";
 
@@ -30,6 +28,10 @@ const card = "rounded-[10px] border border-line bg-[rgba(18,18,18,.7)] p-[18px]"
 const cardLabel = "text-[11px] tracking-[.14em] text-muted uppercase";
 const miniButton =
   "grid h-[42px] w-[42px] place-items-center rounded-[10px] border-[1.5px] border-gold bg-[rgba(12,10,6,.8)] text-gold transition-[background,box-shadow] duration-200 hover:text-gold2 disabled:opacity-40";
+
+/** The plain gold triangles of the reader's chapter arrows: no outline. */
+const triangle =
+  "inline-flex h-9 w-9 items-center justify-center rounded-md text-heading transition-colors hover:bg-[rgba(201,164,92,.08)] disabled:pointer-events-none disabled:opacity-30";
 
 /** One verse's dashed stand-in while the text is hidden. */
 function Dashes({ length }: { length: number }) {
@@ -74,6 +76,8 @@ export function StepsView({
   // then they close up at once (`snap`) and the verse glides up to the top.
   const [fading, setFading] = useState(false);
   const [snap, setSnap] = useState(false);
+  // One verse view, another verse chosen: the verses swap at once, never both on screen.
+  const [swap, setSwap] = useState(false);
   const glideFrom = useRef<number | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -102,7 +106,6 @@ export function StepsView({
   const mode = focusModeFor(step, chosenMulti);
   const current = STEPS[stepIndex(step)];
   const hidden = hidesText(step);
-  const focused = verses[focus];
 
   const goToStep = (next: StepId) => {
     setStep(next);
@@ -149,6 +152,7 @@ export function StepsView({
   };
   const toggleMulti = () => {
     if (mode === "whole" || fading) return;
+    setSwap(false);
     setRevealed(false);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (mode === "single") {
@@ -207,6 +211,7 @@ export function StepsView({
       ?.style.removeProperty("padding-top");
   }, [focus, step]);
   const focusOn = (index: number) => {
+    setSwap(mode === "single");
     setFocus(index);
     setRevealed(false);
     const wanted = verses[index];
@@ -225,7 +230,7 @@ export function StepsView({
       <PlayerPassage passage={passage} context="practice" />
       <Main player>
         <div className="mx-auto flex h-full w-full max-w-[760px] flex-col" data-step={step}>
-          <div className="flex items-center justify-between gap-3">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
             <button
               type="button"
               // The icon shows the view; the button itself looks the same in both.
@@ -244,20 +249,31 @@ export function StepsView({
             >
               <Icon name={mode === "single" ? "list-one" : "list"} size={22} />
             </button>
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="min-w-0 truncate text-muted max-[520px]:hidden" data-testid="focus-label">
-                {passage.endBook && mode !== "whole" && focused
-                  ? // Verse numbers alone are ambiguous across books, so name the verse.
-                    `${bookBySlug(focused.book)?.name ?? focused.book} ${focused.chapter}:${focused.verse}${
-                      mode === "multi" ? " · click a verse to move focus" : ""
-                    }`
-                  : focusLabel(
-                      mode,
-                      focused?.verse ?? 0,
-                      verses[0].verse,
-                      verses[verses.length - 1].verse,
-                    )}
-              </span>
+            <div
+              className="flex items-center justify-center gap-2"
+              role="group"
+              aria-label="Move between verses"
+            >
+              <button
+                type="button"
+                className={triangle}
+                aria-label="Previous verse"
+                disabled={mode === "whole" || focus <= 0}
+                onClick={() => focusOn(focus - 1)}
+              >
+                <Icon name="triangleLeft" size={22} />
+              </button>
+              <button
+                type="button"
+                className={triangle}
+                aria-label="Next verse"
+                disabled={mode === "whole" || focus >= verses.length - 1}
+                onClick={() => focusOn(focus + 1)}
+              >
+                <Icon name="triangleRight" size={22} />
+              </button>
+            </div>
+            <div className="flex items-center justify-end">
               <Link
                 href={withPassage("/memorize/flashcards", passage)}
                 className="wipe inline-flex h-[42px] shrink-0 items-center whitespace-nowrap gap-[9px] rounded-[10px] border-[1.5px] border-gold bg-[rgba(201,164,92,.07)] px-4 font-serif text-[17px] text-gold2"
@@ -313,6 +329,7 @@ export function StepsView({
                       "--o": vis === "faded" ? 0.34 : 1,
                       animation: "cascade .8s backwards",
                       animationDelay: `${i * 120}ms`,
+                      ...(swap && mode === "single" && { transition: "none" }),
                       // The others fade out in place; then they close up with no animation.
                       ...(fading &&
                         vis !== "focused" && {

@@ -134,7 +134,7 @@ export function FlashcardsView({
               className={arrow}
               onClick={() => move(-1)}
             >
-              <Icon name="chevronLeft" size={26} />
+              <Icon name="triangleLeft" size={26} />
             </button>
             <div className="fc-wrap">
               <div
@@ -180,7 +180,7 @@ export function FlashcardsView({
               </div>
             </div>
             <button type="button" aria-label="Next card" className={arrow} onClick={() => move(1)}>
-              <Icon name="chevronRight" size={26} />
+              <Icon name="triangleRight" size={26} />
             </button>
           </div>
 
@@ -202,7 +202,7 @@ export function FlashcardsView({
               data-testid="shuffle"
               className={cn(
                 "wipe flex items-center gap-[9px] rounded-[7px] border border-gold px-4 py-[7px] font-serif text-[19px] transition-[background,box-shadow,color] duration-200",
-                shuffleOn ? "text-gold" : "text-gold",
+                "text-gold",
               )}
             >
               <Icon name="shuffle" size={22} />

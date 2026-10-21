@@ -6,7 +6,7 @@ import { withPassage } from "@/shared/scripture/passage-param";
 import { useReaderSelection } from "./reader-selection";
 
 const solid =
-  "inline-flex w-full items-center justify-center rounded-[7px] border border-[#d8b872] bg-gradient-to-b from-[#e0c07a] to-[#a8843f] px-5 py-[9px] font-semibold text-[#120d03] transition-transform duration-200 active:scale-[0.97]";
+  "inline-flex w-full items-center justify-center rounded-[7px] border border-[#d8b872] bg-gradient-to-b from-[#e0c07a] to-[#a8843f] px-5 py-[7px] font-serif text-[19px] text-[#120d03] transition-transform duration-200 active:scale-[0.97]";
 const ghost =
   "wipe mt-3.5 inline-flex w-full items-center justify-center rounded-[7px] border border-line px-5 py-[9px] text-muted transition-colors";
 
