@@ -66,8 +66,34 @@ export function originalAudioKey(id: string, kind: AudioKind): string {
 }
 
 /** Keys we generate look like this; anything else is refused before touching storage. */
-export const STORAGE_KEY_PATTERN = /^recordings\/[A-Za-z0-9-]{8,64}\/original\.(mp3|wav)$/;
+export const ORIGINAL_KEY_PATTERN = /^recordings\/[A-Za-z0-9-]{8,64}\/original\.(mp3|wav)$/;
+export const PEAKS_KEY_PATTERN = /^recordings\/[A-Za-z0-9-]{8,64}\/peaks\.json$/;
 
+/** An original upload's key (what the upload routes may create). */
+export function isOriginalAudioKey(key: string): boolean {
+  return ORIGINAL_KEY_PATTERN.test(key);
+}
+
+/** The key of the waveform file stored beside an original. */
+export function isPeaksKey(key: string): boolean {
+  return PEAKS_KEY_PATTERN.test(key);
+}
+
+/** Every key the app stores: an original recording or its waveform peaks. Anything else is refused. */
 export function isValidStorageKey(key: string): boolean {
-  return STORAGE_KEY_PATTERN.test(key);
+  return isOriginalAudioKey(key) || isPeaksKey(key);
+}
+
+/** "recordings/<id>/original.wav" → "recordings/<id>/peaks.json". */
+export function peaksKeyFor(originalKey: string): string {
+  if (!isOriginalAudioKey(originalKey)) throw new Error("Not an original recording key");
+  return originalKey.replace(/original\.(mp3|wav)$/, "peaks.json");
+}
+
+/** The MIME type to declare for a chosen file: from its extension first (browsers often leave `type` empty). */
+export function mimeForFileName(name: string, declared = ""): string {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".mp3")) return "audio/mpeg";
+  if (lower.endsWith(".wav") || lower.endsWith(".wave")) return "audio/wav";
+  return declared;
 }

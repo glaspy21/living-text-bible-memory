@@ -1,7 +1,10 @@
 import "server-only";
 import { db } from "@/server/db/client";
 import { createAvailability } from "./availability";
+import { getStorage } from "@/server/storage";
+import { bookVerseCounts } from "@/server/scripture";
 import { createPlayback } from "./playback";
+import { createRecordings } from "./recordings";
 
 const availability = createAvailability(db);
 const playback = createPlayback(db);
@@ -27,3 +30,9 @@ async function orElse<T>(fallback: T, read: () => Promise<T>): Promise<T> {
 export const booksWithMusic = () => orElse(new Set<string>(), availability.booksWithMusic);
 export const chapterHasMusic = (book: string, chapter: number) =>
   orElse(false, () => availability.chapterHasMusic(book, chapter));
+
+/** Turn a verified upload into a draft recording (admin routes only). */
+export const createDraftRecording: ReturnType<typeof createRecordings>["createDraft"] = (...args) =>
+  createRecordings({ client: db, storage: getStorage(), verseCounts: bookVerseCounts }).createDraft(
+    ...args,
+  );

@@ -5,7 +5,7 @@ import {
   SNIFF_BYTES,
   canonicalMime,
   checkUploadRequest,
-  isValidStorageKey,
+  isOriginalAudioKey,
   originalAudioKey,
   sniffAudioKind,
   type AudioKind,
@@ -43,7 +43,7 @@ export async function completeUpload(
   storage: StorageDriver,
   input: { key: string; bytes: number },
 ): Promise<CompletedUpload | UploadFailure> {
-  if (!isValidStorageKey(input.key)) return { status: 400, error: "Unknown upload." };
+  if (!isOriginalAudioKey(input.key)) return { status: 400, error: "Unknown upload." };
   const size = await storage.size(input.key);
   if (size === null) return { status: 404, error: "The file has not arrived yet." };
 

@@ -132,6 +132,34 @@ export class TestDb {
     return { assetId: assetId as string, recordingId };
   }
 
+  /**
+   * Remove the recordings an admin created through the app itself (their rows, timing sheets and
+   * audio assets). Use for the shared e2e admin account.
+   */
+  async removeRecordingsCreatedBy(email: string) {
+    const q = (text: string) => this.connection.query(text, [email]);
+    await q(`UPDATE "Recording" SET "publishedTimingId" = NULL
+             WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`);
+    await q(
+      `DELETE FROM "TimingSet" WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)`,
+    );
+    await q(`WITH r AS (DELETE FROM "Recording"
+                        WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)
+                        RETURNING "originalAssetId")
+             DELETE FROM "AudioAsset" WHERE id IN (SELECT "originalAssetId" FROM r)`);
+  }
+
+  /** The audio asset id of the newest recording an admin created. */
+  async assetIdOfNewestRecordingBy(email: string): Promise<string> {
+    const result = await this.connection.query(
+      `SELECT "originalAssetId" AS id FROM "Recording"
+       WHERE "createdById" IN (SELECT id FROM "User" WHERE email = $1)
+       ORDER BY "createdAt" DESC LIMIT 1`,
+      [email],
+    );
+    return result.rows[0].id;
+  }
+
   /** Remove everything this run created, then close the connection. Safe to call repeatedly. */
   async cleanup() {
     const pool = this.pool;

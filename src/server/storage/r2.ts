@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { ByteRange } from "@/shared/audio/byte-range";
-import { UPLOAD_URL_TTL_SECONDS, isValidStorageKey } from "@/shared/audio/upload-rules";
+import { UPLOAD_URL_TTL_SECONDS, isPeaksKey, isValidStorageKey } from "@/shared/audio/upload-rules";
 import type { Playback, StorageDriver, UploadTarget } from "./types";
 
 export type R2Config = {
@@ -94,6 +94,18 @@ export class R2StorageDriver implements StorageDriver {
       }),
     );
     return (await result.Body?.transformToByteArray()) ?? new Uint8Array();
+  }
+
+  async put(key: string, data: Uint8Array, mime: string): Promise<void> {
+    if (!isPeaksKey(key)) throw new Error("Only waveform peaks can be stored this way");
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.config.bucket,
+        Key: key,
+        Body: data,
+        ContentType: mime,
+      }),
+    );
   }
 
   async remove(key: string): Promise<void> {

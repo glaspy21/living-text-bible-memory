@@ -1,10 +1,10 @@
 import "server-only";
 import { createReadStream } from "node:fs";
-import { mkdir, open, rename, rm, stat } from "node:fs/promises";
+import { mkdir, open, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import type { ByteRange } from "@/shared/audio/byte-range";
-import { UPLOAD_URL_TTL_SECONDS, isValidStorageKey } from "@/shared/audio/upload-rules";
+import { UPLOAD_URL_TTL_SECONDS, isPeaksKey, isValidStorageKey } from "@/shared/audio/upload-rules";
 import type { Playback, StorageDriver, UploadTarget } from "./types";
 import { signUploadToken, verifyUploadToken, type UploadGrant } from "./upload-token";
 
@@ -99,6 +99,15 @@ export class LocalStorageDriver implements StorageDriver {
     } finally {
       await file.close();
     }
+  }
+
+  async put(key: string, data: Uint8Array): Promise<void> {
+    if (!isPeaksKey(key)) throw new Error("Only waveform peaks can be stored this way");
+    const target = this.pathFor(key);
+    await mkdir(path.dirname(target), { recursive: true });
+    const temp = `${target}.part`;
+    await writeFile(temp, data);
+    await rename(temp, target);
   }
 
   async remove(key: string): Promise<void> {

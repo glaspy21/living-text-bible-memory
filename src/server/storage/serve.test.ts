@@ -64,6 +64,7 @@ describe("serveAudio (redirecting storage)", () => {
     },
     size: async () => 5,
     readBytes: async () => new Uint8Array(),
+    put: async () => {},
     remove: async () => {},
   };
 

@@ -27,5 +27,10 @@ export interface StorageDriver {
   size(key: string): Promise<number | null>;
   /** A small slice of the file (for checking what it really is). */
   readBytes(key: string, range: ByteRange): Promise<Uint8Array>;
+  /**
+   * Store a small derived file (waveform peaks) under a peaks key. Unlike originals these may be
+   * replaced, since they can always be regenerated.
+   */
+  put(key: string, data: Uint8Array, mime: string): Promise<void>;
   remove(key: string): Promise<void>;
 }

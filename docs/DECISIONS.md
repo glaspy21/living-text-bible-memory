@@ -44,4 +44,6 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | The player's progress bar and times are within the current verse (not the whole recording), since loop/stop/next all work per verse and a passage may span several recordings | [R] |
 | 2026-10-20 | Genre choice is remembered per browser; if the remembered genre doesn't cover the whole passage, the first genre that does is used, else the one covering most. Another genre is never silently substituted for an uncovered verse | [R] |
 | 2026-10-20 | Playback end modes are remembered per context (reader vs. practice), starting from the assumed defaults in decision #10 | [R] |
+| 2026-10-20 | Audio length and fingerprint are computed on the server in plain code (WAV header, MP3 frame count) and the waveform is computed in the admin's browser (it has the decoder) and sent with the metadata, instead of running ffmpeg/audiowaveform on the server (not available on Vercel). Files above 200 MB get no waveform | [R] |
+| 2026-10-20 | Saving metadata always creates a new draft recording (arrangement "Default", "Default 2", …) plus an empty draft timing sheet; it never updates an existing recording | [R] follows PROJECT.md #13 |
 

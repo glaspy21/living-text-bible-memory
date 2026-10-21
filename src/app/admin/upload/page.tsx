@@ -1,4 +1,5 @@
-import { Main, PageTitle, Placeholder } from "@/client/components/shell/regions";
+import { PageTitle, Main } from "@/client/components/shell/regions";
+import { UploadWizard } from "@/client/components/admin/upload-wizard";
 import { requireAdmin } from "@/server/auth/require-admin";
 
 // Admin pages wait for the session check; nothing is shown before it.
@@ -8,13 +9,10 @@ export default async function UploadPage() {
   await requireAdmin("/admin/upload");
   return (
     <Main>
-      <PageTitle
-        title="Upload music"
-        sub="Upload → Metadata → Verse timing → Validation → Preview → Publish"
-      />
-      <Placeholder milestone="M13 · Upload">
-        Direct-to-storage upload, metadata form, duration probe, peaks.
-      </Placeholder>
+      <div className="mx-auto w-full max-w-[860px]">
+        <PageTitle title="Upload music" />
+        <UploadWizard />
+      </div>
     </Main>
   );
 }

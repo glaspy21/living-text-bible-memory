@@ -146,3 +146,13 @@
 - **Open (owner decision, [A]):** the flip gesture is a tap on the card; confirm or tell me a different gesture.
 - Tests: deck rules (wrap, shuffle contents, forced change) and browser tests of every behavior above.
 
+## 2026-10-20 — M13 Admin upload (branch `m13-admin-upload`)
+- `/admin/upload` is now the real Upload → Metadata steps (with the full workflow bar): drop or choose an MP3/WAV, watch it upload straight to storage with progress, and have the server verify it is really that kind of audio. The browser decodes it to read its length and draw a waveform (a bonus: if it can't, the recording is still saved and says the waveform will be made later).
+- The metadata form: translation, genre (Pop, Rock, R&B, or Custom, which reveals a name field that fixes itself to Title Case), book, chapter, from/to verse, "continues into a later chapter", optional description. Mistakes (a verse that doesn't exist, a last verse before the first) are shown before saving.
+- Saving creates a **draft** recording, never replacing an existing one: the same passage and genre becomes "Default 2", "Default 3". It also saves the length, a SHA-256 fingerprint of the file, the waveform, and an empty timing sheet with one blank row per verse (across chapters too), ready for the timing editor. Drafts are invisible to listeners.
+- Length is read from the file itself (WAV header; MP3 frame count or constant-bitrate estimate), so no audio tools are needed on the server.
+- New admin-only routes: `POST /api/admin/recordings`, `GET /api/admin/recordings/[id]/peaks`; public `GET /api/scripture/verse-counts`.
+- `/admin/timing?recording=…` shows the saved recording (the editor itself is M15).
+- Tests: WAV/MP3 length probes (header, Xing frame count, ID3 tags, junk), waveform peaks, passage and genre checks, service tests against the database (arrangements, custom genres, cross-chapter rows, rejection leaves nothing behind), and browser tests of the whole wizard with a real WAV.
+- Not verified: very large files (the browser skips the waveform above 200 MB), and real R2 uploads (see M6).
+

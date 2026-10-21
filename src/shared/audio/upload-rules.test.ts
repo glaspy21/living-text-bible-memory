@@ -3,8 +3,12 @@ import {
   MAX_UPLOAD_BYTES,
   canonicalMime,
   checkUploadRequest,
+  isOriginalAudioKey,
+  isPeaksKey,
   isValidStorageKey,
+  peaksKeyFor,
   kindFromMime,
+  mimeForFileName,
   originalAudioKey,
   sniffAudioKind,
 } from "./upload-rules";
@@ -89,5 +93,35 @@ describe("storage keys", () => {
     ]) {
       expect(isValidStorageKey(bad)).toBe(false);
     }
+  });
+});
+
+describe("peaks keys", () => {
+  it("sit beside the original and are a different kind of key", () => {
+    expect(peaksKeyFor("recordings/abc12345-def/original.mp3")).toBe(
+      "recordings/abc12345-def/peaks.json",
+    );
+    expect(isPeaksKey("recordings/abc12345-def/peaks.json")).toBe(true);
+    expect(isOriginalAudioKey("recordings/abc12345-def/peaks.json")).toBe(false);
+    expect(isValidStorageKey("recordings/abc12345-def/peaks.json")).toBe(true);
+  });
+
+  it("cannot be made from anything but an original key", () => {
+    expect(() => peaksKeyFor("recordings/abc12345-def/peaks.json")).toThrow();
+    expect(() => peaksKeyFor("../escape")).toThrow();
+    expect(isPeaksKey("recordings/abc12345/peaks.json/extra")).toBe(false);
+  });
+});
+
+describe("mimeForFileName", () => {
+  it("goes by the extension, since browsers often report no type", () => {
+    expect(mimeForFileName("Psalm 23.MP3")).toBe("audio/mpeg");
+    expect(mimeForFileName("take-2.wav")).toBe("audio/wav");
+    expect(mimeForFileName("take-2.wave", "")).toBe("audio/wav");
+  });
+
+  it("falls back to what the browser said for other names", () => {
+    expect(mimeForFileName("song.ogg", "audio/ogg")).toBe("audio/ogg");
+    expect(mimeForFileName("song")).toBe("");
   });
 });
