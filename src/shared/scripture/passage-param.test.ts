@@ -68,7 +68,18 @@ describe("tapVerse", () => {
     const first = tapVerse(null, v(5));
     expect(tapVerse(first, v(9))).toEqual({ start: v(5), end: v(9), anchor: null });
     expect(tapVerse(first, v(2))).toEqual({ start: v(2), end: v(5), anchor: null });
-    expect(tapVerse(first, v(5))).toEqual({ start: v(5), end: v(5), anchor: null });
+  });
+
+  it("switches a single selected verse off when it is tapped again", () => {
+    const first = tapVerse(null, v(5));
+    expect(tapVerse(first, v(5))).toBeNull();
+    expect(tapVerse({ start: v(5), end: v(5), anchor: null }, v(5))).toBeNull();
+    // A range is not a single verse: tapping inside it starts a new selection.
+    expect(tapVerse({ start: v(2), end: v(5), anchor: null }, v(5))).toEqual({
+      start: v(5),
+      end: v(5),
+      anchor: v(5),
+    });
   });
 
   it("starts over on the third tap", () => {

@@ -185,7 +185,6 @@ test.describe("continuous scrolling", () => {
     page,
   }) => {
     await openReader(page, "/read/john/3?v=16");
-    await expect(verse(page, 3, 16)).toHaveAttribute("data-arrived", "");
   });
 });
 

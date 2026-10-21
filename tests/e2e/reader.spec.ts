@@ -83,6 +83,22 @@ test.describe("choosing verses", () => {
     await expect(page.locator('[data-verse="20"]')).toHaveAttribute("aria-pressed", "true");
   });
 
+  test("tapping the one selected verse again switches it off and Memorize returns to the chapter", async ({
+    page,
+  }) => {
+    await openReader(page, "/read/john/2");
+    await page.locator('[data-verse="5"]').click();
+    await expect(page.locator('[data-verse="5"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("link", { name: /^Memorize John 2:5$/ })).toBeVisible();
+    await page.locator('[data-verse="5"]').click();
+    await expect(page.locator('[data-verse="5"]')).toHaveAttribute("aria-pressed", "false");
+    await expect(page).not.toHaveURL(/[?&]p=/);
+    await expect(page.getByRole("link", { name: /^Memorize John 2:1–25$/ })).toBeVisible();
+    // And it can be chosen again.
+    await page.locator('[data-verse="5"]').click();
+    await expect(page.locator('[data-verse="5"]')).toHaveAttribute("aria-pressed", "true");
+  });
+
   test("the keyboard can select verses", async ({ page }) => {
     await openReader(page, "/read/john/1");
     await page.locator('[data-verse="2"]').focus();

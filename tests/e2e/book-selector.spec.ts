@@ -102,7 +102,6 @@ test.describe("book and chapter selector", () => {
         }),
       )
       .toBe(true);
-    await expect(verse16).toHaveAttribute("data-arrived", "");
     await expect(headerButton(page)).toContainText("John 3");
   });
 

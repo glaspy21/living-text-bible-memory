@@ -3,7 +3,8 @@ import type { VerseRef } from "./types";
 
 /**
  * Tap-to-select on the reader: the first tap picks one verse and waits for a second tap, which
- * completes the range (in either direction). A third tap starts over.
+ * completes the range (in either direction). A third tap starts over. Tapping the one verse that
+ * is selected switches it off again (nothing selected, so Memorize uses the whole chapter).
  */
 export type Selection = {
   start: VerseRef;
@@ -12,7 +13,14 @@ export type Selection = {
   anchor: VerseRef | null;
 };
 
-export function tapVerse(current: Selection | null, tapped: VerseRef): Selection {
+export function tapVerse(current: Selection | null, tapped: VerseRef): Selection | null {
+  if (
+    current &&
+    compareRefs(current.start, tapped) === 0 &&
+    compareRefs(current.end, tapped) === 0
+  ) {
+    return null;
+  }
   if (current?.anchor) {
     const [start, end] =
       compareRefs(current.anchor, tapped) <= 0

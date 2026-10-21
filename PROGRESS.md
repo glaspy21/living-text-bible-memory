@@ -217,3 +217,5 @@
 - Choosing a verse in the selector scrolls it to the top of the screen (nothing of the previous verse showing).
 - The header selector opens already on the current book's chapters with the current chapter marked (header only; the range picker is unchanged).
 - Tests updated/added in `continuous-reader.spec.ts` and `book-selector.spec.ts`.
+- Verse arrival no longer highlights the verse (it is already at the top of the screen).
+- Tapping the one selected verse again switches it off (the `?p=` selection is dropped and Memorize uses the whole chapter). Ranges still start over on a tap.

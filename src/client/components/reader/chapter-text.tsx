@@ -32,7 +32,7 @@ export function ChapterText({
     () => false,
   );
 
-  // Arriving with ?v=16 (from the header's verse menu) scrolls that verse to the top of the screen and marks it briefly.
+  // Arriving with ?v=16 (from the header's verse menu) scrolls that verse to the top of the screen.
   const goTo = useSearchParams().get("v");
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -41,12 +41,6 @@ export function ChapterText({
     if (!row) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     row.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
-    row.setAttribute("data-arrived", "");
-    const timer = setTimeout(() => row.removeAttribute("data-arrived"), 2600);
-    return () => {
-      clearTimeout(timer);
-      row.removeAttribute("data-arrived");
-    };
   }, [arrive, goTo]);
 
   return (
@@ -85,7 +79,6 @@ export function ChapterText({
               // Every verse of the range shares the tint; only its first and last carry the gold edge.
               inRange ? "bg-[rgba(201,164,92,.10)]" : "hover:bg-[rgba(201,164,92,.05)]",
               edge && "shadow-[inset_2px_0_var(--gold)]",
-              "data-[arrived]:border-gold data-[arrived]:bg-[rgba(201,164,92,.16)]",
               sounding &&
                 "border-gold bg-gradient-to-b from-[rgba(212,168,79,.16)] to-[rgba(212,168,79,.07)] shadow-[0_0_24px_rgba(212,168,79,.12)]",
             )}

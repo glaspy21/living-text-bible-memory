@@ -89,12 +89,16 @@ export function ReaderSelectionProvider({
   const tap = useCallback(
     (tappedBook: string, verse: VerseRef) => {
       const next = tapVerse(tappedBook === selectionBook ? selection : null, verse);
-      setAnchor(next.anchor);
+      setAnchor(next?.anchor ?? null);
       const url = new URL(window.location.href);
-      url.searchParams.set(
-        "p",
-        formatPassageParam({ book: tappedBook, start: next.start, end: next.end }),
-      );
+      if (next) {
+        url.searchParams.set(
+          "p",
+          formatPassageParam({ book: tappedBook, start: next.start, end: next.end }),
+        );
+      } else {
+        url.searchParams.delete("p");
+      }
       window.history.replaceState(window.history.state, "", url);
       window.dispatchEvent(new Event(CHANGE_EVENT));
     },
