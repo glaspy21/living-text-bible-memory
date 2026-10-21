@@ -35,7 +35,7 @@ test.describe("desktop", () => {
   test.skip(({ isMobile }) => isMobile, "desktop layout");
 
   test("sidebar highlights the current section", async ({ page }) => {
-    await page.goto("/memorize/steps");
+    await page.goto("/memorize/steps?p=john+1%3A1-3");
     const nav = page.getByRole("navigation", { name: "Main" });
     await expect(nav.getByRole("link", { name: "Memorize", exact: true })).toHaveAttribute(
       "aria-current",
