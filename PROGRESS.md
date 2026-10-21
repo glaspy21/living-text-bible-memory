@@ -226,4 +226,4 @@
 - Previous/Next chapter buttons are now left/right triangles in the chapter title colour on the title line, also on every chapter scrolled on to.
 - Open: a cross-book range in the ESV (only John 1–2 is licensed) falls back to the WEB as a whole, as for any out-of-scope passage. Not tested with real multi-book recordings (the test library has none): the per-book matching is unit-tested only.
 - Fix: on the Memorize screens the header names only the book and chapter where the passage starts (e.g. "Luke 23"), never the verse numbers.
-- Steps: the single/several-verses toggle's icon now shows the current view — one dot with one line for a single verse, three dots with three lines for several (and for Chain's whole passage). The Flashcards "Switch to Steps" link keeps the three-line icon.
+- Steps: the single/several-verses toggle no longer lights up (it looks the same in both views); its icon now shows the current view — one dot with one line for a single verse, three dots with three lines for several (and for Chain's whole passage). The Flashcards "Switch to Steps" link keeps the three-line icon.

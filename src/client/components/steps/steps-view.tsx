@@ -129,11 +129,8 @@ export function StepsView({
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
-              className={cn(
-                miniButton,
-                mode !== "single" &&
-                  "bg-[rgba(212,168,79,.18)] shadow-[0_0_14px_rgba(212,168,79,.25)]",
-              )}
+              // The icon shows the view; the button itself looks the same in both.
+              className={miniButton}
               aria-label="Show several verses"
               aria-pressed={mode !== "single"}
               disabled={mode === "whole"}
