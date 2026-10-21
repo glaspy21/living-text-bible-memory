@@ -111,3 +111,20 @@ const bySlug = new Map(BOOKS.map((b) => [b.slug, b]));
 export function bookBySlug(slug: string): BookInfo | undefined {
   return bySlug.get(slug.toLowerCase());
 }
+
+export type ChapterRef = { book: BookInfo; chapter: number };
+
+/** The chapter before (-1) or after (+1) this one, crossing book boundaries; null at either end of the Bible. */
+export function adjacentChapter(
+  bookSlug: string,
+  chapter: number,
+  step: 1 | -1,
+): ChapterRef | null {
+  const book = bookBySlug(bookSlug);
+  if (!book) return null;
+  const next = chapter + step;
+  if (next >= 1 && next <= book.chapterCount) return { book, chapter: next };
+  const neighbour = BOOKS[book.id - 1 + step];
+  if (!neighbour) return null;
+  return { book: neighbour, chapter: step === 1 ? 1 : neighbour.chapterCount };
+}

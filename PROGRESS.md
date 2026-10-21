@@ -103,3 +103,10 @@
 - Tests: USFM import, references and the ESV scope, WEB reads of real text (including all 66 books), the ESV adapter with a fake service (scope, caching, errors, no key leaks), the flag.
 - Open: the ESV adapter has never talked to the real service (no key yet). Footnotes and Psalm titles are not in the WEB import.
 
+
+## 2026-10-20 — M8 Reader and selector (branch `m8-reader`)
+- Reader: `/read/[book]/[chapter]` shows the whole chapter with hanging verse numbers (WEB for now), the copyright notice, Prev/Next (across books) and a right panel with the selected passage, a music note and Memorize / Edit verse range.
+- Tap a verse, then another, to select a range (either direction; a third tap starts over). The selection lives in the URL (`?p=john 1:3-7`) so reload and sharing keep it, and the Memorize buttons carry it on. With nothing selected, Memorize uses the whole chapter.
+- Music availability reads published recordings from the database; if the database is unreachable the reader still works and shows no music.
+- Phones: the chapter title row is hidden (the header already names it, as in the mockups) but Prev/Next stay, and a full-width Memorize button replaces the hidden right panel. These two are my additions.
+- Header badge still says "ESV" (to be made truthful in the translation switch step).

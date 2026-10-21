@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOOKS, bookBySlug } from "./books";
+import { BOOKS, adjacentChapter, bookBySlug } from "./books";
 
 const chapters = (t: "OLD" | "NEW") =>
   BOOKS.filter((b) => b.testament === t).reduce((n, b) => n + b.chapterCount, 0);
@@ -29,5 +29,27 @@ describe("books", () => {
     expect(bookBySlug("song-of-solomon")?.chapterCount).toBe(8);
     expect(bookBySlug("John")?.id).toBe(43);
     expect(bookBySlug("nope")).toBeUndefined();
+  });
+});
+
+describe("adjacentChapter", () => {
+  it("moves within a book", () => {
+    expect(adjacentChapter("john", 5, 1)).toMatchObject({ chapter: 6, book: { slug: "john" } });
+    expect(adjacentChapter("john", 5, -1)).toMatchObject({ chapter: 4, book: { slug: "john" } });
+  });
+
+  it("crosses into the next and previous book", () => {
+    expect(adjacentChapter("john", 21, 1)).toMatchObject({ chapter: 1, book: { slug: "acts" } });
+    expect(adjacentChapter("acts", 1, -1)).toMatchObject({ chapter: 21, book: { slug: "john" } });
+    expect(adjacentChapter("malachi", 4, 1)).toMatchObject({
+      chapter: 1,
+      book: { slug: "matthew" },
+    });
+  });
+
+  it("stops at the ends of the Bible and for unknown books", () => {
+    expect(adjacentChapter("genesis", 1, -1)).toBeNull();
+    expect(adjacentChapter("revelation", 22, 1)).toBeNull();
+    expect(adjacentChapter("nonsense", 1, 1)).toBeNull();
   });
 });
