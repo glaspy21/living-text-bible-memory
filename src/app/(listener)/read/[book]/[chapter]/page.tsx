@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Attribution } from "@/client/components/scripture/attribution";
 import { ChapterNav } from "@/client/components/reader/chapter-nav";
 import { ChapterText } from "@/client/components/reader/chapter-text";
+import { RecentTracker } from "@/client/components/recent/recent-tracker";
 import { ReaderSelectionProvider } from "@/client/components/reader/reader-selection";
 import { MemorizeBar, SelectionPanel } from "@/client/components/reader/selection-panel";
 import { Main, RightPanel } from "@/client/components/shell/regions";
@@ -32,6 +33,7 @@ async function Reader({ params }: { params: Params }) {
 
   return (
     <ReaderSelectionProvider book={book.slug} chapter={chapter} lastVerse={lastVerse}>
+      <RecentTracker book={book.slug} chapter={chapter} />
       <Main player>
         <div className="mx-auto w-full max-w-[720px]">
           <header className="mb-2 flex items-start justify-between gap-4">

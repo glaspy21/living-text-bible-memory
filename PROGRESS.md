@@ -111,3 +111,8 @@
 - Phones: the chapter title row is hidden (the header already names it, as in the mockups) but Prev/Next stay, and a full-width Memorize button replaces the hidden right panel. These two are my additions.
 - Header badge still says "ESV" (to be made truthful in the translation switch step).
 - Book and chapter selector: the header reference button opens one continuous Old → New Testament list directly beneath it. The tab underline follows the scroll and slides; clicking a tab scrolls to that testament; it opens at the current book's testament; a book expands to its chapter grid in place and the current chapter is marked. A dot marks books with published music. Escape, the backdrop or choosing a chapter closes it.
+- Translation switch: the header badge now tells the truth. It shows WEB (plain label) until the ESV is switched on, then a menu. The choice is remembered in a cookie. Outside the ESV's permitted chapters (John 1–2) the reader shows the WEB with a plain note, and the copyright notice always matches the text on screen.
+- Recently Studied: chapters you open are remembered on this device only (no account). Home shows them newest first with "Today / Yesterday / N days ago", revealed progressively as they scroll up (scroll-linked, reduced motion respected); the sidebar shows the last four; Continue returns to the most recent chapter (John 1 on a first visit). Thumbnails are plain numbered tiles until the photography decision.
+- Fixed: the header now sits above the page, so its menus are not covered by the right panel.
+- Open: Continue goes to the last chapter read; once Steps remember progress (M11) it can return to the exact step.
+

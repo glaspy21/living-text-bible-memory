@@ -37,3 +37,8 @@ Newest last. Status: [C] confirmed by owner · [R] recommended, pending approval
 | 2026-10-20 | WEB text is bundled as per-book JSON (`src/server/scripture/web-data`, public domain, from ebible.org USFM via `scripts/import-web.ts`) rather than fetched from a third-party API at runtime: no rate limits, no outage risk, tests are deterministic. Psalm titles and footnotes are not imported | [R] |
 | 2026-10-20 | ESV is behind two switches: `ESV_API_KEY` and `ESV_ENABLED=true`. The flag is the owner's confirmation that Crossway's terms are met, so it stays off by default. The adapter refuses anything outside John 1–2 before calling the API | [R] |
 | 2026-10-20 | ESV text is cached in memory only (1 hour, at most 10 chapters), never on disk or in the database. The ESV API page states no caching terms, so this is the conservative choice; re-check with Crossway before widening | [R] |
+| 2026-10-20 | The chosen passage travels in the URL as `?p=john 1:3-7` (cross-chapter: `john 1:51-2:5`), shared by Reader, range selector, Steps and Flashcards. It survives reload and sharing and needs no server state | [R] |
+| 2026-10-20 | Visitors start on the WEB; the ESV is chosen from the header menu (cookie `lt_translation`) and only offered when enabled. Outside its permitted chapters the reader falls back to the WEB with a note rather than showing nothing | [R] |
+| 2026-10-20 | Recently studied is kept in the browser (localStorage `lt.recent.v1`), not the database: listener accounts are post-MVP | [R] |
+| 2026-10-20 | Phones keep Prev/Next and get a full-width Memorize button under the chapter (the right panel is hidden there); the chapter title row is hidden as in the mockups | [R] additions |
+

@@ -27,6 +27,10 @@ export default defineConfig({
       AUTH_URL: `http://localhost:${PORT}`,
       ADMIN_EMAILS: E2E_ADMIN_EMAIL,
       DATABASE_URL: TEST_DATABASE_URL,
+      // On so the translation menu can be tested; the key is a placeholder and tests never request
+      // ESV text from Crossway (only chapters outside the ESV scope are used).
+      ESV_ENABLED: "true",
+      ESV_API_KEY: "e2e-placeholder-not-a-real-key",
       STORAGE_DRIVER: "local",
       LOCAL_STORAGE_DIR: ".local-storage/e2e",
     },

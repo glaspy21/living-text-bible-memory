@@ -1,5 +1,7 @@
 import { Logo } from "@/client/components/brand/logo";
-import { Main, Placeholder } from "@/client/components/shell/regions";
+import { ContinueBar } from "@/client/components/recent/continue-bar";
+import { RecentlyStudied } from "@/client/components/recent/recently-studied";
+import { Main } from "@/client/components/shell/regions";
 import { BarLink } from "@/client/components/ui/bar";
 
 export default function HomePage() {
@@ -11,21 +13,14 @@ export default function HomePage() {
           <Logo variant="lockup" height={190} />
         </div>
         <div className="flex w-full max-w-[720px] flex-col gap-[18px] max-[520px]:px-4">
-          <BarLink
-            href="/read"
-            icon="book"
-            title="Continue"
-            subtitle="Pick up where you left off"
-          />
+          <ContinueBar />
           <BarLink
             href="/read"
             icon="book"
             title="Browse Scripture"
             subtitle="Choose a book and chapter"
           />
-          <Placeholder milestone="M8 · Recently studied">
-            Hero scenery and the Recently Studied list with scroll reveal.
-          </Placeholder>
+          <RecentlyStudied />
         </div>
       </div>
     </Main>
