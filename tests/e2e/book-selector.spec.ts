@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 import { TestDb } from "./db";
 
 const db = new TestDb();
@@ -10,6 +11,7 @@ const book = (dialog: Locator, name: string) =>
 
 async function openSelector(page: Page, path: string) {
   await page.goto(path);
+  await streamed(page);
   // Retry the click until the page has hydrated and the button's handler is attached.
   await expect(async () => {
     await page.locator("header button[aria-haspopup='dialog']").click();
@@ -129,6 +131,7 @@ test.describe("music dots", () => {
 
     await expect(page.getByText("Recording available")).toBeVisible();
     await page.goto("/read/ruth/3");
+    await streamed(page);
     await expect(page.getByText("No recording for this chapter yet")).toBeVisible();
   });
 });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 
 const badge = (page: Page) => page.getByRole("button", { name: /^Translation:/ });
 
@@ -14,6 +15,7 @@ async function chooseTranslation(page: Page, label: "WEB" | "ESV") {
 test.describe("translation switch", () => {
   test("starts on the WEB and lists both translations", async ({ page }) => {
     await page.goto("/read/genesis/1");
+    await streamed(page);
     await expect(badge(page)).toHaveAccessibleName("Translation: World English Bible");
     await expect(badge(page)).toContainText("WEB");
     await expect(page.getByTestId("scripture-attribution")).toHaveAttribute(
@@ -24,6 +26,7 @@ test.describe("translation switch", () => {
 
   test("the ESV is offered but explains itself outside its scope", async ({ page }) => {
     await page.goto("/read/genesis/1");
+    await streamed(page);
     await chooseTranslation(page, "ESV");
 
     await expect(badge(page)).toContainText("ESV");
@@ -38,10 +41,13 @@ test.describe("translation switch", () => {
 
   test("the choice is remembered, and switching back clears the note", async ({ page }) => {
     await page.goto("/read/genesis/1");
+    await streamed(page);
     await chooseTranslation(page, "ESV");
     await expect(page.getByRole("note")).toBeVisible();
 
     await page.goto("/read/genesis/2");
+
+    await streamed(page);
     await expect(badge(page)).toContainText("ESV");
     await expect(page.getByRole("note")).toBeVisible();
 
@@ -57,6 +63,7 @@ test.describe("translation switch", () => {
   }) => {
     await context.addCookies([{ name: "lt_translation", value: "KJV", url: baseURL! }]);
     await page.goto("/read/genesis/1");
+    await streamed(page);
     await expect(badge(page)).toContainText("WEB");
   });
 });

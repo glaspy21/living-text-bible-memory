@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 
 async function openRange(page: Page, query = "") {
   await page.goto(`/memorize/range${query}`);
+  await streamed(page);
   await expect(page.getByRole("main").getByTestId("range-picker")).toHaveAttribute(
     "data-interactive",
     "true",

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 import { addToneRecording } from "./audio-fixture";
 import { TestDb } from "./db";
 
@@ -11,6 +12,7 @@ const shuffle = (page: Page) => page.getByRole("button", { name: "Shuffle" });
 
 async function openCards(page: Page, query = PASSAGE) {
   await page.goto(`/memorize/flashcards${query}`);
+  await streamed(page);
   await expect(card(page)).toBeVisible();
   await expect(page.getByRole("main").getByTestId("card")).toHaveCount(1);
   // Let the card's first paint settle so clicks land (the page has hydrated by then).
@@ -28,6 +30,7 @@ const reference = (page: Page) =>
 test.describe("flashcards", () => {
   test("without a passage it asks you to choose verses first", async ({ page }) => {
     await page.goto("/memorize/flashcards");
+    await streamed(page);
     await expect(page.getByRole("link", { name: /Choose verses first/ })).toHaveAttribute(
       "href",
       "/memorize/range",
@@ -125,6 +128,7 @@ test.describe("flashcards", () => {
 
   test("a passage across chapters makes a card for every verse", async ({ page }) => {
     await page.goto("/memorize/flashcards?p=john+1%3A50-2%3A2");
+    await streamed(page);
     await expect(count(page)).toHaveText("CARD 1 OF 4");
     expect(await reference(page)).toBe("1:50");
     await next(page).click();
@@ -135,6 +139,7 @@ test.describe("flashcards", () => {
   test("Continue on Home returns to the flashcards", async ({ page }) => {
     await openCards(page);
     await page.goto("/");
+    await streamed(page);
     const cont = page.getByRole("link", { name: /^Continue/ });
     await expect(cont).toContainText("John 1:3–6 · Flashcards");
     await expect(cont).toHaveAttribute("href", "/memorize/flashcards?p=john+1%3A3-6");
@@ -155,6 +160,7 @@ test.describe("flashcards with music", () => {
 
   async function openHabakkuk(page: Page) {
     await page.goto("/memorize/flashcards?p=habakkuk+1%3A1-3");
+    await streamed(page);
     await expect(page.getByRole("button", { name: "Genre" })).toBeEnabled();
     await expect(count(page)).toHaveText("CARD 1 OF 3");
   }

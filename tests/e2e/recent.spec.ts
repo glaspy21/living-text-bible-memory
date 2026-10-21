@@ -1,8 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 
 /** Open a chapter and wait until the page has hydrated (that is when it is noted as opened). */
 async function read(page: Page, path: string) {
   await page.goto(path);
+  await streamed(page);
   await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
     "data-interactive",
     "true",
@@ -16,6 +18,7 @@ test.describe("recently studied", () => {
     page,
   }) => {
     await page.goto("/");
+    await streamed(page);
     await expect(page.getByText("Chapters you read will show up here.")).toBeVisible();
     const cont = page.getByRole("link", { name: /^Continue/ });
     await expect(cont).toHaveAttribute("href", "/read/john/1");
@@ -28,6 +31,7 @@ test.describe("recently studied", () => {
     await read(page, "/read/john/1");
     await read(page, "/read/psalms/23");
     await page.goto("/");
+    await streamed(page);
 
     const rows = home(page).getByRole("link");
     await expect(rows).toHaveCount(2);
@@ -45,6 +49,7 @@ test.describe("recently studied", () => {
     await read(page, "/read/psalms/23");
     await read(page, "/read/john/1");
     await page.goto("/");
+    await streamed(page);
     const rows = home(page).getByRole("link");
     await expect(rows).toHaveCount(2);
     await expect(rows.nth(0)).toContainText("John 1");
@@ -54,6 +59,7 @@ test.describe("recently studied", () => {
     test.skip(isMobile, "the sidebar is hidden on phones");
     await read(page, "/read/john/3");
     await page.goto("/");
+    await streamed(page);
     const side = page.locator("aside.shell-side");
     await expect(side.getByRole("link", { name: /John 3/ })).toBeVisible();
     await side.getByRole("link", { name: /John 3/ }).click();
@@ -63,6 +69,7 @@ test.describe("recently studied", () => {
   test("a damaged saved list is ignored rather than breaking the page", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("lt.recent.v1", "{not json"));
     await page.goto("/");
+    await streamed(page);
     await expect(page.getByText("Chapters you read will show up here.")).toBeVisible();
     await page.addInitScript(() =>
       localStorage.setItem(
@@ -71,6 +78,7 @@ test.describe("recently studied", () => {
       ),
     );
     await page.reload();
+    await streamed(page);
     await expect(page.getByText("Chapters you read will show up here.")).toBeVisible();
   });
 });
@@ -98,6 +106,7 @@ test.describe("scroll reveal", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await seed(page);
     await page.goto("/");
+    await streamed(page);
     await expect(page.getByTestId("reveal-rows").locator("> a")).toHaveCount(13);
 
     await expect.poll(async () => (await opacities(page))[12]).toBe(0); // far below: hidden
@@ -115,6 +124,7 @@ test.describe("scroll reveal", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await seed(page);
     await page.goto("/");
+    await streamed(page);
     await expect(page.getByTestId("reveal-rows").locator("> a")).toHaveCount(13);
     await expect.poll(async () => (await opacities(page)).every((o) => o === 1)).toBe(true);
   });

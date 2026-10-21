@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 import { addToneRecording } from "./audio-fixture";
 import { TestDb } from "./db";
 
@@ -13,6 +14,7 @@ const label = (page: Page) => page.getByTestId("focus-label");
 
 async function openSteps(page: Page, query = PASSAGE) {
   await page.goto(`/memorize/steps${query}`);
+  await streamed(page);
   await expect(page.getByRole("main").getByTestId("scripture")).toBeVisible();
   // Interactive once hydrated: the step buttons then change the page.
   await expect(page.getByTestId("scripture")).toHaveCount(1);
@@ -27,6 +29,7 @@ async function settledOpacity(page: Page, n: number) {
 test.describe("memorization steps", () => {
   test("without a passage it asks you to choose verses first", async ({ page }) => {
     await page.goto("/memorize/steps");
+    await streamed(page);
     await expect(page.getByRole("link", { name: /Choose verses first/ })).toHaveAttribute(
       "href",
       "/memorize/range",
@@ -146,6 +149,7 @@ test.describe("memorization steps", () => {
     await openSteps(page);
     await stepButton(page, "Recall").click();
     await page.reload();
+    await streamed(page);
     await expect(stepButton(page, "Recall")).toHaveAttribute("aria-current", "step");
     await openSteps(page, `${PASSAGE}&step=chain`);
     await expect(stepButton(page, "Chain")).toHaveAttribute("aria-current", "step");
@@ -198,6 +202,7 @@ test.describe("the side panel", () => {
 test.describe("memorize choice and Continue", () => {
   test("the choice page carries the passage to both methods", async ({ page }) => {
     await page.goto(`/memorize${PASSAGE}`);
+    await streamed(page);
     await expect(page.getByRole("main").getByTestId("choice-passage")).toHaveText("John 1:3–6");
     await expect(page.getByRole("link", { name: /Memorization Steps/ })).toHaveAttribute(
       "href",
@@ -208,6 +213,7 @@ test.describe("memorize choice and Continue", () => {
 
   test("without a passage the choice page sends you to choose verses", async ({ page }) => {
     await page.goto("/memorize");
+    await streamed(page);
     await expect(page.getByRole("link", { name: /Memorization Steps/ })).toHaveAttribute(
       "href",
       "/memorize/range",
@@ -219,6 +225,7 @@ test.describe("memorize choice and Continue", () => {
     await stepButton(page, "Recall").click();
     await expect(page).toHaveURL(/step=recall/);
     await page.goto("/");
+    await streamed(page);
     const cont = page.getByRole("link", { name: /^Continue/ });
     await expect(cont).toContainText("John 1:3–6 · last: Recall");
     await expect(cont).toHaveAttribute("href", "/memorize/steps?p=john+1%3A3-6&step=recall");

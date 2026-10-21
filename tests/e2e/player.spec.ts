@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { streamed } from "./helpers";
 import { addToneRecording } from "./audio-fixture";
 import { TestDb } from "./db";
 
@@ -22,6 +23,7 @@ const endModeButton = (page: Page) => page.getByRole("button", { name: /^When th
 
 async function openObadiah(page: Page) {
   await page.goto("/read/obadiah/1");
+  await streamed(page);
   // The player knows about the music once it has looked it up.
   await expect(page.getByRole("button", { name: "Genre" })).toBeEnabled();
   await expect(page.getByRole("main").getByTestId("chapter-text")).toHaveAttribute(
@@ -38,6 +40,7 @@ async function chooseEndMode(page: Page, label: string) {
 test.describe("the player", () => {
   test("a chapter with no music says so and its controls are off", async ({ page }) => {
     await page.goto("/read/genesis/1");
+    await streamed(page);
     await expect(page.getByText("No recording yet")).toBeVisible();
     await expect(playButton(page)).toBeDisabled();
     await expect(page.getByRole("button", { name: "Genre" })).toBeDisabled();
@@ -137,6 +140,7 @@ test.describe("menus", () => {
     await chooseEndMode(page, "Stop After Verse");
     await expect(endModeButton(page)).toHaveAccessibleName("When the verse ends: Stop After Verse");
     await page.reload();
+    await streamed(page);
     await expect(page.getByRole("button", { name: "Genre" })).toBeEnabled();
     await expect(endModeButton(page)).toHaveAccessibleName("When the verse ends: Stop After Verse");
   });
