@@ -146,7 +146,7 @@ export function StepsView({
               }
               onClick={toggleMulti}
             >
-              <Icon name="list" size={22} />
+              <Icon name={mode === "single" ? "list-one" : "list"} size={22} />
             </button>
             <div className="flex items-center gap-4">
               <span className="text-muted max-[520px]:hidden" data-testid="focus-label">

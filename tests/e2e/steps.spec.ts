@@ -72,6 +72,21 @@ test.describe("memorization steps", () => {
     expect(await vis(page, 4)).toBe("gone");
   });
 
+  test("the toggle's icon shows the view: one dot and line for a verse, three for several", async ({
+    page,
+  }) => {
+    await openSteps(page);
+    const dots = () => toggle(page).locator("svg circle");
+    const lines = () => toggle(page).locator("svg path");
+    await expect(dots()).toHaveCount(1);
+    await expect(lines()).toHaveCount(1);
+    await toggle(page).click();
+    await expect(dots()).toHaveCount(3);
+    await expect(lines()).toHaveCount(1); // one path drawing the three lines
+    await toggle(page).click();
+    await expect(dots()).toHaveCount(1);
+  });
+
   test("clicking a verse moves the focus to it", async ({ page }) => {
     await openSteps(page);
     await toggle(page).click();

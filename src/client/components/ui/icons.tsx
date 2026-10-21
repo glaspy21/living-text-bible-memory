@@ -122,6 +122,17 @@ const ICONS = {
       </>
     ),
   },
+  // The Steps view toggle shows what is on screen: one dot and line for a single verse, and
+  // `list` (three dots and lines) for several.
+  "list-one": {
+    label: "One verse",
+    body: (
+      <>
+        <path d="M9 12h11" />
+        <circle cx="4.5" cy="12" r="1" />
+      </>
+    ),
+  },
   eye: {
     label: "Reveal",
     body: (
