@@ -296,3 +296,8 @@
 ## Where things stand (end of the autonomous run, 2026-10-21)
 - **Done and pushed, one branch per piece, chained:** `m15-timing-editor` (`d3185c6`) → `m16-validation-publish` (`f5d047f`) → `m17-music-selection` (`b9dd7c8`) → `m18-integration-testing` (tip). All of M1–M17 are built; Phase 4 testing is done to the extent possible without the owner's accounts and services.
 - **Still the owner's:** merge the branches; Google OAuth, `AUTH_SECRET`, `ADMIN_EMAILS`, `DATABASE_URL` in `.env.local`; R2 bucket with CORS (then one real upload); ESV key and Crossway permission (including for the music); photography; final logo; the open [A]/[?] decisions in PROJECT.md. **Nothing has been deployed.** A real-browser, real-device pass (Safari/iOS audio, a screen reader) is still needed before launch.
+
+## 2026-10-21 — Logo update (branch `m19-logo-update`, off `m18-integration-testing`)
+- The owner replaced the four logo SVGs in `assets/brand/svg/`. Compared with the previous set, exactly one shape changed in all four: the monogram's lower stem now ends in a point instead of a flat foot. Everything else (other shapes, viewBoxes, ink colors) is identical.
+- `src/client/components/brand/logo-shapes.ts` (the app's copy of the shapes, used by the header, home and `/design`) was updated to match; checked on `/design` (mark, lockup, small header size). Lint, typecheck and the design, shell and home browser tests pass.
+- Not done: favicon and app icons (`src/app/favicon.ico` is still the old placeholder) because there are no square icon exports yet; I can generate them from the mark if you want.

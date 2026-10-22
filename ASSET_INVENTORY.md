@@ -12,7 +12,8 @@
 ## Owner-supplied brand board (2026-10-20)
 - `assets/brand/logo-board-owner-supplied.png` — **raster PNG (1200×1060)**, not a vector. Four variants on one board: mark and mark+"LIVING TEXT" lockup, each on dark (gold gradient) and cream (flat gold). Cleaner than the earlier textured renders and the best logo reference so far. **Still needed: the original vector source (SVG/AI/PDF/EPS)** and the individual files cut from this board, before it counts as a production asset.
 
-## Owner-supplied SVG logos (2026-10-20) — `assets/brand/svg/`
+## Owner-supplied SVG logos (2026-10-20, updated 2026-10-21) — `assets/brand/svg/`
+**Updated 2026-10-21:** the owner replaced all four files. One shape changed, the lower stem of the monogram, which now ends in a point (a dagger-like tip) instead of a flat foot; every other shape, the viewBoxes and the colors are identical. The app's `src/client/components/brand/logo-shapes.ts` was updated to match.
 `logo-mark-dark.svg`, `logo-mark-light.svg`, `logo-lockup-dark.svg`, `logo-lockup-light.svg` (monogram, and monogram + "LIVING TEXT" + rule).
 - **Vector, text outlined, transparent background, tightly cropped** — usable for the app. Rendered and compared against the PNG board: the shapes match.
 - **Their own metadata says they are a "faithful vector recreation from raster screenshots; manually redrawn"**, i.e. a trace/redraw, not the original artwork. Treat as the production vector unless the designer supplies a master.
