@@ -85,6 +85,7 @@ export async function addToneDraft(
   browser: Browser,
   baseURL: string | undefined,
   book: string,
+  passage: { chapter?: number; verseEnd?: number } = {},
 ): Promise<string> {
   const context = await browser.newContext({ baseURL });
   await signInAs(context, E2E_EDITOR_EMAIL);
@@ -102,10 +103,10 @@ export async function addToneDraft(
       key,
       translation: "WEB",
       book,
-      chapter: 1,
+      chapter: passage.chapter ?? 1,
       verseStart: 1,
-      endChapter: 1,
-      verseEnd: 3,
+      endChapter: passage.chapter ?? 1,
+      verseEnd: passage.verseEnd ?? 3,
       genre: { kind: "builtin", slug: "pop" },
       peaks,
     },

@@ -286,3 +286,13 @@
 - **Real bug fixed (found by stress-testing):** switching genre, version or verse right after pressing play could leave the player showing "paused" while the audio played on. The browser rejects the interrupted `play()` with an `AbortError` and we reported it as a failure. Interruptions caused by our own pause/load are now ignored. It reproduced about 1 run in 3 under load and not once in nine stressed rounds afterwards (this is very likely also the cause of the earlier unexplained journey flake).
 - The Steps "glides to the top" animation test samples fixed moments of a ~1 s animation and misses a window when the machine is busy with other tests (passes alone every time); it now has two retries.
 - Counts: 363 unit, 66 database, 410 browser pass (plus those skipped by design on one viewport); lint, typecheck and format clean.
+
+## 2026-10-21 — Phase 4: performance (branch `m18-integration-testing`)
+- Unit budgets (`src/shared/timing/performance.test.ts`): validating, hit-testing and editing a 1,200-verse sheet; the waveform of a five-minute stereo recording; and the MP3/WAV length probes on 300 MB files, which read only a few KB (constant time).
+- Browser test (`tests/e2e/timing-large.spec.ts`): Psalm 119, 176 verses. The editor opens with every row, autosaves an edit to the whole sheet in under 5 s, validates, zooms to the maximum without stalling, and the publish page lists all verses.
+- Visual check of the new Version section in the genre menu at desktop and phone width: fine.
+- Not measured: very large real files in a real browser (the browser skips the waveform above 200 MB, by design) and real R2 uploads (no bucket yet).
+
+## Where things stand (end of the autonomous run, 2026-10-21)
+- **Done and pushed, one branch per piece, chained:** `m15-timing-editor` (`d3185c6`) → `m16-validation-publish` (`f5d047f`) → `m17-music-selection` (`b9dd7c8`) → `m18-integration-testing` (tip). All of M1–M17 are built; Phase 4 testing is done to the extent possible without the owner's accounts and services.
+- **Still the owner's:** merge the branches; Google OAuth, `AUTH_SECRET`, `ADMIN_EMAILS`, `DATABASE_URL` in `.env.local`; R2 bucket with CORS (then one real upload); ESV key and Crossway permission (including for the music); photography; final logo; the open [A]/[?] decisions in PROJECT.md. **Nothing has been deployed.** A real-browser, real-device pass (Safari/iOS audio, a screen reader) is still needed before launch.
