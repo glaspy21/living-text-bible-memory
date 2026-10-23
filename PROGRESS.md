@@ -301,3 +301,6 @@
 - The owner replaced the four logo SVGs in `assets/brand/svg/`. Compared with the previous set, exactly one shape changed in all four: the monogram's lower stem now ends in a point instead of a flat foot. Everything else (other shapes, viewBoxes, ink colors) is identical.
 - `src/client/components/brand/logo-shapes.ts` (the app's copy of the shapes, used by the header, home and `/design`) was updated to match; checked on `/design` (mark, lockup, small header size). Lint, typecheck and the design, shell and home browser tests pass.
 - Not done: favicon and app icons (`src/app/favicon.ico` is still the old placeholder) because there are no square icon exports yet; I can generate them from the mark if you want.
+
+## 2026-10-21 — Range screen wording and dash spacing (branch `m20-range-labels`, off `m19-logo-update`)
+- Owner request. The range screen's title now reads "Select Verse Range" and its button "Set Range". The big range text there has a space before and after the dash ("John 1:3 – 6"). Other places that show a reference keep the tight dash. Tests updated; lint, typecheck and the range, reader, Steps, Flashcards, shell and accessibility specs pass.

@@ -79,7 +79,7 @@ export function ChapterText({
   );
 
   // Arriving with ?v=16 (from the header's verse menu) scrolls that verse to the top of the screen.
-  // With `jump=1` (Select range on the range page) the verse is there at once, with no scrolling.
+  // With `jump=1` (Set Range on the range page) the verse is there at once, with no scrolling.
   const params = useSearchParams();
   const goTo = params.get("v");
   const jump = params.get("jump") === "1";

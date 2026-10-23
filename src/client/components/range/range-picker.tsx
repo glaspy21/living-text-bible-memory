@@ -44,6 +44,11 @@ function passageOf({ start, end }: { start: BookVerseRef; end: BookVerseRef }): 
  * them back. Browsing to another book keeps the selection, so a range can start in one book and
  * end in a later one.
  */
+/** "John 1:3–6" shown with air around the dash: "John 1:3 – 6". */
+function spacedDash(reference: string): string {
+  return reference.replace(/–/g, " – ");
+}
+
 export function RangePicker({
   initial,
   initialCounts,
@@ -327,14 +332,14 @@ export function RangePicker({
         className="mt-4 shrink-0 text-center font-serif text-[30px] text-gold2"
         data-testid="range-summary"
       >
-        {formatReference(passage)}
+        {spacedDash(formatReference(passage))}
       </p>
 
       <Link
         href={returnHref}
         className="mt-3 inline-flex w-full shrink-0 items-center justify-center rounded-[7px] border border-[#d8b872] bg-gradient-to-b from-[#e0c07a] to-[#a8843f] px-5 py-[7px] font-serif text-[19px] text-[#120d03] transition-transform duration-200 active:scale-[0.97]"
       >
-        Select range
+        Set Range
       </Link>
 
       {anchor && (

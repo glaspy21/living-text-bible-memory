@@ -220,7 +220,7 @@ test.describe("side panel", () => {
     await page.locator('[data-verse="3"]').click();
     await page.locator('[data-verse="5"]').click();
     await page.getByRole("link", { name: "Edit range" }).click();
-    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3–5");
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3 – 5");
     await expect(page.getByTestId("range-picker")).toHaveAttribute("data-interactive", "true");
     const verse = (n: number) =>
       page.getByRole("group", { name: "John 1 verses" }).getByRole("button", {
@@ -231,8 +231,8 @@ test.describe("side panel", () => {
     await expect(verse(4)).toHaveAttribute("data-mark", "inside");
     await expect(verse(5)).toHaveAttribute("data-mark", "endpoint");
     await expect(verse(6)).toHaveAttribute("data-mark", "none");
-    // Select range goes back to the reader with the range still chosen.
-    await page.getByRole("link", { name: "Select range" }).click();
+    // Set Range goes back to the reader with the range still chosen.
+    await page.getByRole("link", { name: "Set Range" }).click();
     await expect(page).toHaveURL(/\/read\/john\/1\?p=john\+1%3A3-5&v=3&jump=1$/);
   });
 
@@ -245,16 +245,16 @@ test.describe("side panel", () => {
     await page.locator('[data-verse="3"]').click();
     await page.locator('[data-verse="12"]').click();
     await page.getByRole("link", { name: "Edit range" }).click();
-    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3–12");
-    await page.getByRole("link", { name: "Select range" }).click();
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:3 – 12");
+    await page.getByRole("link", { name: "Set Range" }).click();
     await expect(page).toHaveURL(/\/read\/john\/1\?p=/);
     await page.locator('[data-verse="20"]').click();
     await page.locator('[data-verse="25"]').click();
     await page.getByRole("link", { name: "Edit range" }).click();
-    await expect(page.getByTestId("range-summary")).toHaveText("John 1:20–25");
+    await expect(page.getByTestId("range-summary")).toHaveText("John 1:20 – 25");
   });
 
-  test("Select range brings the first verse of the range to the top of the reader", async ({
+  test("Set Range brings the first verse of the range to the top of the reader", async ({
     page,
     isMobile,
   }) => {
@@ -273,7 +273,7 @@ test.describe("side panel", () => {
       .getByRole("group", { name: "John 1 verses" })
       .getByRole("button", { name: "Verse 32", exact: true })
       .click();
-    await page.getByRole("link", { name: "Select range" }).click();
+    await page.getByRole("link", { name: "Set Range" }).click();
     await expect(page).toHaveURL(/\/read\/john\/1\?p=john\+1%3A30-32&v=30&jump=1$/);
     // Immediately: no scrolling to get there (a smooth scroll this far takes longer than this).
     await expect

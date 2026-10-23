@@ -29,21 +29,21 @@ test.describe("verse range selector", () => {
     await expect(verse(page, 5)).toHaveAttribute("data-mark", "inside");
     await expect(verse(page, 7)).toHaveAttribute("data-mark", "endpoint");
     await expect(verse(page, 8)).toHaveAttribute("data-mark", "none");
-    await expect(summary(page)).toHaveText("John 1:3–7");
+    await expect(summary(page)).toHaveText("John 1:3 – 7");
   });
 
   test("starts at John 1:1 with no link, and clamps verses that don't exist", async ({ page }) => {
     await openRange(page);
     await expect(summary(page)).toHaveText("John 1:1");
     await openRange(page, "?p=john+2%3A1-99");
-    await expect(summary(page)).toHaveText("John 2:1–25");
+    await expect(summary(page)).toHaveText("John 2:1 – 25");
   });
 
   test("tap a start verse, then an end verse", async ({ page }) => {
     await openRange(page, "?p=john+1%3A1");
     await verse(page, 10).click();
     await verse(page, 14).click();
-    await expect(summary(page)).toHaveText("John 1:10–14");
+    await expect(summary(page)).toHaveText("John 1:10 – 14");
     await expect(page).toHaveURL(/p=john\+1%3A10-14/);
   });
 
@@ -52,7 +52,7 @@ test.describe("verse range selector", () => {
     await verse(page, 5).click();
     await expect(summary(page)).toHaveText("John 1:5");
     await verse(page, 20).click();
-    await expect(summary(page)).toHaveText("John 1:5–20");
+    await expect(summary(page)).toHaveText("John 1:5 – 20");
   });
 
   test("scrolling down the list reaches the next chapter, and a range can cross into it", async ({
@@ -69,7 +69,7 @@ test.describe("verse range selector", () => {
     await expect(picker(page).getByRole("button", { name: "John 2", exact: true })).toBeVisible();
     await verse(page, 5, "John 2 verses").click();
 
-    await expect(summary(page)).toHaveText("John 1:50–2:5");
+    await expect(summary(page)).toHaveText("John 1:50 – 2:5");
     await expect(page).toHaveURL(/p=john\+1%3A50-2%3A5/);
     // Chapter 2's verses 1–4 are inside the range, 5 is the end.
     await expect(verse(page, 3, "John 2 verses")).toHaveAttribute("data-mark", "inside");
@@ -85,7 +85,7 @@ test.describe("verse range selector", () => {
     await expect(verse(page, 1, "John 2 verses")).toBeInViewport();
     await verse(page, 1, "John 2 verses").click();
     await verse(page, 36, "John 3 verses").click();
-    await expect(summary(page)).toHaveText("John 2:1–3:36");
+    await expect(summary(page)).toHaveText("John 2:1 – 3:36");
   });
 
   test("scrolling on past the last chapter of a book runs into the next book", async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe("verse range selector", () => {
     await expect(page.getByRole("group", { name: "Acts 1 verses" })).toBeAttached();
     await verse(page, 20, "John 21 verses").click();
     await verse(page, 3, "Acts 1 verses").click();
-    await expect(summary(page)).toHaveText("John 21:20–Acts 1:3");
+    await expect(summary(page)).toHaveText("John 21:20 – Acts 1:3");
     await expect(page).toHaveURL(/p=john\+21%3A20-acts\+1%3A3/);
   });
 
@@ -121,7 +121,7 @@ test.describe("verse range selector", () => {
     await dialog.getByRole("button", { name: "4", exact: true }).click();
     await expect(dialog).toBeHidden();
     await expect(picker(page).getByRole("button", { name: "John 4", exact: true })).toBeVisible();
-    await expect(summary(page)).toHaveText("John 1:3–7");
+    await expect(summary(page)).toHaveText("John 1:3 – 7");
     await expect(verse(page, 3, "John 4 verses")).toHaveAttribute("data-mark", "none");
     await expect(verse(page, 3)).toHaveAttribute("data-mark", "endpoint"); // chapter 1 keeps it
   });
@@ -137,9 +137,9 @@ test.describe("verse range selector", () => {
     await dialog.getByRole("button", { name: "1", exact: true }).click();
     await expect(picker(page).getByRole("button", { name: "John 1", exact: true })).toBeVisible();
     await verse(page, 3, "John 1 verses").click();
-    await expect(summary(page)).toHaveText("Luke 24:50–John 1:3");
+    await expect(summary(page)).toHaveText("Luke 24:50 – John 1:3");
     await expect(page).toHaveURL(/p=luke\+24%3A50-john\+1%3A3/);
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       "/memorize?p=luke+24%3A50-john+1%3A3",
     );
@@ -162,7 +162,7 @@ test.describe("verse range selector", () => {
     await openRange(page, "?p=john+1%3A3-7&from=steps&step=recall");
     await verse(page, 5).click();
     await verse(page, 9).click();
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       "/memorize/steps?p=john+1%3A5-9&step=recall",
     );
@@ -172,7 +172,7 @@ test.describe("verse range selector", () => {
     page,
   }) => {
     await openRange(page, "?p=john+1%3A3-7&from=read");
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       "/read/john/1?p=john+1%3A3-7&v=3&jump=1",
     );
@@ -180,7 +180,7 @@ test.describe("verse range selector", () => {
 
   test("opened from Flashcards, it goes back to the flashcards", async ({ page }) => {
     await openRange(page, "?p=john+1%3A3-7&from=flashcards");
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       "/memorize/flashcards?p=john+1%3A3-7",
     );
@@ -188,13 +188,13 @@ test.describe("verse range selector", () => {
 
   test("without a screen to return to, it carries the passage to Memorize", async ({ page }) => {
     await openRange(page, "?p=john+1%3A3-7");
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       "/memorize?p=john+1%3A3-7",
     );
   });
 
-  test("the player bar is not shown, and Select range is in view, even after coming from Steps", async ({
+  test("the player bar is not shown, and Set Range is in view, even after coming from Steps", async ({
     page,
     isMobile,
   }) => {
@@ -205,7 +205,7 @@ test.describe("verse range selector", () => {
     await page.getByRole("link", { name: "Edit range" }).click();
     await expect(page.getByTestId("range-picker")).toHaveAttribute("data-interactive", "true");
     await expect(page.getByRole("contentinfo", { name: "Player" })).toBeHidden();
-    await expect(page.getByRole("link", { name: "Select range" })).toBeInViewport();
+    await expect(page.getByRole("link", { name: "Set Range" })).toBeInViewport();
   });
 
   test("phones show five verses per row", async ({ page, isMobile }) => {

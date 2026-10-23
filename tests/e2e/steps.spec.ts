@@ -494,7 +494,7 @@ test.describe("memorize choice and Continue", () => {
     await expect(
       nav.getByRole("link", { name: "Memorization Steps", exact: true }),
     ).toHaveAttribute("aria-current", "page");
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       /^\/memorize\/steps\?p=/,
     );
@@ -514,7 +514,7 @@ test.describe("memorize choice and Continue", () => {
       "aria-current",
       "page",
     );
-    await expect(page.getByRole("link", { name: "Select range" })).toHaveAttribute(
+    await expect(page.getByRole("link", { name: "Set Range" })).toHaveAttribute(
       "href",
       /^\/memorize\/flashcards\?p=/,
     );

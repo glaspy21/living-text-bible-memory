@@ -69,7 +69,7 @@ export default function VerseRangePage({ searchParams }: PageProps<"/memorize/ra
     <Main>
       <div className="mx-auto flex h-full w-full max-w-[720px] flex-col">
         <div className="shrink-0">
-          <PageTitle title="Choose verses" />
+          <PageTitle title="Select Verse Range" />
         </div>
         <Suspense fallback={<p className="text-muted">Loading…</p>}>
           <Range searchParams={searchParams} />
