@@ -304,3 +304,7 @@
 
 ## 2026-10-21 — Range screen wording and dash spacing (branch `m20-range-labels`, off `m19-logo-update`)
 - Owner request. The range screen's title now reads "Select Verse Range" and its button "Set Range". The big range text there has a space before and after the dash ("John 1:3 – 6"). Other places that show a reference keep the tight dash. Tests updated; lint, typecheck and the range, reader, Steps, Flashcards, shell and accessibility specs pass.
+
+## 2026-11-12 — Home background photo (branch `m20-range-labels`)
+- Owner supplied `assets/background-photos/Golden Sunrise Over a Tropical Valley.png` and `assets/thumbnails/John 1 thumbnail.png` (both stored in the repo). The background photo is now the Home hero's background (web copy `public/images/hero-sunrise.jpg`, with a 45% dark overlay so the gold logo stays legible). The thumbnail is stored only; "Recently Studied" tiles stay numbered until the owner says how to use it.
+- Not visually checked in a browser yet (screenshots were blocked in this session); lint and typecheck pass.

@@ -9,7 +9,13 @@ export default function HomePage() {
     <Main screen="home" className="flex flex-col items-center">
       <div className="flex w-full max-w-[880px] flex-col items-center gap-[18px] pt-1.5">
         <h1 className="sr-only">Living Text</h1>
-        <div className="flex h-[250px] w-full items-center justify-center rounded-2xl border border-line max-[520px]:rounded-none max-[520px]:border-0 max-[520px]:border-b">
+        <div
+          className="flex h-[250px] w-full items-center justify-center rounded-2xl border border-line bg-cover bg-center max-[520px]:rounded-none max-[520px]:border-0 max-[520px]:border-b"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url(/images/hero-sunrise.jpg)",
+          }}
+        >
           <Logo variant="lockup" height={190} />
         </div>
         <div className="flex w-full max-w-[720px] flex-col gap-[18px] max-[520px]:px-4">
